@@ -1,0 +1,307 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" >
+  <meta name="viewport" content="width=800">
+  <meta name="description" content="Monthly updated interactive statistics of OpenStreetMap.">
+  <title>OpenStreetMap Statistics</title>
+  <script src="assets/plotly-custom.min.js"></script>
+  <script src="assets/data.js"></script>
+  <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/plausible.js"></script>
+</head>
+
+<script>
+
+selection_options = {}
+url_hash_to_topic_question = {}
+for (topic of Object.keys(data)){
+    selection_options[topic] = {}
+    for (question of Object.keys(data[topic])){
+        selection_options[topic][question] = {}
+        url_hash_to_topic_question[data[topic][question]["url_hash"]] = [topic, question]
+    }
+}
+
+function init(){
+    update_select_0()
+    if(window.location.hash) {
+        url_hash = window.location.hash.substring(1)
+        if (url_hash in url_hash_to_topic_question){
+            topic = url_hash_to_topic_question[url_hash][0]
+            question = url_hash_to_topic_question[url_hash][1]
+            if (topic in selection_options && question in selection_options[topic]){
+                document.getElementById('select_0').value = topic
+                update_select_1()
+                document.getElementById('select_1').value = question
+            }
+        }
+    }
+    update_content()
+    window.addEventListener('resize', function(event) {update_content()}, true);
+}
+
+function options_to_selection(select, keys){
+    prev_value = select.value
+    while (select.firstChild) {
+        select.removeChild(select.lastChild)
+    }
+    for (key of keys){
+        var opt = document.createElement('option')
+        opt.value = key
+        opt.innerHTML = key.replaceAll("_", " ")
+        select.appendChild(opt)
+    }
+    if (keys.includes(prev_value)){
+        select.value = prev_value
+    }
+}
+
+function get_current_select(){
+    return [document.getElementById('select_0').value, document.getElementById('select_1').value]
+}
+
+function update_content(){
+    document.getElementById("data").innerHTML = ""  
+    topic_question = get_current_select()
+    topic = topic_question[0]
+    question = topic_question[1]
+    data[topic][question]["update"]()
+
+    document.getElementById('save_plot_btn').onclick = data[topic][question]["save_plot"]
+    document.getElementById('save_data_btn').onclick = data[topic][question]["save_data"]
+
+    history.replaceState(null, "", "#" + data[topic][question]["url_hash"])
+}
+
+function update_select_0(){
+    options_to_selection(document.getElementById('select_0'), Object.keys(selection_options))
+    update_select_1()
+}
+
+function update_select_1(){
+    current_select_0 = document.getElementById('select_0').value
+    options_to_selection(document.getElementById('select_1'), Object.keys(selection_options[current_select_0]))
+}
+
+function on_change_select_0(){
+    update_select_1()
+    update_content()
+}
+
+function on_change_select_1(){
+    update_content()
+}
+
+
+function add_div(id, class_str){
+    let div = document.createElement('div')
+    div.id = id
+    div.style.display = "inline-block"
+    div.classList.add(class_str);
+    document.getElementById('data').appendChild(div)
+    return div
+}
+
+function download(data_str, title, file_ending){
+    const downloadLink = document.createElement('a');
+    downloadLink.download = title + "." + file_ending;
+    if (file_ending == "csv"){
+        data_str = window.URL.createObjectURL(new Blob([data_str], { type: 'text/csv' }))
+    } else if (file_ending == "json"){
+        data_str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data_str))
+    }
+    downloadLink.href = data_str
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+
+function add_plot(topic, question, div_id){
+    div = add_div(div_id, "dataDiv")
+    plot = data[topic][question][div_id]
+    plot["config"]["staticPlot"] = (screen.width < 850)
+    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
+}
+
+async function save_plot(topic, question, div_id){
+    await Plotly.toImage(document.getElementById(div_id), {format:'png',height:500,width:1000}).then(function(png_str){
+        title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_")
+        download(png_str, title, "png")
+    })
+}
+
+async function save_plot_data(topic, question, div_id){
+    x = data[topic][question][div_id]["traces"][0]["x"]
+    y_list = []
+    y_names = []
+    for (trace of data[topic][question][div_id]["traces"]){
+        y_list.push(trace["y"])
+        y_names.push(trace["name"])
+    }
+    var rows = ["x," + y_names.join(",")]
+    for (i=0; i<x.length; i++){
+        row = [x[i]]
+        for (j=0; j<y_list.length; j++){
+            row.push(y_list[j][i])
+        }
+        rows.push(row.join(","))
+    }
+    title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_")
+    download(rows.join("\n"), title, "csv")
+}
+
+
+function add_text(topic, question, div_id){
+    div = add_div(div_id, "textDiv")
+    div.innerText = data[topic][question][div_id]
+}
+
+
+async function add_map(topic, question, div_id){
+    div = add_div(div_id, "dataDiv")
+    if (!(div_id + "_data" in data[topic][question])){
+        path = "assets/" + data[topic][question][div_id]
+        data[topic][question][div_id + "_data"] = await fetch(path).then(response => {return response.json()})
+    }
+    plot = data[topic][question][div_id + "_data"]
+    plot["config"]["staticPlot"] = (screen.width < 850)
+    console.log(plot["config"]["staticPlot"])
+    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
+}
+
+async function save_map(topic, question, div_id){
+    await Plotly.toImage(document.getElementById(div_id), {format:'png',height:500,width:1000}).then(function(png_str){
+        title = data[topic][question][div_id+"_data"]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_") + "_map"
+        download(png_str, title, "png")
+    })
+}
+
+async function save_map_data(topic, question, div_id){
+    div_id += "_data"
+    title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_") + "_map"
+    download(data[topic][question][div_id]["traces"], title, "json")
+}
+
+
+async function add_table(topic, question, div_id){
+    div = add_div(div_id, "dataDiv")
+    div.style.width = "100%"
+    div.style.aspectRatio = "auto"
+    if (!(div_id + "_data" in data[topic][question])){
+        path = "assets/" + data[topic][question][div_id]
+        data[topic][question][div_id + "_data"] = await fetch(path).then(response => {return response.json()})
+    }
+    table = data[topic][question][div_id + "_data"]
+    const head = "<tr>" + table["head"].map(v => "<th>" + v + "</th>").join("") + "</tr>"
+    const body = table["body"].map(row => "<tr>" + row.map(v => "<td>" + v + "</td>").join("") + "</tr>").join("")
+    div.innerHTML="<h3>" + table["title"] + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
+}
+
+async function save_table_data(topic, question, div_id){
+    div_id += "_data"
+    title = data[topic][question][div_id]["title"].toLowerCase().replaceAll(" ", "_") + "_table"
+    csv_str = data[topic][question][div_id]["head"].join(',') + "\n"
+    
+    for (row of data[topic][question][div_id]["body"]){
+        csv_str += row.join(',') + "\n"
+    }
+    download(csv_str, title, "csv")
+}
+
+</script>
+
+<style>
+table, th, td {
+  border:1px solid black;
+  text-align: center;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 5px;
+}
+
+.textDiv {
+  text-align: justify;
+  width: 51%;
+  margin: 0 auto;
+  padding: 25px 0px 25px 0px;
+}
+
+.dataDiv {
+    width: 51%;
+    aspect-ratio: 2/1;
+    padding: 25px 0px 25px 0px;
+}
+
+body {
+    font-family: times;
+    font-size: 22px;
+    text-align: center;
+
+    height: 100%;
+    overflow: auto;
+}
+
+html {
+    overflow: hidden;
+    height: 100%;
+}
+
+select, button {
+    font-size: 16px;
+    max-width: 95%;
+}
+
+@media (max-width: 1600px) {
+  .dataDiv {
+    width: 70%;
+  }
+  .textDiv {
+    width: 70%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .dataDiv {
+    width: 90%;
+  }
+  .textDiv {
+    width: 90%;
+  }
+}
+
+
+@media (max-width: 800px) {
+  .dataDiv {
+    width: 784px;
+  }
+  .textDiv {
+    width: 784px;
+  }
+  body {
+    font-size: 16px;
+  } 
+}
+
+</style>
+
+<body onload="init()">
+<h2>OpenStreetMap Statistics</h2>
+<div class="textDiv" style="padding-top: 0;">
+The <a href="https://github.com/piebro/openstreetmap-statistics">code</a> for creating the plots is open source. There is also some documentation describing the <a href="https://github.com/piebro/openstreetmap-statistics#methodology">methodology</a> and what to consider when interpreting the data.
+</div>
+<div>
+    <select onchange="on_change_select_0()" id="select_0"></select>
+    <select onchange="on_change_select_1()" id="select_1"></select>
+</div>
+<div id="data"></div>
+<div>
+    <button id="save_plot_btn">save plot(s)</button>
+    <button id="save_data_btn">save data</button>
+</div>
+</br>
+</body>
+</html>
