@@ -76,7 +76,7 @@ topic = "Editing Software"
 with open("assets/data.js", "a") as f:
     f.write(f"data['{topic}']={{}}\n")
 
-    question = "How many paople are contributing per editing software each month?"
+    question = "How many people are contributing per editing software each month?"
     f.write(util.get_js_str(topic, question, "c229", [
         util.get_multi_line_plot("monthly contributor count per editing software", "contributors", months, util.set_to_length(mo_co_set)[:10], co_rank_to_name[:10]),
         util.get_table("yearly contributor count per editing software", years, util.monthly_set_to_yearly_with_total(mo_co_set, years, month_index_to_year_index), topic, co_rank_to_name)
