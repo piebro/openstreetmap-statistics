@@ -103,16 +103,6 @@ function add_div(id, class_str){
     return div
 }
 
-async function load_data(topic, question, div_id){
-    if (!(div_id in data[topic][question])){
-        path = "assets/" + data[topic][question]["data_path_" + div_id]
-        data[topic][question][div_id] = await fetch(path).then(response => {return response.json()})
-        return data[topic][question][div_id]
-    } else {
-        return data[topic][question][div_id]
-    }
-}
-
 function download(data_str, title, file_ending){
     const downloadLink = document.createElement('a');
     downloadLink.download = title + "." + file_ending;
@@ -143,7 +133,7 @@ async function save_plot(topic, question, div_id){
     })
 }
 
-function save_plot_data(topic, question, div_id){
+async function save_plot_data(topic, question, div_id){
     x = data[topic][question][div_id]["traces"][0]["x"]
     y_list = []
     y_names = []
@@ -164,22 +154,6 @@ function save_plot_data(topic, question, div_id){
 }
 
 
-async function add_async_load_plot(topic, question, div_id){
-    div = add_div(div_id, "dataDiv")
-    plot = await load_data(topic, question, div_id)
-    plot["config"]["staticPlot"] = (screen.width < 850)
-    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
-}
-
-async function save_async_load_plot(topic, question, div_id){
-    save_plot(topic, question, div_id)
-}
-
-async function save_async_load_plot_data(topic, question, div_id){
-    save_plot_data(topic, question, div_id)
-}
-
-
 function add_text(topic, question, div_id){
     div = add_div(div_id, "textDiv")
     div.innerText = data[topic][question][div_id]
@@ -188,8 +162,13 @@ function add_text(topic, question, div_id){
 
 async function add_map(topic, question, div_id){
     div = add_div(div_id, "dataDiv")
-    plot = await load_data(topic, question, div_id)
+    if (!(div_id + "_data" in data[topic][question])){
+        path = "assets/" + data[topic][question][div_id]
+        data[topic][question][div_id + "_data"] = await fetch(path).then(response => {return response.json()})
+    }
+    plot = data[topic][question][div_id + "_data"]
     plot["config"]["staticPlot"] = (screen.width < 850)
+    console.log(plot["config"]["staticPlot"])
     Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
 }
 
@@ -200,7 +179,7 @@ async function save_map(topic, question, div_id){
     })
 }
 
-function save_map_data(topic, question, div_id){
+async function save_map_data(topic, question, div_id){
     div_id += "_data"
     title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_") + "_map"
     download(data[topic][question][div_id]["traces"], title, "json")
@@ -211,13 +190,17 @@ async function add_table(topic, question, div_id){
     div = add_div(div_id, "dataDiv")
     div.style.width = "100%"
     div.style.aspectRatio = "auto"
-    table = await load_data(topic, question, div_id)
+    if (!(div_id + "_data" in data[topic][question])){
+        path = "assets/" + data[topic][question][div_id]
+        data[topic][question][div_id + "_data"] = await fetch(path).then(response => {return response.json()})
+    }
+    table = data[topic][question][div_id + "_data"]
     const head = "<tr>" + table["head"].map(v => "<th>" + v + "</th>").join("") + "</tr>"
     const body = table["body"].map(row => "<tr>" + row.map(v => "<td>" + v + "</td>").join("") + "</tr>").join("")
     div.innerHTML="<h3>" + table["title"] + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
 }
 
-function save_table_data(topic, question, div_id){
+async function save_table_data(topic, question, div_id){
     div_id += "_data"
     title = data[topic][question][div_id]["title"].toLowerCase().replaceAll(" ", "_") + "_table"
     csv_str = data[topic][question][div_id]["head"].join(',') + "\n"

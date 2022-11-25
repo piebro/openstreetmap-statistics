@@ -109,7 +109,7 @@ def get_single_line_plot(plot_title, unit, x, y, percent=False):
     trim_x_axis_to_non_zero_data(plot, offset=3)
     return ("plot", plot)
 
-def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, async_load=False):
+def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False):
     if percent:
         y_list = [[round(float(yy), 2) for yy in y] for y in y_list]
     else:
@@ -125,8 +125,6 @@ def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, asy
             trace["hovertemplate"] = "%{x}<br>%{y}%"
             trace["stackgroup"] = "one"
     trim_x_axis_to_non_zero_data(plot, offset=3)
-    if async_load:
-        return ("async_load_plot", plot)    
     return ("plot", plot)
 
 def get_table(table_title, x, y_list, y_names_head, y_names):
@@ -179,22 +177,17 @@ def get_js_str(topic, question, url_hash, div_elements):
     for i, (t, e) in enumerate(div_elements):
         if t == 'plot':
             js_str_arr.append(f'{i}: {json.dumps(e, separators=(",", ":"))}')
-        elif t == 'async_load_plot':
-            title = e["layout"]["title"]["text"]
-            save_path = os.path.join("plot_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json').replace("#","")
-            save_json(save_path, e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
         elif t == 'text':
             js_str_arr.append(f'{i}: "{e}"')
         elif t == 'map':
             title = e["layout"]["title"]["text"]
             save_path = os.path.join("map_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json').replace("#","")
             save_json(save_path, e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
+            js_str_arr.append(f'{i}: "{save_path}"')
         elif t == 'table':
             save_path = os.path.join("table_data", f'{topic.lower().replace(" ", "_")}_{e["title"].lower().replace(" ", "_")}.json')
             save_json(save_path, e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
+            js_str_arr.append(f'{i}: "{save_path}"')
     
     update_str_arr = ['update: async function(){']
     update_str_arr.extend([f'await add_{t}("{topic}","{question}","{i}");' for i, (t, _) in enumerate(div_elements)])
