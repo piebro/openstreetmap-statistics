@@ -1,0 +1,4 @@
+*.txt
+*.osm.bz2
+*.csv.gz
+__pycache__
