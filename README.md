@@ -9,7 +9,7 @@ The plots and tables are organized in topics and questions I asked myself about 
 
 All data is gathered from an OpenStreetMap [changeset file](https://planet.openstreetmap.org/planet/).
 According to the OSM wiki, a [changeset](https://wiki.openstreetmap.org/wiki/Changeset) is a group of edits to the database by a single user over a short period.
-Besides who made the changes and how many edits were made, each changeset can contain additional information, for example about which editor was used of if imagery was used.
+Besides who made the changes and how many edits were made, each changeset can contain additional information, for example about which editor was used, source of edit, it may also list used imagery.
 
 The Methodology used is the same as in https://wiki.openstreetmap.org/wiki/Editor_usage_stats and uses the same terms.
 One important term which is used a lot is `edits`.
