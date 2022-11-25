@@ -80,7 +80,7 @@ with open("assets/data.js", "a") as f:
         util.get_single_line_plot("average number of edits using bots per changeset per month", "average number of edits per changeset", months, np.round(util.save_div(mo_ed, mo_ch), 2))
     ]))
     
-    question = "What are the most used bots?"
+    question = "What are the most used bot tools?"
     f.write(util.get_js_str(topic, question, "e985", [
         util.get_table("yearly edit count per bot", years, util.monthly_to_yearly_with_total(created_by_ed[:100], years, month_index_to_year_index), topic, created_by_ed_names[:100])
     ]))
