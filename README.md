@@ -31,10 +31,12 @@ Feel free to open an issue if you see cases where the regex is not working corre
 
 ### Imagery Software
 
-One optional tag for changesets is the imagery tag, which is used to add an image source if aerial or other imagery is used. 
+One optional tag for changesets is the `imagery` tag, which is used by some editors to add an image source if aerial or other imagery is used. 
 It's necessary to filter the tag to get an overview of the most common image sources.
 The filtering is done with `if` statements and can be reviewed at [src/save_changesets_csv.py](src/save_changesets_csv.py).
 Feel free to open an issue if the filter is not working as intended.
+
+Note that `imagery` tag is set by iD, Vespucci and Go Map!! and is not set by JOSM.
 
 ### Cooperations
 
@@ -107,6 +109,7 @@ This has the advantage of having a smaller plotly file while still being able to
 If there are other topics and questions about OpenStreetMap you think are interesting and that can be abstracted from the changeset, feel free to open an issue or create a pull request.
 Also, if you see any typos or other mistakes, feel free to correct them and create a pull request.
 
+Adding a new plot also needs adding a new `url_hash`. A new unique one can be printed with running `python3 src/create_new_unique_url_hash.py`.
 
 ## License
 

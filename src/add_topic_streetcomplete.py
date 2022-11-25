@@ -4,7 +4,7 @@ import util
 
 # init
 data_dir = sys.argv[1]
-top_k = 200
+top_k = 100
 months, years = util.get_months_years(data_dir)
 year_to_year_index = util.list_to_dict(years)
 month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
@@ -74,18 +74,12 @@ with open("assets/data.js", "a") as f:
         util.get_table("yearly edit count per quest", years, util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index), topic, ed_rank_to_name)
     ]))
 
-    question = "What's the total amount of contributors and edits of the top quests over time?"
+    question = "What's the total amount of contributors and edits of quests over time?"
     f.write(util.get_js_str(topic, question, "d06d", [
         util.get_multi_line_plot("total contributor count of quests", "contributors", months, util.set_cumsum(mo_co_set), co_rank_to_name[:10]),
         util.get_multi_line_plot("total edit count of quests", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:10]),
     ]))
     
-    question = "What's the total amount of contributors and edits of all quests over time?"
-    f.write(util.get_js_str(topic, question, "3ff2", [
-        util.get_multi_line_plot("total contributor count of quests", "contributors", months, util.set_cumsum(mo_co_set), co_rank_to_name, async_load=True),
-        util.get_multi_line_plot("total edit count of quests", "edits", months, util.cumsum(mo_ed), ed_rank_to_name, async_load=True),
-    ]))
-
     question = "Where is SteetComplete used the most?"
     f.write(util.get_js_str(topic, question, "52ed", [
         util.get_map_plot(f"total edits with streetcomplete", total_map_ed)

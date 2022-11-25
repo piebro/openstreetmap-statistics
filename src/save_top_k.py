@@ -9,11 +9,11 @@ def load_index_to_tag(data_dir, data_name):
         return [l[:-1] for l in f.readlines()]
 
 def main():
-    tag_name_top_k_list = [("created_by", 100), ("streetcomplete_quest_type", 200), ("imagery", 100), ("hashtag", 100)]
     data_dir = sys.argv[1]
+    top_k = 100
 
     tag_to_changesets, tag_to_edits, tag_to_contributors = [], [], []
-    for tag_name, top_k in tag_name_top_k_list:
+    for tag_name in ["created_by", "streetcomplete_quest_type", "imagery", "hashtag"]:
         count = len(load_index_to_tag(data_dir, tag_name))
         tag_to_changesets.append(np.zeros(count, dtype=np.int64))
         tag_to_edits.append(np.zeros(count, dtype=np.int64))
@@ -55,13 +55,14 @@ def main():
                 tag_to_contributors[3][tag].add(user_id)
 
     top_k_dict = {}
-    for i, (tag_name, top_k) in enumerate(tag_name_top_k_list):
+    for i, tag_name in enumerate(["created_by", "streetcomplete_quest_type", "imagery", "hashtag"]):
         contributers_i = np.array([len(contributor_set) for contributor_set in tag_to_contributors[i]], dtype=np.int64)
         top_k_dict[tag_name] = {
             "changesets": np.argsort(-tag_to_changesets[i])[:top_k].tolist(),
             "edits": np.argsort(-tag_to_edits[i])[:top_k].tolist(),
             "contributors": np.argsort(-contributers_i)[:top_k].tolist(),
         }
+
 
     with open(os.path.join(data_dir, "top_k.json"), "w") as f:
         json.dump(top_k_dict, f)
