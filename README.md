@@ -109,6 +109,7 @@ This has the advantage of having a smaller plotly file while still being able to
 If there are other topics and questions about OpenStreetMap you think are interesting and that can be abstracted from the changeset, feel free to open an issue or create a pull request.
 Also, if you see any typos or other mistakes, feel free to correct them and create a pull request.
 
+Adding a new plot also needs adding a new `url_hash`. A new unique one can be printed with running `python3 src/create_new_unique_url_hash.py`.
 
 ## License
 
