@@ -80,7 +80,7 @@ with open("assets/data.js", "a") as f:
         util.get_multi_line_plot("total edit count of quests", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:10]),
     ]))
     
-    question = "Where is SteetComplete used the most?"
+    question = "Where is StreetComplete used the most?"
     f.write(util.get_js_str(topic, question, "52ed", [
         util.get_map_plot(f"total edits with streetcomplete", total_map_ed)
     ]))
