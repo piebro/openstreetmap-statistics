@@ -61,7 +61,7 @@ with open("assets/data.js", "a") as f:
 
     question = "Why is there rapid growth in monthly contributors in 2016?"
     f.write(util.get_js_str(topic, question, "21d9", [
-        ("text", "That's because a lot of new people were contributing using the maps.me app. Looking at the plot of monthly contributors not using maps.me shows that there is linear growth."),
+        ("text", "That's because a lot of new people were contributing using the maps.me app. Looking at the plot of monthly contributors not using maps.me shows that there is linear growth. It is also worth noting that vast majority of maps.me mappers made only few edits. And due to definciencies in provided editor quality of their edits was really low."),
         util.get_single_line_plot("contributors per month without maps.me contributors", "contributors", months, mo_co_without_maps_me),
     ]))
 
