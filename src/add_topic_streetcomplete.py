@@ -63,6 +63,7 @@ with open("assets/data.js", "a") as f:
 
     question = "How popular is StreetComplete in the OSM community?"
     f.write(util.get_js_str(topic, question, "465b", [
+        ("text", "<a href='https://streetcomplete.app/'>StreetComplete</a>  is an Android app where editing is done by answering predefined questions called 'quests'. This editor is much simpler to use than alternatives, but does not allow freeform editing. For example, adding missing opening hours is really easy, but you cannot map a missing road."),
         util.get_single_line_plot("percent of contributors that use streetcomplete per month", "%", months, util.get_percent(mo_co_sc, util.set_to_length(mo_co_set_all)), percent=True),
         util.get_single_line_plot("contributors that use streetcomplete per month", "contributors", months, mo_co_sc),
         util.get_single_line_plot("percent of edits made with streetcomplete per month", "%", months, util.get_percent(mo_ed_sc, mo_ed_all), percent=True),
