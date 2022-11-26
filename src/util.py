@@ -109,7 +109,7 @@ def get_single_line_plot(plot_title, unit, x, y, percent=False):
     trim_x_axis_to_non_zero_data(plot, offset=3)
     return ("plot", plot)
 
-def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, async_load=False):
+def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, on_top_of_each_other=False, async_load=False):
     if percent:
         y_list = [[round(float(yy), 2) for yy in y] for y in y_list]
     else:
@@ -123,6 +123,8 @@ def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, asy
         plot["layout"]["yaxis"]["range"] = [0,100]
         for trace in plot["traces"]:
             trace["hovertemplate"] = "%{x}<br>%{y}%"
+    if on_top_of_each_other:
+        for trace in plot["traces"]:
             trace["stackgroup"] = "one"
     trim_x_axis_to_non_zero_data(plot, offset=3)
     if async_load:
