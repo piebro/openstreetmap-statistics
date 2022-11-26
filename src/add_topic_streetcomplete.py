@@ -4,7 +4,7 @@ import util
 
 # init
 data_dir = sys.argv[1]
-top_k = 500
+top_k = 300
 months, years = util.get_months_years(data_dir)
 year_to_year_index = util.list_to_dict(years)
 month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
