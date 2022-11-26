@@ -19,6 +19,7 @@ total_map_ed = np.zeros((360, 180), dtype=np.int64)
 mo_co_set = [set() for _ in range(len(months))]
 mo_co_set_without_maps_me = [set() for _ in range(len(months))]
 mo_co_edit_count = [dict() for _ in range(len(months))]
+co_first_edit = dict()
 
 # accumulate data
 for line in sys.stdin:
@@ -35,6 +36,12 @@ for line in sys.stdin:
         mo_co_edit_count[month_index][user_id] = 0    
     mo_co_edit_count[month_index][user_id] += edits
 
+    if user_id not in co_first_edit:
+        co_first_edit[user_id] = month_index
+    else:
+        if month_index < co_first_edit[user_id]:
+            co_first_edit[user_id] = month_index
+
     if len(x)>0:
         ye_map_ed[month_index_to_year_index[month_index], int(x), int(y)] += edits
         total_map_ed[int(x), int(y)] += edits
@@ -48,6 +55,11 @@ mo_co_without_maps_me = util.set_to_length(mo_co_set_without_maps_me)
 ye_map_ed_max_z_value = np.max(ye_map_ed)
 mo_co_edit_count_higher_then_100 = [np.sum(np.array(list(mo_co_edit_count[month_index].values()))>100) for month_index in range(len(months))]
 
+month_index, first_edit_count = np.unique(list(co_first_edit.values()), return_counts=True)
+mo_new_co = np.zeros((len(months)))
+mo_new_co[month_index] = first_edit_count
+
+
 # save plots
 topic = "General"
 with open("assets/data.js", "a") as f:
@@ -56,6 +68,7 @@ with open("assets/data.js", "a") as f:
     question = "How many people are contributing each month?"
     f.write(util.get_js_str(topic, question, "63f6", [
         util.get_single_line_plot("contributors per month", "contributors", months, mo_co),
+        util.get_single_line_plot("new contributors per month", "contributors", months, mo_new_co),
         util.get_single_line_plot("contributors with more then 100 edits per month", "contributors", months, mo_co_edit_count_higher_then_100),
     ]))
 
