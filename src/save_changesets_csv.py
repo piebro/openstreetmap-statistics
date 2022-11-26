@@ -82,20 +82,22 @@ def main():
 
         csv_arr.append(str(int("bot" in tags and tags["bot"]=="yes"))) # if bot is used
         
+        created_by=None
         if "created_by" in tags and len(tags["created_by"]) > 0:
             created_by = tags["created_by"].replace("%20%", " ").replace("%2c%", ",")
             #debug_regex(created_by_regex, created_by)
-            csv_arr.append(add_to_index_dict(index_dict_created_by, re.sub(created_by_regex, "", created_by)))
+            created_by = re.sub(created_by_regex, "", created_by)
+            csv_arr.append(add_to_index_dict(index_dict_created_by, created_by))
         else:
             csv_arr.append("")
 
-        if "StreetComplete:quest_type" in tags:
+        if created_by=="StreetComplete" and "StreetComplete:quest_type" in tags:
             streetcomplete_quest_type_tag = tags["StreetComplete:quest_type"]
             if streetcomplete_quest_type_tag in streetcomplete_quest_type_tag_changes:
                 streetcomplete_quest_type_tag = streetcomplete_quest_type_tag_changes[streetcomplete_quest_type_tag]
             csv_arr.append(add_to_index_dict(index_dict_streetcomplete_quest_type, tags["StreetComplete:quest_type"]))
         else:
-            csv_arr.append("")
+            csv_arr.append("")        
 
         if "imagery_used" in tags and len(tags["imagery_used"]) > 0:
             imagery_list = [imagery for imagery in tags["imagery_used"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(imagery) > 0]

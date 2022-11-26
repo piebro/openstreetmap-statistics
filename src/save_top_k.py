@@ -9,7 +9,7 @@ def load_index_to_tag(data_dir, data_name):
         return [l[:-1] for l in f.readlines()]
 
 def main():
-    tag_name_top_k_list = [("created_by", 100), ("streetcomplete_quest_type", 500), ("imagery", 100), ("hashtag", 100)]
+    tag_name_top_k_list = [("created_by", 100), ("streetcomplete_quest_type", 300), ("imagery", 100), ("hashtag", 100)]
     data_dir = sys.argv[1]
 
     tag_to_changesets, tag_to_edits, tag_to_contributors = [], [], []
