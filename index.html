@@ -182,7 +182,7 @@ async function save_async_load_plot_data(topic, question, div_id){
 
 function add_text(topic, question, div_id){
     div = add_div(div_id, "textDiv")
-    div.innerText = data[topic][question][div_id]
+    div.insertAdjacentHTML('beforeend', data[topic][question][div_id]);
 }
 
 
