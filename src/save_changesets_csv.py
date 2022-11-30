@@ -26,8 +26,8 @@ def get_tags(tags_str):
 def add_to_index_dict(index_dict, tag):
     if tag not in index_dict[1]:
         index_dict[0] += 1
-        index_dict[1][tag] = index_dict[0]
-    return str(index_dict[1][tag])
+        index_dict[1][tag] = str(index_dict[0])
+    return index_dict[1][tag]
 
 def debug_regex(regex, text):
     sub = re.sub(regex, "", text)
@@ -49,11 +49,10 @@ def main():
     months = months[first_month-1:-12+last_month]
     month_to_index = {month: str(i) for i, month in enumerate(months)}
 
-
-    index_dict_created_by = [-1, {}]
-    index_dict_imagery = [-1, {}]
-    index_dict_hashtag = [-1, {}]
-    index_dict_streetcomplete_quest_type = [-1, {}]
+    index_dict_created_by = [-1, dict()]
+    index_dict_imagery = [-1, dict()]
+    index_dict_hashtag = [-1, dict()]
+    index_dict_streetcomplete_quest_type = [-1, dict()]
 
     # csv head: edits, month_index, user_id, user_name, pos_x, pos_y, bot_used, created_by, streetcomplete_quest_type, imagery_list, hashtag_list
     with open(os.path.join(save_dir, "months.txt"), 'w') as f:
@@ -65,39 +64,37 @@ def main():
         if data[2][1:8] not in month_to_index: # if its the current month: continue
             continue
 
-        csv_arr = []
-        csv_arr.append(data[1][1:]) # num of edits
-        csv_arr.append(month_to_index[data[2][1:8]]) # month index
-        csv_arr.append(data[5][1:]) # user id
-        csv_arr.append(data[6][1:]) # user name
+        num_of_edits = data[1][1:]
+        month_index = month_to_index[data[2][1:8]]
+        user_id = data[5][1:]
+        user_name = data[6][1:]
 
         if len(data[7][1:]) > 0:
-            csv_arr.append(str(round(((float(data[7][1:]) + float(data[9][1:])) / 2) - 180) % 360)) # pos_x = ((min_x + max_x) / 2) - 180
-            csv_arr.append(str(round(((float(data[8][1:]) + float(data[10][1:])) / 2) + 90) % 180)) # pos_y = ((min_y + max_y) / 2) + 90
+            pos_x = str(round(((float(data[7][1:]) + float(data[9][1:])) / 2) - 180) % 360) # pos_x = ((min_x + max_x) / 2) - 180
+            pos_y = str(round(((float(data[8][1:]) + float(data[10][1:])) / 2) + 90) % 180) # pos_y = ((min_y + max_y) / 2) + 90
         else:
-            csv_arr.append("")
-            csv_arr.append("")
+            pos_x, pos_y = "", ""
 
         tags = get_tags(data[11][1:-1])
 
-        csv_arr.append(str(int("bot" in tags and tags["bot"]=="yes"))) # if bot is used
+        bot_used = str(int("bot" in tags and tags["bot"]=="yes"))
         
         created_by=None
         if "created_by" in tags and len(tags["created_by"]) > 0:
             created_by = tags["created_by"].replace("%20%", " ").replace("%2c%", ",")
             #debug_regex(created_by_regex, created_by)
             created_by = re.sub(created_by_regex, "", created_by)
-            csv_arr.append(add_to_index_dict(index_dict_created_by, created_by))
+            created_by_id = add_to_index_dict(index_dict_created_by, created_by)
         else:
-            csv_arr.append("")
+            created_by_id = ""
 
         if created_by=="StreetComplete" and "StreetComplete:quest_type" in tags:
             streetcomplete_quest_type_tag = tags["StreetComplete:quest_type"]
             if streetcomplete_quest_type_tag in streetcomplete_quest_type_tag_changes:
                 streetcomplete_quest_type_tag = streetcomplete_quest_type_tag_changes[streetcomplete_quest_type_tag]
-            csv_arr.append(add_to_index_dict(index_dict_streetcomplete_quest_type, tags["StreetComplete:quest_type"]))
+            streetcomplete_quest_type_id = add_to_index_dict(index_dict_streetcomplete_quest_type, tags["StreetComplete:quest_type"])
         else:
-            csv_arr.append("")        
+            streetcomplete_quest_type_id = ""
 
         if "imagery_used" in tags and len(tags["imagery_used"]) > 0:
             imagery_list = [imagery for imagery in tags["imagery_used"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(imagery) > 0]
@@ -123,17 +120,16 @@ def main():
                     imagery_list[i] = "unknown"
                 imagery_list[i] = add_to_index_dict(index_dict_imagery, imagery_list[i])
 
-            csv_arr.append(";".join(imagery_list))
+            imagery_ids = ";".join(imagery_list)
         else:
-            csv_arr.append("")
+            imagery_ids = ""
 
         if "hashtags" in tags:
-            csv_arr.append(";".join([add_to_index_dict(index_dict_hashtag, hashtag) for hashtag in tags["hashtags"].lower().split(";")]))
+            hashtag_ids = ";".join([add_to_index_dict(index_dict_hashtag, hashtag) for hashtag in tags["hashtags"].lower().split(";")])
         else:
-            csv_arr.append("")
+            hashtag_ids = ""
 
-        csv_arr.append("\n")
-        sys.stdout.write(",".join(csv_arr))
+        sys.stdout.write(f"{num_of_edits},{month_index},{user_id},{user_name},{pos_x},{pos_y},{bot_used},{created_by_id},{streetcomplete_quest_type_id},{imagery_ids},{hashtag_ids}\n")
         sys.stdout.flush()
 
     # save index dicts
