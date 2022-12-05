@@ -26,8 +26,8 @@ def get_tags(tags_str):
 def add_to_index_dict(index_dict, tag):
     if tag not in index_dict[1]:
         index_dict[0] += 1
-        index_dict[1][tag] = str(index_dict[0])
-    return index_dict[1][tag]
+        index_dict[1][tag] = index_dict[0]
+    return str(index_dict[1][tag])
 
 def debug_regex(regex, text):
     sub = re.sub(regex, "", text)
