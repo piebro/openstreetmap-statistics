@@ -9,10 +9,13 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
       
       - name: setup
         run: |
-          sudo apt install aria2 osmium-tool pv python3.8
+          sudo apt install aria2 osmium-tool pv
           pip3 install numpy
           mkdir temp
 
