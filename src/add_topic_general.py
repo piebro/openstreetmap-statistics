@@ -11,9 +11,9 @@ tag_to_id = util.list_to_dict(util.load_index_to_tag(data_dir, "created_by"))
 maps_me_android_id = tag_to_id["MAPS.ME android"]
 maps_me_ios_id = tag_to_id["MAPS.ME ios"]
 
-
 mo_ch = np.zeros((len(months)), dtype=np.int64)
 mo_ed = np.zeros((len(months)), dtype=np.int64)
+mo_ed_list = [[] for _ in range(len(months))]
 ye_map_ed = np.zeros((len(years), 360, 180), dtype=np.int64)
 total_map_ed = np.zeros((360, 180), dtype=np.int64)
 mo_co_set = [set() for _ in range(len(months))]
@@ -31,9 +31,10 @@ for line in sys.stdin:
 
     mo_ch[month_index] += 1
     mo_ed[month_index] += edits
+    mo_ed_list[month_index].append(edits)
     mo_co_set[month_index].add(user_id)
     if user_id not in mo_co_edit_count[month_index]:
-        mo_co_edit_count[month_index][user_id] = 0    
+        mo_co_edit_count[month_index][user_id] = 0
     mo_co_edit_count[month_index][user_id] += edits
 
     if user_id not in co_first_edit:
@@ -59,6 +60,8 @@ month_index, first_edit_count = np.unique(list(co_first_edit.values()), return_c
 mo_new_co = np.zeros((len(months)))
 mo_new_co[month_index] = first_edit_count
 
+median_ed_per_mo_per_ch = util.get_median(mo_ed_list)
+median_ed_per_mo_per_co = util.get_median([list(mo_co_edit_count[month_index].values()) for month_index in range(len(months))])
 
 # save plots
 topic = "General"
@@ -100,14 +103,16 @@ with open("assets/data.js", "a") as f:
         util.get_map_plot(f"total edits {year}", m, ye_map_ed_max_z_value) for m, year in zip(ye_map_ed, years)
     ]))
 
-    question = "How many edits does a contributor make on average each month?"
+    question = "What's the median edit count per contributor each month?"
     f.write(util.get_js_str(topic, question, "a3ed", [
-        util.get_single_line_plot("average number of edits per contributor per month", "average number of edits per contributor", months, np.round(util.save_div(mo_ed, mo_co), 2))
+        util.get_single_line_plot("median number of edits per contributor per month", "median number of edits per contributor", months, median_ed_per_mo_per_co),
+        util.get_single_line_plot("median number of edits per contributor per month since 2010", "median number of edits per contributor", months[57:], median_ed_per_mo_per_co[57:])
     ]))
 
-    question = "What's the average edit count per changeset each month?"
+    question = "What's the median edit count per changeset each month?"
     f.write(util.get_js_str(topic, question, "fded", [
-        util.get_single_line_plot("average number of edits per changeset per month", "average number of edits per changeset", months, np.round(util.save_div(mo_ed, mo_ch), 2))
+        util.get_single_line_plot("median number of edits per changeset per month", "median number of edits per changeset", months, median_ed_per_mo_per_ch),
+        util.get_single_line_plot("median number of edits per changeset per month since 2010", "median number of edits per changeset", months[57:], median_ed_per_mo_per_ch[57:])
     ]))
 
     
