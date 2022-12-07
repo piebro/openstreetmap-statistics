@@ -21,10 +21,9 @@ ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
 co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
 
 names_in_top_k_plots = []
-names_in_top_k_plots.extend([n for n in ch_rank_to_name if n not in names_in_top_k_plots])
-names_in_top_k_plots.extend([n for n in ed_rank_to_name if n not in names_in_top_k_plots])
-names_in_top_k_plots.extend([n for n in co_rank_to_name if n not in names_in_top_k_plots])
-print([(n, util.colors[names_in_top_k_plots.index(n)]) for n in names_in_top_k_plots])
+names_in_top_k_plots.extend([n for n in ch_rank_to_name[:top_k_plot] if n not in names_in_top_k_plots])
+names_in_top_k_plots.extend([n for n in ed_rank_to_name[:top_k_plot] if n not in names_in_top_k_plots])
+names_in_top_k_plots.extend([n for n in co_rank_to_name[:top_k_plot] if n not in names_in_top_k_plots])
 #names_in_top_k_plots = list(set([*ch_rank_to_name[:top_k_plot], *ed_rank_to_name[:top_k_plot], *co_rank_to_name[:top_k_plot]]))
 ch_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in ch_rank_to_name[:top_k_plot]]
 ed_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in ed_rank_to_name[:top_k_plot]]
