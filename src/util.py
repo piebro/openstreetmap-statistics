@@ -9,6 +9,8 @@ default_plot_layout = {
     "margin": {"l": 55,"r": 55,"b": 55,"t": 55},
 }
 
+colors = np.array([(31, 119, 180), (255, 127, 14), (44, 160, 44), (214, 39, 40), (148, 103, 189), (140, 86, 75), (227, 119, 194), (127, 127, 127), (188, 189, 34), (23, 190, 207)]*10)
+
 def save_json(file_path, obj):
     with open(os.path.join("assets", file_path), "w") as f:
         f.write(json.dumps(obj, separators=(",", ":")))
@@ -65,6 +67,9 @@ def monthly_set_to_yearly_with_total(y_monthly_set_list, years, month_index_to_y
     else:
         return np.array([monthly_set_to_yearly_with_total(inner_set_list, years, month_index_to_year_index) for inner_set_list in y_monthly_set_list])
 
+def get_median(y):
+    return [np.median(yy) if len(yy)>0 else 0 for yy in y]
+
 def cumsum(y):
     if isinstance(y[0], (int, np.integer)):
         return np.cumsum(y)
@@ -101,7 +106,7 @@ def get_single_line_plot(plot_title, unit, x, y, percent=False):
     plot = {
         "traces": [{"x": x, "y": y, "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}],
         "config": {"displayModeBar": False},
-        "layout": {**default_plot_layout, "title": {"text":plot_title}, "xaxis":{"title":{"text":"time"}}, "yaxis":{"title":{"text":unit}},}
+        "layout": {**default_plot_layout, "title": {"text":plot_title}, "xaxis":{"title":{"text":"time"}}, "yaxis":{"title":{"text":unit}, "rangemode":"tozero"}}
     }
     if percent:
         plot["layout"]["yaxis"]["range"] = [0,100]
@@ -109,7 +114,7 @@ def get_single_line_plot(plot_title, unit, x, y, percent=False):
     trim_x_axis_to_non_zero_data(plot, offset=3)
     return ("plot", plot)
 
-def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, on_top_of_each_other=False, async_load=False):
+def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, on_top_of_each_other=False, async_load=False, colors=None):
     if percent:
         y_list = [[round(float(yy), 2) for yy in y] for y in y_list]
     else:
@@ -117,7 +122,7 @@ def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, on_
     plot = {
         "traces": [{"x": x, "y": y, "mode": "lines", "name": name, "hovertemplate": "%{x}<br>%{y:,} " + unit} for y, name in zip(y_list, y_names)],
         "config": {"displayModeBar": False},
-        "layout": {**default_plot_layout, "title": {"text":plot_title}, "xaxis":{"title":{"text":"time"}}, "yaxis":{"title":{"text":unit}},}
+        "layout": {**default_plot_layout, "title": {"text":plot_title}, "xaxis":{"title":{"text":"time"}}, "yaxis":{"title":{"text":unit}, "rangemode":"tozero"}}
     }
     if percent:
         plot["layout"]["yaxis"]["range"] = [0,100]
@@ -128,7 +133,11 @@ def get_multi_line_plot(plot_title, unit, x, y_list, y_names, percent=False, on_
             trace["stackgroup"] = "one"
     trim_x_axis_to_non_zero_data(plot, offset=3)
     if async_load:
-        return ("async_load_plot", plot)    
+        return ("async_load_plot", plot)
+    if colors is not None:
+        for color, trace in zip(colors, plot["traces"]):
+            trace["line"] = {"color": f"'rgb({color[0]},{color[1]},{color[2]})'"}
+            #line: {color: 'rgb(55, 128, 191)',width: 1}
     return ("plot", plot)
 
 def get_table(table_title, x, y_list, y_names_head, y_names):

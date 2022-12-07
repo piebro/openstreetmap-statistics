@@ -62,7 +62,8 @@ with open("assets/data.js", "a") as f:
 
     question = "How popular are imagery services?"
     f.write(util.get_js_str(topic, question, "4f2c", [
-        util.get_single_line_plot("monthly edits that use at least one imagery service", "%", months, util.get_percent(mo_ed_that_use_tag, mo_ed_all), percent=True)
+        util.get_single_line_plot("monthly edits that use at least one imagery service", "%", months, util.get_percent(mo_ed_that_use_tag, mo_ed_all), percent=True),
+        ("text", "This graph is based on imagery tag set automatically by iD, Vespucci and Go Map!!. As other editors are not using it and iD is vastly more popular than other relevant editors this graph is very close to 'market share of iD by edit volume'. JOSM users are typically using source field to note actually used sources")
     ]))
 
     question = "How many contributors does each imagery service have per month?"

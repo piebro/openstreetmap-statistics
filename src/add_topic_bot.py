@@ -77,7 +77,7 @@ with open("assets/data.js", "a") as f:
 
     question = "What's the average edit count per changeset over time?"
     f.write(util.get_js_str(topic, question, "ae72", [
-        util.get_single_line_plot("average number of edits using bots per changeset per month", "average number of edits per changeset", months, np.round(util.save_div(mo_ed, mo_ch), 2))
+        util.get_single_line_plot("average number of edits per changeset per month using bots", "average number of edits per changeset", months, np.round(util.save_div(mo_ed, mo_ch), 2))
     ]))
     
     question = "What are the most used bot tools?"
