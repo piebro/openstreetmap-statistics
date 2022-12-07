@@ -20,6 +20,16 @@ ch_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["c
 ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
 co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
 
+names_in_top_k_plots = []
+names_in_top_k_plots.extend([n for n in ch_rank_to_name if n not in names_in_top_k_plots])
+names_in_top_k_plots.extend([n for n in ed_rank_to_name if n not in names_in_top_k_plots])
+names_in_top_k_plots.extend([n for n in co_rank_to_name if n not in names_in_top_k_plots])
+print([(n, util.colors[names_in_top_k_plots.index(n)]) for n in names_in_top_k_plots])
+#names_in_top_k_plots = list(set([*ch_rank_to_name[:top_k_plot], *ed_rank_to_name[:top_k_plot], *co_rank_to_name[:top_k_plot]]))
+ch_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in ch_rank_to_name[:top_k_plot]]
+ed_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in ed_rank_to_name[:top_k_plot]]
+co_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in co_rank_to_name[:top_k_plot]]
+
 tag_to_index = util.list_to_dict(index_to_tag)
 desktop_editors = [tag_to_index[tag] for tag in ["JOSM", "iD", "Potlatch", "Merkaartor", "RapiD", "OsmHydrant", "gnome-maps", "reverter_plugin", "reverter;JOSM", "ArcGIS Editor for OpenStreetMap"]]
 mobile_editors = [tag_to_index[tag] for tag in ["MAPS.ME android", "MAPS.ME ios", "StreetComplete", "Vespucci", "Go Map!!", "OsmAnd", "rosemary", "OsmAnd+", "OsmAnd~", "Organic Maps android"]]
@@ -142,9 +152,9 @@ with open("assets/data.js", "a") as f:
     question = "What's the total amount of contributors, edits and changesets of editing software over time?"
     f.write(util.get_js_str(topic, question, "6320", [
         ("text", f"There are {len(index_to_tag):,} different editing software names for the 'created_by' tag. That's quite a big number. However, most names are user or organization names, from people misunderstanding the tag."), 
-        util.get_multi_line_plot("total contributor count of editing software", "contributors", months, util.set_cumsum(mo_co_set), co_rank_to_name[:top_k_plot]),
-        util.get_multi_line_plot("total edit count of editing software", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:top_k_plot]),
-        util.get_multi_line_plot("total changeset count of editing software", "changesets", months, util.cumsum(mo_ch), ch_rank_to_name[:top_k_plot])
+        util.get_multi_line_plot("total contributor count of editing software", "contributors", months, util.set_cumsum(mo_co_set), co_rank_to_name[:top_k_plot], colors=co_rank_to_color_top_k_plot),
+        util.get_multi_line_plot("total edit count of editing software", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:top_k_plot], colors=ed_rank_to_color_top_k_plot),
+        util.get_multi_line_plot("total changeset count of editing software", "changesets", months, util.cumsum(mo_ch), ch_rank_to_name[:top_k_plot], colors=ch_rank_to_color_top_k_plot)
     ]))
 
     question = "What kind of devices are used for mapping?"
