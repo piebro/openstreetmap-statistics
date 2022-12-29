@@ -212,9 +212,50 @@ async function add_table(topic, question, div_id){
     div.style.width = "100%"
     div.style.aspectRatio = "auto"
     table = await load_data(topic, question, div_id)
-    const head = "<tr>" + table["head"].map(v => "<th>" + v + "</th>").join("") + "</tr>"
+    div.innerHTML = get_table_html(table)
+}
+
+function get_table_html(table){
+    const head = "<tr>" + table["head"].map(v => "<th class=\"sorting\" onclick=\"sort_table(event)\">" + v + "</th>").join("") + "</tr>"
     const body = table["body"].map(row => "<tr>" + row.map(v => "<td>" + v + "</td>").join("") + "</tr>").join("")
-    div.innerHTML="<h3>" + table["title"] + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
+    return "<h3>" + table["title"] + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
+}
+
+async function sort_table(e){
+    for(var child=e.srcElement.parentElement.firstChild; child!==null; child=child.nextSibling) {
+        if (child != e.srcElement && !child.classList.contains('sorting')){
+            child.classList.remove('sorting_asc', 'sorting_desc');
+            child.classList.add('sorting');
+        }
+    }
+
+    if (e.srcElement.classList.contains('sorting')){
+        e.srcElement.classList.remove('sorting');
+        e.srcElement.classList.add('sorting_desc');
+        var th = e.srcElement
+        var ascending = false
+    } else if (e.srcElement.classList.contains('sorting_desc')){
+        e.srcElement.classList.remove('sorting_desc');
+        e.srcElement.classList.add('sorting_asc');
+        var th = e.srcElement
+        var ascending = true
+    } else {
+        e.srcElement.classList.remove('sorting_asc');
+        e.srcElement.classList.add('sorting');
+        var th = e.srcElement.parentElement.firstChild
+        var ascending = true
+    }
+    
+    const getCellValue = (tr, idx) => tr.children[idx].innerText.replaceAll(",", "") || tr.children[idx].textContent.replaceAll(",", "");
+
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    const table = th.closest('table');   
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), ascending))
+        .forEach(tr => table.appendChild(tr) );
 }
 
 function save_table_data(topic, question, div_id){
@@ -231,13 +272,27 @@ function save_table_data(topic, question, div_id){
 </script>
 
 <style>
+.sorting{
+	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIUnC2nKLnT4or00PvyrQwrPzUZshQAOw==) no-repeat center right;
+    cursor:pointer;
+}
+.sorting_asc{
+	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIRnC2nKLnT4or00Puy3rx7VQAAOw==) no-repeat center right;
+    cursor:pointer;
+}
+.sorting_desc{
+	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=) no-repeat center right;
+    cursor:pointer;
+}
+
+
 table, th, td {
   border:1px solid black;
   text-align: center;
   border-collapse: collapse;
 }
 th, td {
-  padding: 5px;
+    padding: 7px 12px 0px 12px;
 }
 
 .textDiv {
