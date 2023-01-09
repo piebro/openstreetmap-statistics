@@ -30,9 +30,108 @@ ed_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n 
 co_rank_to_color_top_k_plot = [util.colors[names_in_top_k_plots.index(n)] for n in co_rank_to_name[:top_k_plot]]
 
 tag_to_index = util.list_to_dict(index_to_tag)
-desktop_editors = [tag_to_index[tag] for tag in ["JOSM", "iD", "Potlatch", "Merkaartor", "RapiD", "OsmHydrant", "gnome-maps", "reverter_plugin", "reverter;JOSM", "ArcGIS Editor for OpenStreetMap"]]
-mobile_editors = [tag_to_index[tag] for tag in ["MAPS.ME android", "MAPS.ME ios", "StreetComplete", "Vespucci", "Go Map!!", "OsmAnd", "rosemary", "OsmAnd+", "OsmAnd~", "Organic Maps android"]]
-tools = [tag_to_index[tag] for tag in ["osmtools", "bulk_upload.py", "upload.py", "bulk_upload.py/posiki", "Redaction bot", "posiki_python_script", "osmupload.py", "PythonOsmApi", "bulk_upload_sax.py", "autoAWS", "Jeff's Uploader", "osm-bulk-upload/upload.py", "FindvejBot", "AND node cleaner"]]
+desktop_editors = [tag_to_index[tag] for tag in [
+    "ArcGIS Editor for OpenStreetMap",
+    "Deriviste",
+    "gnome-maps",
+    "iD",
+    "iD-indoor",
+    "JOSM",
+    "Level0",
+    "Map builder",
+    "MapComplete",
+    "MapContrib",
+    "MapRoulette",
+    "Merkaartor",
+    "https://openaedmap.org",
+    "OpenRecycleMap",
+    "OsmHydrant",
+    "OsmInEdit",
+    "Osmose Editor",
+    "Osmose Raw Editor",
+    "Pic4Review",
+    "Potlatch",
+    "QGIS OSM",
+    "RapiD",
+    "RawEdit",
+    "rosemary", # most of it is wheelmap.org
+    "wheelmap.org"
+]]
+mobile_editors = [tag_to_index[tag] for tag in [
+    "Every Door Android",
+    "Every Door iOS",
+    "Go Map!!",
+    "iLOE",
+    "MAPS.ME android",
+    "MAPS.ME ios",
+    "Mapzen Beta",
+    "Mapzen POI Collector",
+    "Mapzen POI Collector for Android",
+    "OMaps ios",
+    "Organic Maps android",
+    "Organic Maps ios",
+    "OpenMaps iPhone",
+    "OpenMaps for iOS",
+    "OsmAnd",
+    "OsmAnd+",
+    "OsmAnd~",
+    "OsmAnd Maps",
+    "OSMapTuner",
+    "OSMPOIEditor",
+    "OSM Contributor",
+    "Osm Go!"
+    "POI+",
+    "Pushpin iOS",
+    "StreetComplete",
+    "StreetComplete_ee",
+    "Vespucci"
+]]
+tools = [tag_to_index[tag] for tag in [
+    "AND node cleaner",
+    "addr2osm",
+    "autoAWS",
+    "bash script",
+    "bot-source-cadastre.py",
+    "bulk_upload.py",
+    "bulk_upload.py/Apr Python",
+    "bulk_upload.py/error Python",
+    "bulk_upload.py/khalilst Python/"
+    "bulk_upload.py/posiki",
+    "bulk_upload_sax.py",
+    "bulkyosm.py",
+    "custom upload script written in ruby",
+    "FindvejBot",
+    "FixDoubleNodes",
+    "FixKarlsruheSchema",
+    "https_all_the_things",
+    "https://git.nzoss.org.nz/ewblen/osmlinzaddr/blob/master/osmlinzaddr.py",
+    "Jeff's Uploader",
+    "LangToolsOSM",
+    "LINZ Address Import",
+    "LINZ Data Import",
+    "mat's little ruby script",
+    "MyUploader",
+    "naptan2osm",
+    "osmapi",
+    "osmapis",
+    "Osmaxil",
+    "OsmSharp",
+    "osmtools",
+    "osm-bulk-upload/upload.py",
+    "OsmPipeline",
+    "osmupload.py",
+    "posiki_python_script",
+    "PythonOsmApi",
+    "Redaction bot",
+    "RevertUI",
+    "reverter_plugin", # might be a plugin for JOSM, it's still a tool though
+    "reverter;JOSM",
+    "Roy",
+    "simple_revert.py",
+    "SviMik",
+    "upload.py",
+    "./upload.py"
+]]
 device_type_labels = ["desktop editor", "mobile editor", "tools", "other/unspecified"]
 
 mo_ch = np.zeros((top_k_table, len(months)), dtype=np.int64)
