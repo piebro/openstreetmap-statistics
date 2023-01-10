@@ -79,7 +79,7 @@ mobile_editors = [tag_to_index[tag] for tag in [
     "OSMapTuner",
     "OSMPOIEditor",
     "OSM Contributor",
-    "Osm Go!"
+    "Osm Go!",
     "POI+",
     "Pushpin iOS",
     "StreetComplete",
@@ -95,7 +95,7 @@ tools = [tag_to_index[tag] for tag in [
     "bulk_upload.py",
     "bulk_upload.py/Apr Python",
     "bulk_upload.py/error Python",
-    "bulk_upload.py/khalilst Python/"
+    "bulk_upload.py/khalilst Python/",
     "bulk_upload.py/posiki",
     "bulk_upload_sax.py",
     "bulkyosm.py",
