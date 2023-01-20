@@ -4,9 +4,11 @@ import json
 
 import numpy as np
 
+
 def load_index_to_tag(data_dir, data_name):
     with open(os.path.join(data_dir, f"index_to_tag_{data_name}.txt")) as f:
         return [l[:-1] for l in f.readlines()]
+
 
 def main():
     tag_name_top_k_list = [("created_by", 100), ("streetcomplete_quest_type", 300), ("imagery", 100), ("hashtag", 100)]
@@ -23,23 +25,23 @@ def main():
         data = line[:-1].split(",")
         edits = int(data[0])
         user_id = int(data[2])
-        
+
         created_by = data[7]
-        if len(created_by)>0:
+        if len(created_by) > 0:
             tag = int(created_by)
             tag_to_changesets[0][tag] += 1
             tag_to_edits[0][tag] += edits
             tag_to_contributors[0][tag].add(user_id)
 
         streetcomplete_quest_type = data[8]
-        if len(streetcomplete_quest_type)>0:
+        if len(streetcomplete_quest_type) > 0:
             tag = int(streetcomplete_quest_type)
             tag_to_changesets[1][tag] += 1
             tag_to_edits[1][tag] += edits
             tag_to_contributors[1][tag].add(user_id)
 
         imagery_list = data[9]
-        if len(imagery_list)>0:
+        if len(imagery_list) > 0:
             for imagery in imagery_list.split(";"):
                 tag = int(imagery)
                 tag_to_changesets[2][tag] += 1
@@ -47,7 +49,7 @@ def main():
                 tag_to_contributors[2][tag].add(user_id)
 
         hashtag_list = data[10]
-        if len(hashtag_list)>0:
+        if len(hashtag_list) > 0:
             for hashtag in hashtag_list.split(";"):
                 tag = int(hashtag)
                 tag_to_changesets[3][tag] += 1
@@ -65,6 +67,7 @@ def main():
 
     with open(os.path.join(data_dir, "top_k.json"), "w") as f:
         json.dump(top_k_dict, f)
+
 
 if __name__ == "__main__":
     main()

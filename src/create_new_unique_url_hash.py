@@ -1,7 +1,7 @@
 import re
 import random
 
-with open('assets/data.js') as f:
+with open("assets/data.js") as f:
     datajs = "\n".join(f.readlines())
 exisiting_hashes = re.findall(r"url_hash:\"([a-f0-9]{4})\",", datajs)
 
