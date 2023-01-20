@@ -5,27 +5,28 @@ import numpy as np
 import util
 
 # init
-data_dir = sys.argv[1]
-months, years = util.get_months_years(data_dir)
+DATA_DIR = sys.argv[1]
+months, years = util.get_months_years(DATA_DIR)
 year_to_year_index = util.list_to_dict(years)
 month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
 
-with open(os.path.join("assets", "corporation_contributors.json"), 'r') as json_file:
+with open(os.path.join("assets", "corporation_contributors.json"), "r", encoding="UTF-8") as json_file:
     corporation_contributors = json.load(json_file)
 corporations = np.array(list(corporation_contributors.keys()))
-corporations_with_link = np.array([f'<a href="{corporation_contributors[corporation][0]}">{corporation}</a>' for corporation in corporations])
-corporation_count = len(corporations)
+corporations_with_link = np.array(
+    [f'<a href="{corporation_contributors[corporation][0]}">{corporation}</a>' for corporation in corporations]
+)
 user_name_to_corporation_id = {}
 for i, corporation in enumerate(corporations):
     for user_name in corporation_contributors[corporation][1]:
         user_name_to_corporation_id[user_name] = i
 
-mo_ch = np.zeros((corporation_count, len(months)), dtype=np.int64)
-mo_ed = np.zeros((corporation_count, len(months)), dtype=np.int64)
+mo_ch = np.zeros((len(corporations), len(months)), dtype=np.int64)
+mo_ed = np.zeros((len(corporations), len(months)), dtype=np.int64)
 mo_ed_all = np.zeros((len(months)), dtype=np.int64)
 mo_ed_that_are_corporate = np.zeros((len(months)), dtype=np.int64)
-total_map_ed = np.zeros((corporation_count, 360, 180), dtype=np.int64)
-mo_co_set = [[set() for _ in range(len(months))] for _ in range(corporation_count)]
+total_map_ed = np.zeros((len(corporations), 360, 180), dtype=np.int64)
+mo_co_set = [[set() for _ in range(len(months))] for _ in range(len(corporations))]
 
 # accumulate data
 for line in sys.stdin:
@@ -48,7 +49,7 @@ for line in sys.stdin:
     mo_ed[corporation_id, month_index] += edits
     mo_co_set[corporation_id][month_index].add(user_id)
 
-    if len(x)>0:
+    if len(x) > 0:
         total_map_ed[corporation_id, int(x), int(y)] += edits
 
 # preprocess data
@@ -72,32 +73,61 @@ monthly_co_acc = util.set_cumsum(mo_co_set)[sort_indices_contributors]
 corporations_co = corporations[sort_indices_contributors]
 
 # save plots
-topic = "Corporations"
-with open("assets/data.js", "a") as f:
-    f.write(f"data['{topic}']={{}}\n")
+TOPIC = "Corporations"
+with util.add_questions(TOPIC) as add_question:
 
-    question = "How many edits are added from corporations each month?"
-    f.write(util.get_js_str(topic, question, "7034", [
-        util.get_single_line_plot("percent of edits from corporation per month", "%", months, util.get_percent(mo_ed_that_are_corporate, mo_ed_all), percent=True)
-    ]))
+    add_question(
+        "How many edits are added from corporations each month?",
+        "7034",
+        util.get_single_line_plot(
+            "percent of edits from corporation per month",
+            "%",
+            months,
+            util.get_percent(mo_ed_that_are_corporate, mo_ed_all),
+            percent=True,
+        ),
+    )
 
-    question = "Which corporations are contributing how much?"
-    f.write(util.get_js_str(topic, question, "b34d", [
+    add_question(
+        "Which corporations are contributing how much?",
+        "b34d",
         util.get_multi_line_plot("monthly edits per corporation", "edits", months, mo_ed[:10], corporations_ed[:10]),
-        util.get_table("yearly edits per corporation", years, util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index), topic, corporations_with_link_ed)
-    ]))
+        util.get_table(
+            "yearly edits per corporation",
+            years,
+            util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index),
+            TOPIC,
+            corporations_with_link_ed,
+        ),
+    )
 
-    question = "What's the total amount of contributors, edits and changesets from corporations over time?"
-    f.write(util.get_js_str(topic, question, "4ef4", [
-        util.get_multi_line_plot("total contributor count of corporations", "contributors", months, monthly_co_acc, corporations_co[:10]),
-        util.get_multi_line_plot("total edit count of corporations", "edits", months, util.cumsum(mo_ed), corporations_ed[:10]),
-        util.get_multi_line_plot("total changeset count of corporations", "changesets", months, util.cumsum(mo_ch), corporations_ch[:10])
-    ]))
+    add_question(
+        "What's the total amount of contributors, edits and changesets from corporations over time?",
+        "4ef4",
+        util.get_multi_line_plot(
+            "total contributor count of corporations",
+            "contributors",
+            months,
+            monthly_co_acc,
+            corporations_co[:10],
+        ),
+        util.get_multi_line_plot(
+            "total edit count of corporations", "edits", months, util.cumsum(mo_ed), corporations_ed[:10]
+        ),
+        util.get_multi_line_plot(
+            "total changeset count of corporations",
+            "changesets",
+            months,
+            util.cumsum(mo_ch),
+            corporations_ch[:10],
+        ),
+    )
 
-    question = "Where are the top 10 corporations contributing?"
-    f.write(util.get_js_str(topic, question, "e19b", [
-        util.get_map_plot(f"total edits of the corporation: {name}", m, total_map_ed_max_z_value) for m, name in zip(total_map_ed[:10], corporations_ed[:10])
-    ]))
-
-
-    
+    add_question(
+        "Where are the top 10 corporations contributing?",
+        "e19b",
+        *[
+            util.get_map_plot(f"total edits of the corporation: {name}", m, total_map_ed_max_z_value)
+            for m, name in zip(total_map_ed[:10], corporations_ed[:10])
+        ],
+    )
