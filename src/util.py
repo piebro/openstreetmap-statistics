@@ -325,14 +325,14 @@ def write_js_str(file, topic, question, url_hash, *div_elements):
     save_data_str_arr.append("}")
     js_str_arr.append("".join(save_data_str_arr))
 
-    js_str = f'data["{topic}"]["{question}"]={{{",".join(js_str_arr)}}};'
+    js_str = f'data["{topic}"]["{question}"]={{{",".join(js_str_arr)}}};\n'
     file.write(js_str)
 
 
 @contextlib.contextmanager
 def add_questions(topic):
     file = open("assets/data.js", "a", encoding="UTF-8")
-    file.write(f"data['{topic}']={{}}\n")
+    file.write(f"\ndata['{topic}']={{}}\n")
     try:
         yield partial(write_js_str, file, topic)
     finally:
