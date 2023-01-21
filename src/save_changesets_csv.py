@@ -53,13 +53,14 @@ def main():
     months = months[first_month - 1 : -12 + last_month]
     month_to_index = {month: str(i) for i, month in enumerate(months)}
 
-    index_dict_created_by = [-1, dict()]
-    index_dict_imagery = [-1, dict()]
-    index_dict_hashtag = [-1, dict()]
-    index_dict_streetcomplete_quest_type = [-1, dict()]
+    index_dict_created_by = [-1, {}]
+    index_dict_imagery = [-1, {}]
+    index_dict_hashtag = [-1, {}]
+    index_dict_streetcomplete_quest_type = [-1, {}]
 
-    # csv head: edits, month_index, user_id, user_name, pos_x, pos_y, bot_used, created_by, streetcomplete_quest_type, imagery_list, hashtag_list
-    with open(os.path.join(save_dir, "months.txt"), "w") as f:
+    # csv head: edits, month_index, user_id, user_name, pos_x, pos_y, bot_used, created_by,
+    # streetcomplete_quest_type, imagery_list, hashtag_list, other_tags
+    with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
 
@@ -146,7 +147,8 @@ def main():
             hashtag_ids = ""
 
         sys.stdout.write(
-            f"{num_of_edits},{month_index},{user_id},{user_name},{pos_x},{pos_y},{bot_used},{created_by_id},{streetcomplete_quest_type_id},{imagery_ids},{hashtag_ids}\n"
+            f"{num_of_edits},{month_index},{user_id},{user_name},{pos_x},{pos_y},{bot_used},{created_by_id},"
+            f"{streetcomplete_quest_type_id},{imagery_ids},{hashtag_ids}\n"
         )
         sys.stdout.flush()
 
@@ -159,11 +161,11 @@ def main():
     ]:
         revesed_dict = {value: key for key, value in index_dict[1].items()}
         filepath = os.path.join(save_dir, f"index_to_tag_{filename}.txt")
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="UTF-8") as f:
             for line in [revesed_dict[key] for key in sorted(revesed_dict.keys())]:
                 f.write(f"{line}\n")
 
-    with open(os.path.join(save_dir, "months.txt"), "w") as f:
+    with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
 
