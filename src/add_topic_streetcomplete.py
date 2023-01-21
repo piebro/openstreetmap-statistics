@@ -17,6 +17,8 @@ index_to_tag = util.load_index_to_tag(DATA_DIR, "streetcomplete_quest_type")
 ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
 co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
 
+name_to_color = util.get_unique_name_to_color_mapping(ed_rank_to_name, co_rank_to_name)
+
 mo_ed = np.zeros((TOP_K, len(months)), dtype=np.int64)
 mo_ed_sc = np.zeros((len(months)), dtype=np.int64)
 mo_ed_all = np.zeros((len(months)), dtype=np.int64)
@@ -108,9 +110,15 @@ with util.add_questions(TOPIC) as add_question:
             months,
             util.set_cumsum(mo_co_set),
             co_rank_to_name[:10],
+            colors=[name_to_color[name] for name in co_rank_to_name[:10]],
         ),
         util.get_multi_line_plot(
-            "total edit count of quests", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:10]
+            "total edit count of quests",
+            "edits",
+            months,
+            util.cumsum(mo_ed),
+            ed_rank_to_name[:10],
+            colors=[name_to_color[name] for name in ed_rank_to_name[:10]],
         ),
     )
 
@@ -123,10 +131,17 @@ with util.add_questions(TOPIC) as add_question:
             months,
             util.set_cumsum(mo_co_set),
             co_rank_to_name,
+            colors=[name_to_color[name] for name in co_rank_to_name],
             async_load=True,
         ),
         util.get_multi_line_plot(
-            "total edit count of quests", "edits", months, util.cumsum(mo_ed), ed_rank_to_name, async_load=True
+            "total edit count of quests",
+            "edits",
+            months,
+            util.cumsum(mo_ed),
+            ed_rank_to_name,
+            colors=[name_to_color[name] for name in ed_rank_to_name],
+            async_load=True,
         ),
     )
 

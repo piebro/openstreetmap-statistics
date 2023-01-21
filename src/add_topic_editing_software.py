@@ -20,19 +20,9 @@ ch_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["c
 ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
 co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
 
-names_in_top_k_plots = []
-names_in_top_k_plots.extend([n for n in ch_rank_to_name[:TOP_K_PLOT] if n not in names_in_top_k_plots])
-names_in_top_k_plots.extend([n for n in ed_rank_to_name[:TOP_K_PLOT] if n not in names_in_top_k_plots])
-names_in_top_k_plots.extend([n for n in co_rank_to_name[:TOP_K_PLOT] if n not in names_in_top_k_plots])
-ch_rank_to_color_top_k_plot = [
-    util.DEFAULT_COLOR_PALETTE[names_in_top_k_plots.index(n)] for n in ch_rank_to_name[:TOP_K_PLOT]
-]
-ed_rank_to_color_top_k_plot = [
-    util.DEFAULT_COLOR_PALETTE[names_in_top_k_plots.index(n)] for n in ed_rank_to_name[:TOP_K_PLOT]
-]
-co_rank_to_color_top_k_plot = [
-    util.DEFAULT_COLOR_PALETTE[names_in_top_k_plots.index(n)] for n in co_rank_to_name[:TOP_K_PLOT]
-]
+name_to_color = util.get_unique_name_to_color_mapping(
+    ch_rank_to_name[:TOP_K_PLOT], ed_rank_to_name[:TOP_K_PLOT], co_rank_to_name[:TOP_K_PLOT]
+)
 
 tag_to_index = util.list_to_dict(index_to_tag)
 desktop_editor_names = [
@@ -328,7 +318,7 @@ with util.add_questions(TOPIC) as add_question:
             months,
             util.set_cumsum(mo_co_set),
             co_rank_to_name[:TOP_K_PLOT],
-            colors=co_rank_to_color_top_k_plot,
+            colors=[name_to_color[name] for name in co_rank_to_name[:TOP_K_PLOT]],
         ),
         util.get_multi_line_plot(
             "total edit count of editing software",
@@ -336,7 +326,7 @@ with util.add_questions(TOPIC) as add_question:
             months,
             util.cumsum(mo_ed),
             ed_rank_to_name[:TOP_K_PLOT],
-            colors=ed_rank_to_color_top_k_plot,
+            colors=[name_to_color[name] for name in ed_rank_to_name[:TOP_K_PLOT]],
         ),
         util.get_multi_line_plot(
             "total changeset count of editing software",
@@ -344,7 +334,7 @@ with util.add_questions(TOPIC) as add_question:
             months,
             util.cumsum(mo_ch),
             ch_rank_to_name[:TOP_K_PLOT],
-            colors=ch_rank_to_color_top_k_plot,
+            colors=[name_to_color[name] for name in ch_rank_to_name[:TOP_K_PLOT]],
         ),
     )
 
