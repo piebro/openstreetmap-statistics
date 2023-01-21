@@ -11,21 +11,18 @@ DEFAULT_PLOT_LAYOUT = {
     "margin": {"l": 55, "r": 55, "b": 55, "t": 55},
 }
 
-DEFAULT_COLOR_PALETTE = np.array(
-    [
-        (31, 119, 180),
-        (255, 127, 14),
-        (44, 160, 44),
-        (214, 39, 40),
-        (148, 103, 189),
-        (140, 86, 75),
-        (227, 119, 194),
-        (127, 127, 127),
-        (188, 189, 34),
-        (23, 190, 207),
-    ]
-    * 10
-)
+DEFAULT_COLOR_PALETTE = [
+    (31, 119, 180),
+    (255, 127, 14),
+    (44, 160, 44),
+    (214, 39, 40),
+    (148, 103, 189),
+    (140, 86, 75),
+    (227, 119, 194),
+    (127, 127, 127),
+    (188, 189, 34),
+    (23, 190, 207),
+]
 
 
 def save_json(file_path, obj):
@@ -194,12 +191,11 @@ def get_multi_line_plot(
         for trace in plot["traces"]:
             trace["stackgroup"] = "one"
     trim_x_axis_to_non_zero_data(plot, offset=3)
-    if async_load:
-        return ("async_load_plot", plot)
     if colors is not None:
         for color, trace in zip(colors, plot["traces"]):
             trace["line"] = {"color": f"'rgb({color[0]},{color[1]},{color[2]})'"}
-            # line: {color: 'rgb(55, 128, 191)',width: 1}
+    if async_load:
+        return ("async_load_plot", plot)
     return ("plot", plot)
 
 
@@ -341,3 +337,13 @@ def add_questions(topic):
         yield partial(write_js_str, file, topic)
     finally:
         file.close()
+
+
+def get_unique_name_to_color_mapping(*name_lists):
+    name_to_color = {}
+    for names in zip(*name_lists):
+        for name in names:
+            if name not in name_to_color:
+                name_to_color[name] = DEFAULT_COLOR_PALETTE[len(name_to_color) % len(DEFAULT_COLOR_PALETTE)]
+
+    return name_to_color
