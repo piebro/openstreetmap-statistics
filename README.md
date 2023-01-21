@@ -111,6 +111,8 @@ Also, if you see any typos or other mistakes, feel free to correct them and crea
 
 Adding a new plot also needs adding a new `url_hash`. A new unique one can be printed with running `python3 src/create_new_unique_url_hash.py`.
 
+You can use `black -l 120 .` in the project root diretory to run the python code formatter [Black](https://pypi.org/project/black/) befor committing code.
+
 ## License
 
 All code in this project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. All data, maps and plots in this project are licensed under [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
