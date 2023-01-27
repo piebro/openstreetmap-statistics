@@ -1,12 +1,12 @@
 import os
 import sys
 import json
-
 import numpy as np
+import util
 
 
 def load_index_to_tag(data_dir, data_name):
-    with open(os.path.join(data_dir, f"index_to_tag_{data_name}.txt")) as f:
+    with open(os.path.join(data_dir, f"index_to_tag_{data_name}.txt"), encoding="UTF-8") as f:
         return [l[:-1] for l in f.readlines()]
 
 
@@ -21,40 +21,30 @@ def main():
         tag_to_edits.append(np.zeros(count, dtype=np.int64))
         tag_to_contributors.append([set() for _ in range(count)])
 
-    for line in sys.stdin:
-        data = line[:-1].split(",")
-        edits = int(data[0])
-        user_id = int(data[2])
+    for csv_line in sys.stdin:
+        data = util.CSVData(csv_line)
 
-        created_by = data[7]
-        if len(created_by) > 0:
-            tag = int(created_by)
+        if data.created_by_index is not None:
+            tag = int(data.created_by_index)
             tag_to_changesets[0][tag] += 1
-            tag_to_edits[0][tag] += edits
-            tag_to_contributors[0][tag].add(user_id)
+            tag_to_edits[0][tag] += data.edits
+            tag_to_contributors[0][tag].add(data.user_index)
 
-        streetcomplete_quest_type = data[8]
-        if len(streetcomplete_quest_type) > 0:
-            tag = int(streetcomplete_quest_type)
+        if data.streetcomplete_quest_type_index is not None:
+            tag = int(data.streetcomplete_quest_type_index)
             tag_to_changesets[1][tag] += 1
-            tag_to_edits[1][tag] += edits
-            tag_to_contributors[1][tag].add(user_id)
+            tag_to_edits[1][tag] += data.edits
+            tag_to_contributors[1][tag].add(data.user_index)
 
-        imagery_list = data[9]
-        if len(imagery_list) > 0:
-            for imagery in imagery_list.split(";"):
-                tag = int(imagery)
-                tag_to_changesets[2][tag] += 1
-                tag_to_edits[2][tag] += edits
-                tag_to_contributors[2][tag].add(user_id)
+        for imagery_index in data.imagery_index_list:
+            tag_to_changesets[2][imagery_index] += 1
+            tag_to_edits[2][imagery_index] += data.edits
+            tag_to_contributors[2][imagery_index].add(data.user_index)
 
-        hashtag_list = data[10]
-        if len(hashtag_list) > 0:
-            for hashtag in hashtag_list.split(";"):
-                tag = int(hashtag)
-                tag_to_changesets[3][tag] += 1
-                tag_to_edits[3][tag] += edits
-                tag_to_contributors[3][tag].add(user_id)
+        for hashtag_index in data.hashtag_index_list:
+            tag_to_changesets[3][hashtag_index] += 1
+            tag_to_edits[3][hashtag_index] += data.edits
+            tag_to_contributors[3][hashtag_index].add(data.user_index)
 
     top_k_dict = {}
     for i, (tag_name, top_k) in enumerate(tag_name_top_k_list):
@@ -65,7 +55,7 @@ def main():
             "contributors": np.argsort(-contributers_i)[:top_k].tolist(),
         }
 
-    with open(os.path.join(data_dir, "top_k.json"), "w") as f:
+    with open(os.path.join(data_dir, "top_k.json"), "w", encoding="UTF-8") as f:
         json.dump(top_k_dict, f)
 
 

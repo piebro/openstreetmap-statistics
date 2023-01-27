@@ -17,29 +17,23 @@ mo_co_set = [set() for _ in range(len(months))]
 created_by_dict = {}
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
-
-    mo_ed_all[month_index] += edits
-    bot_used = len(data[6]) > 0 and data[6] == "1"
-    if not bot_used:
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
+    mo_ed_all[data.month_index] += data.edits
+    if not data.bot_used:
         continue
 
-    mo_ch[month_index] += 1
-    mo_ed[month_index] += edits
-    mo_co_set[month_index].add(user_id)
-    if len(x) > 0:
-        total_map_edits[int(x), int(y)] += edits
+    mo_ch[data.month_index] += 1
+    mo_ed[data.month_index] += data.edits
+    mo_co_set[data.month_index].add(data.user_index)
 
-    if len(data[7]) > 0:
-        created_by = int(data[7])
-        if created_by not in created_by_dict:
-            created_by_dict[created_by] = np.zeros((len(months)), dtype=np.int64)
-        created_by_dict[created_by][month_index] += edits
+    if data.pos_x is not None:
+        total_map_edits[data.pos_x, data.pos_y] += data.edits
+
+    if data.created_by_index is not None:
+        if data.created_by_index not in created_by_dict:
+            created_by_dict[data.created_by_index] = np.zeros((len(months)), dtype=np.int64)
+        created_by_dict[data.created_by_index][data.month_index] += data.edits
 
 created_by_items = list(created_by_dict.items())
 created_by_ed = np.array([v for _, v in created_by_items])

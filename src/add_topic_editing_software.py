@@ -146,57 +146,53 @@ co_first_edit_per_editing_software = [dict() for _ in range(TOP_K_PLOT)]
 co_first_editing_software = dict()
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
+    month_index = data.month_index
+    created_by_index = data.created_by_index
+    mo_ed_all[month_index] += data.edits
+    mo_co_set_all[month_index].add(data.user_index)
 
-    mo_ed_all[month_index] += edits
-    mo_co_set_all[month_index].add(user_id)
-
-    if len(data[7]) == 0:
+    if created_by_index is None:
         continue
-    created_by_id = int(data[7])
 
-    if user_id not in co_first_editing_software:
-        co_first_editing_software[user_id] = (month_index, created_by_id)
+    if data.user_index not in co_first_editing_software:
+        co_first_editing_software[data.user_index] = (month_index, created_by_index)
     else:
-        if month_index < co_first_editing_software[user_id][0]:
-            co_first_editing_software[user_id] = (month_index, created_by_id)
+        if month_index < co_first_editing_software[data.user_index][0]:
+            co_first_editing_software[data.user_index] = (month_index, created_by_index)
 
-    if created_by_id in ch_id_to_rank:
-        rank = ch_id_to_rank[created_by_id]
+    if created_by_index in ch_id_to_rank:
+        rank = ch_id_to_rank[created_by_index]
         mo_ch[rank, month_index] += 1
 
-    if created_by_id in ed_id_to_rank:
-        rank = ed_id_to_rank[created_by_id]
-        mo_ed[rank, month_index] += edits
+    if created_by_index in ed_id_to_rank:
+        rank = ed_id_to_rank[created_by_index]
+        mo_ed[rank, month_index] += data.edits
 
-    if created_by_id in co_id_to_rank:
-        rank = co_id_to_rank[created_by_id]
-        mo_co_set[rank][month_index].add(user_id)
+    if created_by_index in co_id_to_rank:
+        rank = co_id_to_rank[created_by_index]
+        mo_co_set[rank][month_index].add(data.user_index)
 
         if rank < TOP_K_PLOT:
-            if user_id not in co_first_edit_per_editing_software[rank]:
-                co_first_edit_per_editing_software[rank][user_id] = month_index
+            if data.user_index not in co_first_edit_per_editing_software[rank]:
+                co_first_edit_per_editing_software[rank][data.user_index] = month_index
             else:
-                if month_index < co_first_edit_per_editing_software[rank][user_id]:
-                    co_first_edit_per_editing_software[rank][user_id] = month_index
+                if month_index < co_first_edit_per_editing_software[rank][data.user_index]:
+                    co_first_edit_per_editing_software[rank][data.user_index] = month_index
 
-    if created_by_id in desktop_editors:
-        mo_ed_device_type[0, month_index] += edits
-        mo_co_device_type_set[0][month_index].add(user_id)
-    elif created_by_id in mobile_editors:
-        mo_ed_device_type[1, month_index] += edits
-        mo_co_device_type_set[1][month_index].add(user_id)
-    elif created_by_id in tools:
-        mo_ed_device_type[2, month_index] += edits
-        mo_co_device_type_set[2][month_index].add(user_id)
+    if created_by_index in desktop_editors:
+        mo_ed_device_type[0, month_index] += data.edits
+        mo_co_device_type_set[0][month_index].add(data.user_index)
+    elif created_by_index in mobile_editors:
+        mo_ed_device_type[1, month_index] += data.edits
+        mo_co_device_type_set[1][month_index].add(data.user_index)
+    elif created_by_index in tools:
+        mo_ed_device_type[2, month_index] += data.edits
+        mo_co_device_type_set[2][month_index].add(data.user_index)
     else:
-        mo_ed_device_type[3, month_index] += edits
-        mo_co_device_type_set[3][month_index].add(user_id)
+        mo_ed_device_type[3, month_index] += data.edits
+        mo_co_device_type_set[3][month_index].add(data.user_index)
 
 
 mo_co_first_editing_software = np.zeros((TOP_K_PLOT, len(months)), dtype=np.int32)

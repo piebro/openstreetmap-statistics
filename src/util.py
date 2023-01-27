@@ -2,6 +2,7 @@ import os
 import json
 import contextlib
 from functools import partial
+from dataclasses import dataclass
 import numpy as np
 
 DEFAULT_PLOT_LAYOUT = {
@@ -347,3 +348,44 @@ def get_unique_name_to_color_mapping(*name_lists):
                 name_to_color[name] = DEFAULT_COLOR_PALETTE[len(name_to_color) % len(DEFAULT_COLOR_PALETTE)]
 
     return name_to_color
+
+
+@dataclass
+class CSVData:
+    month_index: int
+    edits: int
+    pos_x: int = None
+    pos_y: int = None
+    user_index: int = None
+    created_by_index: int = None
+    streetcomplete_quest_type_index: int = None
+    imagery_index_list: list = ()
+    hashtag_index_list: list = ()
+    # source_index: str = ""
+    bot_used: bool = None
+    # all_tags: str = ""
+    # has_pos: bool = False
+    # has_created_by: bool = False
+
+    def __init__(self, csv_line):
+        data = csv_line[:-1].split(",")
+        self.month_index = int(data[0])
+        self.edits = int(data[1])
+        if len(data[2]) > 0:
+            self.pos_x = int(data[2])
+            self.pos_y = int(data[3])
+
+        self.user_index = int(data[4])
+        if len(data[5]) > 0:
+            self.created_by_index = int(data[5])
+
+        if len(data[6]) > 0:
+            self.streetcomplete_quest_type_index = int(data[6])
+
+        if len(data[7]) > 0:
+            self.imagery_index_list = [int(i) for i in data[7].split(";")]
+
+        if len(data[8]) > 0:
+            self.hashtag_index_list = [int(i) for i in data[8].split(";")]
+
+        self.bot_used = len(data[10]) > 0 and data[10] == "1"

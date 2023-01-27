@@ -29,32 +29,28 @@ mo_co_set_sc = [set() for _ in range(len(months))]
 mo_co_set_all = [set() for _ in range(len(months))]
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
+    month_index = data.month_index
 
-    mo_ed_all[month_index] += edits
-    mo_co_set_all[month_index].add(user_id)
+    mo_ed_all[month_index] += data.edits
+    mo_co_set_all[month_index].add(data.user_index)
 
-    if len(data[8]) == 0:
+    if data.streetcomplete_quest_type_index is None:
         continue
-    quest_type_id = int(data[8])
 
-    mo_ed_sc[month_index] += edits
-    mo_co_set_sc[month_index].add(user_id)
+    mo_ed_sc[month_index] += data.edits
+    mo_co_set_sc[month_index].add(data.user_index)
 
-    if quest_type_id in ed_id_to_rank:
-        rank = ed_id_to_rank[quest_type_id]
-        mo_ed[rank, month_index] += edits
-        if len(x) > 0:
-            total_map_ed[int(x), int(y)] += edits
+    if data.streetcomplete_quest_type_index in ed_id_to_rank:
+        rank = ed_id_to_rank[data.streetcomplete_quest_type_index]
+        mo_ed[rank, month_index] += data.edits
+        if data.pos_x is not None:
+            total_map_ed[data.pos_x, data.pos_y] += data.edits
 
-    if quest_type_id in co_id_to_rank:
-        rank = co_id_to_rank[quest_type_id]
-        mo_co_set[rank][month_index].add(user_id)
+    if data.streetcomplete_quest_type_index in co_id_to_rank:
+        rank = co_id_to_rank[data.streetcomplete_quest_type_index]
+        mo_co_set[rank][month_index].add(data.user_index)
 
 mo_co_sc = util.set_to_length(mo_co_set_sc)
 

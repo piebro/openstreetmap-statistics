@@ -8,8 +8,7 @@ months, years = util.get_months_years(DATA_DIR)
 year_to_year_index = util.list_to_dict(years)
 month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
 tag_to_id = util.list_to_dict(util.load_index_to_tag(DATA_DIR, "created_by"))
-maps_me_android_id = tag_to_id["MAPS.ME android"]
-maps_me_ios_id = tag_to_id["MAPS.ME ios"]
+maps_me_android_ios_indices = (tag_to_id["MAPS.ME android"], tag_to_id["MAPS.ME ios"])
 
 mo_ch = np.zeros((len(months)), dtype=np.int64)
 mo_ed = np.zeros((len(months)), dtype=np.int64)
@@ -22,33 +21,30 @@ mo_co_edit_count = [{} for _ in range(len(months))]
 co_first_edit = {}
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
+    month_index = data.month_index
 
     mo_ch[month_index] += 1
-    mo_ed[month_index] += edits
-    mo_ed_list[month_index].append(edits)
-    mo_co_set[month_index].add(user_id)
-    if user_id not in mo_co_edit_count[month_index]:
-        mo_co_edit_count[month_index][user_id] = 0
-    mo_co_edit_count[month_index][user_id] += edits
+    mo_ed[month_index] += data.edits
+    mo_ed_list[month_index].append(data.edits)
+    mo_co_set[month_index].add(data.user_index)
+    if data.user_index not in mo_co_edit_count[month_index]:
+        mo_co_edit_count[month_index][data.user_index] = 0
+    mo_co_edit_count[month_index][data.user_index] += data.edits
 
-    if user_id not in co_first_edit:
-        co_first_edit[user_id] = month_index
+    if data.user_index not in co_first_edit:
+        co_first_edit[data.user_index] = month_index
     else:
-        if month_index < co_first_edit[user_id]:
-            co_first_edit[user_id] = month_index
+        if month_index < co_first_edit[data.user_index]:
+            co_first_edit[data.user_index] = month_index
 
-    if len(x) > 0:
-        ye_map_ed[month_index_to_year_index[month_index], int(x), int(y)] += edits
-        total_map_ed[int(x), int(y)] += edits
+    if data.pos_x is not None:
+        ye_map_ed[month_index_to_year_index[month_index], data.pos_x, data.pos_y] += data.edits
+        total_map_ed[data.pos_x, data.pos_y] += data.edits
 
-    if len(data[7]) == 0 or (int(data[7]) != maps_me_android_id and int(data[7]) != maps_me_ios_id):
-        mo_co_set_without_maps_me[month_index].add(user_id)
+    if data.created_by_index is None or data.created_by_index not in maps_me_android_ios_indices:
+        mo_co_set_without_maps_me[month_index].add(data.user_index)
 
 
 mo_co = util.set_to_length(mo_co_set)

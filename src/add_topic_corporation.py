@@ -9,6 +9,7 @@ DATA_DIR = sys.argv[1]
 months, years = util.get_months_years(DATA_DIR)
 year_to_year_index = util.list_to_dict(years)
 month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
+user_name_index_to_tag = util.load_index_to_tag(DATA_DIR, "user_name")
 
 with open(os.path.join("assets", "corporation_contributors.json"), "r", encoding="UTF-8") as json_file:
     corporation_contributors = json.load(json_file)
@@ -29,28 +30,24 @@ total_map_ed = np.zeros((len(corporations), 360, 180), dtype=np.int64)
 mo_co_set = [[set() for _ in range(len(months))] for _ in range(len(corporations))]
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    user_name = data[3]
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
 
-    mo_ed_all[month_index] += edits
+    mo_ed_all[data.month_index] += data.edits
 
+    user_name = user_name_index_to_tag[data.user_index]
     if user_name not in user_name_to_corporation_id:
         continue
     corporation_id = user_name_to_corporation_id[user_name]
 
-    mo_ed_that_are_corporate[month_index] += edits
+    mo_ed_that_are_corporate[data.month_index] += data.edits
 
-    mo_ch[corporation_id, month_index] += 1
-    mo_ed[corporation_id, month_index] += edits
-    mo_co_set[corporation_id][month_index].add(user_id)
+    mo_ch[corporation_id, data.month_index] += 1
+    mo_ed[corporation_id, data.month_index] += data.edits
+    mo_co_set[corporation_id][data.month_index].add(data.user_index)
 
-    if len(x) > 0:
-        total_map_ed[corporation_id, int(x), int(y)] += edits
+    if data.pos_x is not None:
+        total_map_ed[corporation_id, data.pos_x, data.pos_y] += data.edits
 
 # preprocess data
 total_changesets = np.array([np.sum(v) for v in mo_ch])

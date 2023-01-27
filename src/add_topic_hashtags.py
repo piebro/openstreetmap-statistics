@@ -29,38 +29,34 @@ mo_co_set_all = [set() for _ in range(len(months))]
 mo_co_set_that_use_tag = [set() for _ in range(len(months))]
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    data = util.CSVData(csv_line)
+    month_index = data.month_index
 
-    mo_ed_all[month_index] += edits
-    mo_co_set_all[month_index].add(user_id)
+    mo_ed_all[month_index] += data.edits
+    mo_co_set_all[month_index].add(data.user_index)
 
-    if len(data[10]) == 0:
+    if len(data.hashtag_index_list) == 0:
         continue
 
-    mo_ed_that_use_tag[month_index] += edits
-    mo_co_set_that_use_tag[month_index].add(user_id)
+    mo_ed_that_use_tag[month_index] += data.edits
+    mo_co_set_that_use_tag[month_index].add(data.user_index)
 
-    for hashtag_id in data[10].split(";"):
-        hashtag_id = int(hashtag_id)
+    for hashtag_index in data.hashtag_index_list:
 
-        if hashtag_id in ch_id_to_rank:
-            rank = ch_id_to_rank[hashtag_id]
+        if hashtag_index in ch_id_to_rank:
+            rank = ch_id_to_rank[hashtag_index]
             mo_ch[rank, month_index] += 1
 
-        if hashtag_id in ed_id_to_rank:
-            rank = ed_id_to_rank[hashtag_id]
-            mo_ed[rank, month_index] += edits
-            if len(x) > 0 and rank < 10:
-                total_map_ed[rank, int(x), int(y)] += edits
+        if hashtag_index in ed_id_to_rank:
+            rank = ed_id_to_rank[hashtag_index]
+            mo_ed[rank, month_index] += data.edits
+            if data.pos_x is not None and rank < 10:
+                total_map_ed[rank, data.pos_x, data.pos_y] += data.edits
 
-        if hashtag_id in co_id_to_rank:
-            rank = co_id_to_rank[hashtag_id]
-            mo_co_set[rank][month_index].add(user_id)
+        if hashtag_index in co_id_to_rank:
+            rank = co_id_to_rank[hashtag_index]
+            mo_co_set[rank][month_index].add(data.user_index)
 
 # save plots
 TOPIC = "Hashtags"
