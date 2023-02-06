@@ -175,11 +175,34 @@ def add_source(tags, index_dicts, edits, user_index):
         for i in range(len(source_list)):
             if source_list[i][0] == " ":
                 source_list[i] = source_list[i][1:]
+            source_list[i] = source_list[i][:80]
+
+            if source_list[i][:8] == "tms[22]:":
+                source_list[i] = source_list[i][8:]
 
             if source_list[i][:7] == "http://":
                 source_list[i] = source_list[i][7:].split("/")[0]
             elif source_list[i][:8] == "https://":
                 source_list[i] = source_list[i][8:].split("/")[0]
+
+            if source_list[i] == "survey":
+                source_list[i] = "Survey"
+            elif source_list[i] == "bing":
+                source_list[i] = "Bing"
+            elif source_list[i] == "knowledge":
+                source_list[i] = "Knowledge"
+            elif source_list[i] == "local knowledge":
+                source_list[i] = "Local Knowledge"
+
+            # elif source_list[i][:21] == "Maxar Premium Imagery":
+            #     source_list[i] = "Maxar Premium Imagery"
+            # elif source_list[i][:18] == "Esri World Imagery":
+            #     source_list[i] = "Esri World Imagery"
+            # elif source_list[i][:13] == "Maxar-Premium":
+            #     source_list[i] = "Maxar Premium Imagery"
+            # elif source_list[i][:22] == "Maxar Standard Imagery":
+            #     source_list[i] = "Maxar Standard Imagery"
+
         return index_dicts["source"].add_keys(source_list, edits, user_index)
     else:
         return ""
