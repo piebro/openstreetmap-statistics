@@ -17,7 +17,7 @@ jobs:
         run: pip3 install numpy requests beautifulsoup4
       
       - name: update corporate contributors
-        run: python3 src/save_corporation_contibutors.py
+        run: python3 src/save_corporation_contributors.py
         
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4

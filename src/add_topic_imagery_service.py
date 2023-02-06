@@ -4,51 +4,38 @@ import util
 
 # init
 DATA_DIR = sys.argv[1]
-TOP_K = 100
-months, years = util.get_months_years(DATA_DIR)
-year_to_year_index = util.list_to_dict(years)
-month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
+changesets = util.Changesets(DATA_DIR)
+top_k, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "imagery")
 
-top_ids = util.load_top_k_list(DATA_DIR, "imagery")
-ch_id_to_rank = util.list_to_dict(top_ids["changesets"])
-ed_id_to_rank = util.list_to_dict(top_ids["edits"])
-co_id_to_rank = util.list_to_dict(top_ids["contributors"])
-
-index_to_tag = util.load_index_to_tag(DATA_DIR, "imagery")
-ch_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["changesets"]]
-ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
-co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
-
-mo_ch = np.zeros((TOP_K, len(months)), dtype=np.int64)
-mo_ed = np.zeros((TOP_K, len(months)), dtype=np.int64)
-mo_ed_all = np.zeros((len(months)), dtype=np.int64)
-mo_ed_that_use_tag = np.zeros((len(months)), dtype=np.int64)
-mo_co_set = [[set() for _ in range(len(months))] for _ in range(TOP_K)]
+months, years = changesets.months, changesets.years
+monthly_changesets = np.zeros((top_k, len(months)), dtype=np.int64)
+montly_edits = np.zeros((top_k, len(months)), dtype=np.int64)
+montly_edits_that_use_tag = np.zeros((len(months)), dtype=np.int64)
+montly_contributor_sets = [[set() for _ in range(len(months))] for _ in range(top_k)]
 
 # accumulate data
 for csv_line in sys.stdin:
-    data = util.CSVData(csv_line)
-    month_index = data.month_index
+    changesets.update_data_with_csv_str(csv_line)
+    month_index = changesets.month_index
 
-    mo_ed_all[month_index] += data.edits
-
-    if len(data.imagery_index_list) == 0:
+    if len(changesets.imagery_indices) == 0:
         continue
 
-    mo_ed_that_use_tag[month_index] += data.edits
+    montly_edits_that_use_tag[month_index] += changesets.edits
 
-    for imagery_index in data.imagery_index_list:
-        if imagery_index in ch_id_to_rank:
-            rank = ch_id_to_rank[imagery_index]
-            mo_ch[rank, month_index] += 1
+    for imagery_index in changesets.imagery_indices:
+        if imagery_index in index_to_rank["changesets"]:
+            rank = index_to_rank["changesets"][imagery_index]
+            monthly_changesets[rank, month_index] += 1
 
-        if imagery_index in ed_id_to_rank:
-            rank = ed_id_to_rank[imagery_index]
-            mo_ed[rank, month_index] += data.edits
+        if imagery_index in index_to_rank["edits"]:
+            rank = index_to_rank["edits"][imagery_index]
+            montly_edits[rank, month_index] += changesets.edits
 
-        if imagery_index in co_id_to_rank:
-            rank = co_id_to_rank[imagery_index]
-            mo_co_set[rank][month_index].add(data.user_index)
+        if imagery_index in index_to_rank["contributors"]:
+            rank = index_to_rank["contributors"][imagery_index]
+            montly_contributor_sets[rank][month_index].add(changesets.user_index)
+
 
 # save plots
 TOPIC = "Imagery Service"
@@ -61,7 +48,7 @@ with util.add_questions(TOPIC) as add_question:
             "monthly edits that use at least one imagery service",
             "%",
             months,
-            util.get_percent(mo_ed_that_use_tag, mo_ed_all),
+            util.get_percent(montly_edits_that_use_tag, changesets.monthly_edits),
             percent=True,
         ),
         util.get_text_element(
@@ -79,15 +66,15 @@ with util.add_questions(TOPIC) as add_question:
             "monthly contributor count per imagery software",
             "contributors",
             months,
-            util.set_to_length(mo_co_set)[:10],
-            co_rank_to_name[:10],
+            util.set_to_length(montly_contributor_sets)[:10],
+            rank_to_name["contributors"][:10],
         ),
         util.get_table(
             "yearly contributor count per imagery software",
             years,
-            util.monthly_set_to_yearly_with_total(mo_co_set, years, month_index_to_year_index),
+            util.monthly_set_to_yearly_with_total(montly_contributor_sets, years, changesets.month_index_to_year_index),
             TOPIC,
-            co_rank_to_name,
+            rank_to_name["contributors"],
         ),
     )
 
@@ -95,14 +82,14 @@ with util.add_questions(TOPIC) as add_question:
         "How many edits does each imagery service have per month?",
         "af79",
         util.get_multi_line_plot(
-            "monthly edits count per imagery service", "edits", months, mo_ed[:10], ed_rank_to_name[:10]
+            "monthly edits count per imagery service", "edits", months, montly_edits[:10], rank_to_name["edits"][:10]
         ),
         util.get_table(
             "yearly edits count per imagery service",
             years,
-            util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index),
+            util.monthly_to_yearly_with_total(montly_edits, years, changesets.month_index_to_year_index),
             TOPIC,
-            ed_rank_to_name,
+            rank_to_name["edits"],
         ),
     )
 
@@ -113,17 +100,21 @@ with util.add_questions(TOPIC) as add_question:
             "total contributor count of imagery service",
             "contributors",
             months,
-            util.set_cumsum(mo_co_set),
-            co_rank_to_name[:10],
+            util.set_cumsum(montly_contributor_sets),
+            rank_to_name["contributors"][:10],
         ),
         util.get_multi_line_plot(
-            "total edit count of imagery service", "edits", months, util.cumsum(mo_ed), ed_rank_to_name[:10]
+            "total edit count of imagery service",
+            "edits",
+            months,
+            util.cumsum(montly_edits),
+            rank_to_name["edits"][:10],
         ),
         util.get_multi_line_plot(
             "total changeset count of imagery service",
             "changesets",
             months,
-            util.cumsum(mo_ch),
-            ch_rank_to_name[:10],
+            util.cumsum(monthly_changesets),
+            rank_to_name["changesets"][:10],
         ),
     )

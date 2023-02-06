@@ -2,7 +2,6 @@ import os
 import json
 import contextlib
 from functools import partial
-from dataclasses import dataclass
 import numpy as np
 
 DEFAULT_PLOT_LAYOUT = {
@@ -27,8 +26,14 @@ DEFAULT_COLOR_PALETTE = [
 
 
 def save_json(file_path, obj):
-    with open(os.path.join("assets", file_path), "w", encoding="UTF-8") as f:
-        f.write(json.dumps(obj, separators=(",", ":")))
+    with open(file_path, "w", encoding="UTF-8") as json_file:
+        json_file.write(json.dumps(obj, separators=(",", ":")))
+
+
+def load_json(file_path):
+
+    with open(file_path, "r", encoding="UTF-8") as json_file:
+        return json.load(json_file)
 
 
 def get_months_years(data_dir):
@@ -48,8 +53,8 @@ def load_index_to_tag(data_dir, data_name):
 
 
 def load_top_k_list(data_dir, tag_name):
-    with open(os.path.join(data_dir, "top_k.json"), "r", encoding="UTF-8") as json_file:
-        return json.load(json_file)[tag_name]
+    with open(os.path.join(data_dir, f"top_k_{tag_name}.json"), "r", encoding="UTF-8") as json_file:
+        return json.load(json_file)
 
 
 def save_div(a, b):
@@ -291,7 +296,7 @@ def write_js_str(file, topic, question, url_hash, *div_elements):
             save_path = os.path.join(
                 "plot_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json'
             ).replace("#", "")
-            save_json(save_path, e)
+            save_json(os.path.join("assets", save_path), e)
             js_str_arr.append(f'data_path_{i}: "{save_path}"')
         elif t == "text":
             js_str_arr.append(f'{i}: "{e}"')
@@ -300,13 +305,13 @@ def write_js_str(file, topic, question, url_hash, *div_elements):
             save_path = os.path.join(
                 "map_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json'
             ).replace("#", "")
-            save_json(save_path, e)
+            save_json(os.path.join("assets", save_path), e)
             js_str_arr.append(f'data_path_{i}: "{save_path}"')
         elif t == "table":
             save_path = os.path.join(
                 "table_data", f'{topic.lower().replace(" ", "_")}_{e["title"].lower().replace(" ", "_")}.json'
             )
-            save_json(save_path, e)
+            save_json(os.path.join("assets", save_path), e)
             js_str_arr.append(f'data_path_{i}: "{save_path}"')
 
     update_str_arr = ["update: async function(){"]
@@ -350,42 +355,161 @@ def get_unique_name_to_color_mapping(*name_lists):
     return name_to_color
 
 
-@dataclass
-class CSVData:
-    month_index: int
-    edits: int
-    pos_x: int = None
-    pos_y: int = None
-    user_index: int = None
-    created_by_index: int = None
-    streetcomplete_quest_type_index: int = None
-    imagery_index_list: list = ()
-    hashtag_index_list: list = ()
-    # source_index: str = ""
-    bot_used: bool = None
-    # all_tags: str = ""
-    # has_pos: bool = False
-    # has_created_by: bool = False
+def get_rank_infos(data_dir, tag):
+    top_k_dict = load_top_k_list(data_dir, tag)
+    top_k = len(top_k_dict["changesets"])
+    index_to_rank = {
+        "changesets": list_to_dict(top_k_dict["changesets"]),
+        "edits": list_to_dict(top_k_dict["edits"]),
+        "contributors": list_to_dict(top_k_dict["contributors"]),
+    }
+    index_to_tag = load_index_to_tag(data_dir, tag)
+    rank_to_name = {
+        "changesets": [index_to_tag[index] for index in top_k_dict["changesets"]],
+        "edits": [index_to_tag[index] for index in top_k_dict["edits"]],
+        "contributors": [index_to_tag[index] for index in top_k_dict["contributors"]],
+    }
+    return top_k, index_to_rank, rank_to_name
 
-    def __init__(self, csv_line):
-        data = csv_line[:-1].split(",")
+
+class Changesets:
+    def __init__(self, data_dir):
+        self.month_index = None
+        self.edits = None
+        self.user_index = None
+        self.pos_x = None
+        self.pos_y = None
+        self.created_by_index = None
+        self.streetcomplete_quest_type_index = None
+        self.imagery_indices = None
+        self.hashtag_indices = None
+        self.source_indices = None
+        self.all_tags_indices = None
+        self.bot_used = None
+
+        self.months, self.years = get_months_years(data_dir)
+        year_to_year_index = list_to_dict(self.years)
+        self.month_index_to_year_index = {
+            month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(self.months)
+        }
+
+        self.all_tags_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "all_tags"))
+        self.created_by_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "created_by"))
+        self.hashtag_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "hashtag"))
+        self.imagery_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "imagery"))
+        self.source_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "source"))
+        self.streetcomplete_quest_type_tag_to_id = list_to_dict(
+            load_index_to_tag(data_dir, "streetcomplete_quest_type")
+        )
+        self.user_name_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "user_name"))
+
+        with open(os.path.join(data_dir, "infos.json"), "r", encoding="UTF-8") as json_file:
+            infos = json.load(json_file)
+
+        self.total_changesets = infos["total_changesets"]
+        self.total_edits = infos["total_edits"]
+        self.monthly_changsets = infos["monthly_changsets"]
+        self.monthly_edits = infos["monthly_edits"]
+        self.monthly_contributors = infos["monthly_contributors"]
+        self.total_contributor = infos["total_contributor"]
+
+    def update_data_with_csv_str(self, csv_str):
+        data = csv_str[:-1].split(",")
+
         self.month_index = int(data[0])
         self.edits = int(data[1])
-        if len(data[2]) > 0:
-            self.pos_x = int(data[2])
-            self.pos_y = int(data[3])
+        self.user_index = int(data[2])
 
-        self.user_index = int(data[4])
+        if len(data[3]) > 0:
+            self.pos_x = int(data[3])
+            self.pos_y = int(data[4])
+        else:
+            self.pos_x = None
+            self.pos_y = None
+
         if len(data[5]) > 0:
             self.created_by_index = int(data[5])
+        else:
+            self.created_by_index = None
 
         if len(data[6]) > 0:
             self.streetcomplete_quest_type_index = int(data[6])
+        else:
+            self.streetcomplete_quest_type_index = None
 
         if len(data[7]) > 0:
-            self.imagery_index_list = [int(i) for i in data[7].split(";")]
+            self.imagery_indices = [int(i) for i in data[7].split(";")]
+        else:
+            self.imagery_indices = []
 
         if len(data[8]) > 0:
-            self.hashtag_index_list = [int(i) for i in data[8].split(";")]
+            self.hashtag_indices = [int(i) for i in data[8].split(";")]
+        else:
+            self.hashtag_indices = []
 
-        self.bot_used = len(data[10]) > 0 and data[10] == "1"
+        if len(data[9]) > 0:
+            self.source_indices = [int(i) for i in data[9].split(";")]
+        else:
+            self.source_indices = []
+
+        if len(data[10]) > 0:
+            self.all_tags_indices = [int(i) for i in data[10].split(";")]
+        else:
+            self.all_tags_indices = []
+
+        self.bot_used = len(data[11]) > 0
+
+    # top_ids = util.load_top_k_list(DATA_DIR, "imagery")
+    # ch_id_to_rank = util.list_to_dict(top_ids["changesets"])
+    # ed_id_to_rank = util.list_to_dict(top_ids["edits"])
+    # co_id_to_rank = util.list_to_dict(top_ids["contributors"])
+
+    # def get_imagery_in_top_k(self, data_type):
+    #     return [(self.top_k_imagery[data_type][i], i) for i in self.imagery_indices if i in self.top_k_imagery[data_type]]
+
+    # was brauche ich hier genau?
+    # was ist mit top_k? will ich das auch hierher bekommen?
+
+    # def get_user_name(self):
+    # return self.user_name_tag_to_id[self.user_index]
+
+
+# @dataclass
+# class CSVData:
+#     month_index: int
+#     edits: int
+#     pos_x: int = None
+#     pos_y: int = None
+#     user_index: int = None
+#     created_by_index: int = None
+#     streetcomplete_quest_type_index: int = None
+#     imagery_index_list: list = ()
+#     hashtag_index_list: list = ()
+#     # source_index: str = ""
+#     bot_used: bool = None
+#     # all_tags: str = ""
+#     # has_pos: bool = False
+#     # has_created_by: bool = False
+
+#     def __init__(self, csv_line):
+#         data = csv_line[:-1].split(",")
+#         self.month_index = int(data[0])
+#         self.edits = int(data[1])
+#         if len(data[2]) > 0:
+#             self.pos_x = int(data[2])
+#             self.pos_y = int(data[3])
+
+#         self.user_index = int(data[4])
+#         if len(data[5]) > 0:
+#             self.created_by_index = int(data[5])
+
+#         if len(data[6]) > 0:
+#             self.streetcomplete_quest_type_index = int(data[6])
+
+#         if len(data[7]) > 0:
+#             self.imagery_index_list = [int(i) for i in data[7].split(";")]
+
+#         if len(data[8]) > 0:
+#             self.hashtag_index_list = [int(i) for i in data[8].split(";")]
+
+#         self.bot_used = len(data[10]) > 0 and data[10] == "1"

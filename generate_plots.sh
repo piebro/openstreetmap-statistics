@@ -1,7 +1,5 @@
 progress_bar="pv -s 130M -l"
 
-gzip -dc $1/changesets.csv.gz | $progress_bar | python3 src/save_top_k.py $1
-
 echo "data={}" > assets/data.js
 gzip -dc $1/changesets.csv.gz | $progress_bar | python3 src/add_topic_general.py $1
 gzip -dc $1/changesets.csv.gz | $progress_bar | python3 src/add_topic_editing_software.py $1

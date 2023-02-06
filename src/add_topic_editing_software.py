@@ -4,27 +4,18 @@ import util
 
 # init
 DATA_DIR = sys.argv[1]
-TOP_K_TABLE = 100
 TOP_K_PLOT = 10
-months, years = util.get_months_years(DATA_DIR)
-year_to_year_index = util.list_to_dict(years)
-month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
-
-top_ids = util.load_top_k_list(DATA_DIR, "created_by")
-ch_id_to_rank = util.list_to_dict(top_ids["changesets"])
-ed_id_to_rank = util.list_to_dict(top_ids["edits"])
-co_id_to_rank = util.list_to_dict(top_ids["contributors"])
-
-index_to_tag = util.load_index_to_tag(DATA_DIR, "created_by")
-ch_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["changesets"]]
-ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
-co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
-
+changesets = util.Changesets(DATA_DIR)
+top_k_table, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "created_by")
 name_to_color = util.get_unique_name_to_color_mapping(
-    ch_rank_to_name[:TOP_K_PLOT], ed_rank_to_name[:TOP_K_PLOT], co_rank_to_name[:TOP_K_PLOT]
+    rank_to_name["changesets"][:TOP_K_PLOT],
+    rank_to_name["edits"][:TOP_K_PLOT],
+    rank_to_name["contributors"][:TOP_K_PLOT],
 )
 
-tag_to_index = util.list_to_dict(index_to_tag)
+
+device_type_labels = ["desktop editor", "mobile editor", "tools", "other/unspecified"]
+tag_to_index = util.list_to_dict(util.load_index_to_tag(DATA_DIR, "created_by"))
 desktop_editor_names = [
     "ArcGIS Editor for OpenStreetMap",
     "Deriviste",
@@ -133,83 +124,81 @@ tool_names = [
 ]
 tools = [tag_to_index[tag] for tag in tool_names]
 
-device_type_labels = ["desktop editor", "mobile editor", "tools", "other/unspecified"]
 
-mo_ch = np.zeros((TOP_K_TABLE, len(months)), dtype=np.int64)
-mo_ed = np.zeros((TOP_K_TABLE, len(months)), dtype=np.int64)
-mo_ed_all = np.zeros((len(months)), dtype=np.int64)
-mo_ed_device_type = np.zeros((4, len(months)), dtype=np.int64)
-mo_co_set = [[set() for _ in range(len(months))] for _ in range(TOP_K_TABLE)]
-mo_co_set_all = [set() for _ in range(len(months))]
-mo_co_device_type_set = [[set() for _ in range(len(months))] for _ in range(4)]
-co_first_edit_per_editing_software = [dict() for _ in range(TOP_K_PLOT)]
-co_first_editing_software = dict()
+months, years = changesets.months, changesets.years
+monthly_changesets = np.zeros((top_k_table, len(months)), dtype=np.int64)
+monthly_edits = np.zeros((top_k_table, len(months)), dtype=np.int64)
+monthly_edits_device_type = np.zeros((4, len(months)), dtype=np.int64)
+monthly_contributor_sets = [[set() for _ in range(len(months))] for _ in range(top_k_table)]
+monthly_contributor_device_type_sets = [[set() for _ in range(len(months))] for _ in range(4)]
+contributor_first_edit_per_editing_software = [{} for _ in range(TOP_K_PLOT)]
+contributor_first_editing_software = {}
 
 # accumulate data
 for csv_line in sys.stdin:
-    data = util.CSVData(csv_line)
-    month_index = data.month_index
-    created_by_index = data.created_by_index
-    mo_ed_all[month_index] += data.edits
-    mo_co_set_all[month_index].add(data.user_index)
+    changesets.update_data_with_csv_str(csv_line)
+    month_index = changesets.month_index
+    created_by_index = changesets.created_by_index
+    user_index = changesets.user_index
+    edits = changesets.edits
 
     if created_by_index is None:
         continue
 
-    if data.user_index not in co_first_editing_software:
-        co_first_editing_software[data.user_index] = (month_index, created_by_index)
+    if user_index not in contributor_first_editing_software:
+        contributor_first_editing_software[user_index] = (month_index, created_by_index)
     else:
-        if month_index < co_first_editing_software[data.user_index][0]:
-            co_first_editing_software[data.user_index] = (month_index, created_by_index)
+        if month_index < contributor_first_editing_software[user_index][0]:
+            contributor_first_editing_software[user_index] = (month_index, created_by_index)
 
-    if created_by_index in ch_id_to_rank:
-        rank = ch_id_to_rank[created_by_index]
-        mo_ch[rank, month_index] += 1
+    if created_by_index in index_to_rank["changesets"]:
+        rank = index_to_rank["changesets"][created_by_index]
+        monthly_changesets[rank, month_index] += 1
 
-    if created_by_index in ed_id_to_rank:
-        rank = ed_id_to_rank[created_by_index]
-        mo_ed[rank, month_index] += data.edits
+    if created_by_index in index_to_rank["edits"]:
+        rank = index_to_rank["edits"][created_by_index]
+        monthly_edits[rank, month_index] += edits
 
-    if created_by_index in co_id_to_rank:
-        rank = co_id_to_rank[created_by_index]
-        mo_co_set[rank][month_index].add(data.user_index)
+    if created_by_index in index_to_rank["contributors"]:
+        rank = index_to_rank["contributors"][created_by_index]
+        monthly_contributor_sets[rank][month_index].add(user_index)
 
         if rank < TOP_K_PLOT:
-            if data.user_index not in co_first_edit_per_editing_software[rank]:
-                co_first_edit_per_editing_software[rank][data.user_index] = month_index
+            if user_index not in contributor_first_edit_per_editing_software[rank]:
+                contributor_first_edit_per_editing_software[rank][user_index] = month_index
             else:
-                if month_index < co_first_edit_per_editing_software[rank][data.user_index]:
-                    co_first_edit_per_editing_software[rank][data.user_index] = month_index
+                if month_index < contributor_first_edit_per_editing_software[rank][user_index]:
+                    contributor_first_edit_per_editing_software[rank][user_index] = month_index
 
     if created_by_index in desktop_editors:
-        mo_ed_device_type[0, month_index] += data.edits
-        mo_co_device_type_set[0][month_index].add(data.user_index)
+        monthly_edits_device_type[0, month_index] += edits
+        monthly_contributor_device_type_sets[0][month_index].add(user_index)
     elif created_by_index in mobile_editors:
-        mo_ed_device_type[1, month_index] += data.edits
-        mo_co_device_type_set[1][month_index].add(data.user_index)
+        monthly_edits_device_type[1, month_index] += edits
+        monthly_contributor_device_type_sets[1][month_index].add(user_index)
     elif created_by_index in tools:
-        mo_ed_device_type[2, month_index] += data.edits
-        mo_co_device_type_set[2][month_index].add(data.user_index)
+        monthly_edits_device_type[2, month_index] += edits
+        monthly_contributor_device_type_sets[2][month_index].add(user_index)
     else:
-        mo_ed_device_type[3, month_index] += data.edits
-        mo_co_device_type_set[3][month_index].add(data.user_index)
+        monthly_edits_device_type[3, month_index] += edits
+        monthly_contributor_device_type_sets[3][month_index].add(user_index)
 
 
-mo_co_first_editing_software = np.zeros((TOP_K_PLOT, len(months)), dtype=np.int32)
-for month_index, created_by_id in co_first_editing_software.values():
-    if created_by_id in co_id_to_rank:
-        rank = co_id_to_rank[created_by_id]
+mo_contributor_first_editing_software = np.zeros((TOP_K_PLOT, len(months)), dtype=np.int32)
+for month_index, created_by_id in contributor_first_editing_software.values():
+    if created_by_id in index_to_rank["contributors"]:
+        rank = index_to_rank["contributors"][created_by_id]
         if rank < TOP_K_PLOT:
-            mo_co_first_editing_software[rank][month_index] += 1
+            mo_contributor_first_editing_software[rank][month_index] += 1
 
-mo_new_co_per_editing_software = np.zeros((TOP_K_PLOT, len(months)), dtype=np.int32)
+mo_new_contributor_per_editing_software = np.zeros((TOP_K_PLOT, len(months)), dtype=np.int32)
 for rank in range(TOP_K_PLOT):
     month_index, first_edit_count = np.unique(
-        list(co_first_edit_per_editing_software[rank].values()), return_counts=True
+        list(contributor_first_edit_per_editing_software[rank].values()), return_counts=True
     )
-    mo_new_co_per_editing_software[rank][month_index] = first_edit_count
+    mo_new_contributor_per_editing_software[rank][month_index] = first_edit_count
 
-mo_co = util.set_to_length(mo_co_set)
+mo_co = util.set_to_length(monthly_contributor_sets)
 
 
 # save plots
@@ -224,21 +213,23 @@ with util.add_questions(TOPIC) as add_question:
             "contributors",
             months,
             mo_co[:TOP_K_PLOT],
-            co_rank_to_name[:TOP_K_PLOT],
+            rank_to_name["contributors"][:TOP_K_PLOT],
         ),
         util.get_multi_line_plot(
             "monthly new contributor count per editing software",
             "contributors",
             months,
-            mo_new_co_per_editing_software,
-            co_rank_to_name[:TOP_K_PLOT],
+            mo_new_contributor_per_editing_software,
+            rank_to_name["contributors"][:TOP_K_PLOT],
         ),
         util.get_table(
             "yearly contributor count per editing software",
             years,
-            util.monthly_set_to_yearly_with_total(mo_co_set, years, month_index_to_year_index),
+            util.monthly_set_to_yearly_with_total(
+                monthly_contributor_sets, years, changesets.month_index_to_year_index
+            ),
             TOPIC,
-            co_rank_to_name,
+            rank_to_name["contributors"],
         ),
     )
 
@@ -249,8 +240,8 @@ with util.add_questions(TOPIC) as add_question:
             "percent of contributors that use each editing software per month",
             "%",
             months,
-            util.get_percent(mo_co[:TOP_K_PLOT], util.set_to_length(mo_co_set_all)),
-            co_rank_to_name[:TOP_K_PLOT],
+            util.get_percent(mo_co[:TOP_K_PLOT], changesets.monthly_contributors),
+            rank_to_name["contributors"][:TOP_K_PLOT],
             percent=True,
         ),
     )
@@ -262,8 +253,8 @@ with util.add_questions(TOPIC) as add_question:
             "monthly first editing software contributor count",
             "contributors",
             months,
-            mo_co_first_editing_software,
-            co_rank_to_name[:TOP_K_PLOT],
+            mo_contributor_first_editing_software,
+            rank_to_name["contributors"][:TOP_K_PLOT],
         ),
     )
 
@@ -274,15 +265,15 @@ with util.add_questions(TOPIC) as add_question:
             "monthly edits count per editing software",
             "edits",
             months,
-            mo_ed[:TOP_K_PLOT],
-            ed_rank_to_name[:TOP_K_PLOT],
+            monthly_edits[:TOP_K_PLOT],
+            rank_to_name["edits"][:TOP_K_PLOT],
         ),
         util.get_table(
             "yearly edits count per editing software",
             years,
-            util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index),
+            util.monthly_to_yearly_with_total(monthly_edits, years, changesets.month_index_to_year_index),
             TOPIC,
-            ed_rank_to_name,
+            rank_to_name["edits"],
         ),
     )
 
@@ -293,8 +284,8 @@ with util.add_questions(TOPIC) as add_question:
             "market share of edits per month",
             "%",
             months,
-            util.get_percent(mo_ed, mo_ed_all)[:TOP_K_PLOT],
-            ed_rank_to_name[:TOP_K_PLOT],
+            util.get_percent(monthly_edits, changesets.monthly_edits)[:TOP_K_PLOT],
+            rank_to_name["edits"][:TOP_K_PLOT],
             percent=True,
             on_top_of_each_other=True,
         ),
@@ -304,33 +295,33 @@ with util.add_questions(TOPIC) as add_question:
         "What's the total amount of contributors, edits and changesets of editing software over time?",
         "6320",
         util.get_text_element(
-            f"There are {len(index_to_tag):,} different editing software names for the 'created_by' tag."
-            " That's quite a big number. However, most names are user or organization names, from people"
-            " misunderstanding the tag.",
+            f"There are {len(util.load_index_to_tag(DATA_DIR, 'created_by')):,} different editing software names for"
+            " the 'created_by' tag. That's quite a big number. However, most names are user or organization names,"
+            " from people misunderstanding the tag.",
         ),
         util.get_multi_line_plot(
             "total contributor count of editing software",
             "contributors",
             months,
-            util.set_cumsum(mo_co_set),
-            co_rank_to_name[:TOP_K_PLOT],
-            colors=[name_to_color[name] for name in co_rank_to_name[:TOP_K_PLOT]],
+            util.set_cumsum(monthly_contributor_sets),
+            rank_to_name["contributors"][:TOP_K_PLOT],
+            colors=[name_to_color[name] for name in rank_to_name["contributors"][:TOP_K_PLOT]],
         ),
         util.get_multi_line_plot(
             "total edit count of editing software",
             "edits",
             months,
-            util.cumsum(mo_ed),
-            ed_rank_to_name[:TOP_K_PLOT],
-            colors=[name_to_color[name] for name in ed_rank_to_name[:TOP_K_PLOT]],
+            util.cumsum(monthly_edits),
+            rank_to_name["edits"][:TOP_K_PLOT],
+            colors=[name_to_color[name] for name in rank_to_name["edits"][:TOP_K_PLOT]],
         ),
         util.get_multi_line_plot(
             "total changeset count of editing software",
             "changesets",
             months,
-            util.cumsum(mo_ch),
-            ch_rank_to_name[:TOP_K_PLOT],
-            colors=[name_to_color[name] for name in ch_rank_to_name[:TOP_K_PLOT]],
+            util.cumsum(monthly_changesets),
+            rank_to_name["changesets"][:TOP_K_PLOT],
+            colors=[name_to_color[name] for name in rank_to_name["changesets"][:TOP_K_PLOT]],
         ),
     )
 
@@ -341,17 +332,17 @@ with util.add_questions(TOPIC) as add_question:
             "monthly contributor count per device",
             "contributors",
             months,
-            util.set_to_length(mo_co_device_type_set),
+            util.set_to_length(monthly_contributor_device_type_sets),
             device_type_labels,
         ),
         util.get_multi_line_plot(
-            "monthly edit count per device", "edits", months, mo_ed_device_type, device_type_labels
+            "monthly edit count per device", "edits", months, monthly_edits_device_type, device_type_labels
         ),
         util.get_multi_line_plot(
             "market share of edit per device",
             "%",
             months,
-            util.get_percent(mo_ed_device_type, mo_ed_all),
+            util.get_percent(monthly_edits_device_type, changesets.monthly_edits),
             device_type_labels,
             percent=True,
         ),
