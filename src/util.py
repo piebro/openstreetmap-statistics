@@ -212,8 +212,11 @@ def get_table(table_title, x, y_list, y_names_head, y_names):
     head.extend(x[start_xy_index:])
     head.append("Total")
 
+    name_to_link = load_json("src/links.json")
     body = []
     for i, (name, y) in enumerate(zip(y_names, y_list)):
+        if name in name_to_link:
+            name = f'<a href="{name_to_link[name]}">{name}</a>'
         row = [str(i + 1), name] if len(y_list) > 1 else []
         row.extend([f"{yy:,}" for yy in list(y[start_xy_index:])])
         body.append(row)
