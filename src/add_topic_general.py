@@ -4,67 +4,61 @@ import util
 
 # init
 DATA_DIR = sys.argv[1]
-months, years = util.get_months_years(DATA_DIR)
-year_to_year_index = util.list_to_dict(years)
-month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
+changesets = util.Changesets(DATA_DIR)
+top_k, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "hashtag")
 tag_to_id = util.list_to_dict(util.load_index_to_tag(DATA_DIR, "created_by"))
-maps_me_android_id = tag_to_id["MAPS.ME android"]
-maps_me_ios_id = tag_to_id["MAPS.ME ios"]
+maps_me_android_ios_indices = (tag_to_id["MAPS.ME android"], tag_to_id["MAPS.ME ios"])
 
-mo_ch = np.zeros((len(months)), dtype=np.int64)
-mo_ed = np.zeros((len(months)), dtype=np.int64)
-mo_ed_list = [[] for _ in range(len(months))]
-ye_map_ed = np.zeros((len(years), 360, 180), dtype=np.int64)
+months, years = changesets.months, changesets.years
+montly_edits_list = [[] for _ in range(len(months))]
+yearly_map_edits = np.zeros((len(years), 360, 180), dtype=np.int64)
 total_map_ed = np.zeros((360, 180), dtype=np.int64)
-mo_co_set = [set() for _ in range(len(months))]
-mo_co_set_without_maps_me = [set() for _ in range(len(months))]
-mo_co_edit_count = [{} for _ in range(len(months))]
-co_first_edit = {}
+monthly_contributor_sets = [set() for _ in range(len(months))]
+monthly_contributor_sets_without_maps_me = [set() for _ in range(len(months))]
+monthly_contributor_edit_count = [{} for _ in range(len(months))]
+contributor_first_edit = {}
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    changesets.update_data_with_csv_str(csv_line)
+    month_index = changesets.month_index
+    user_index = changesets.user_index
+    edits = changesets.edits
 
-    mo_ch[month_index] += 1
-    mo_ed[month_index] += edits
-    mo_ed_list[month_index].append(edits)
-    mo_co_set[month_index].add(user_id)
-    if user_id not in mo_co_edit_count[month_index]:
-        mo_co_edit_count[month_index][user_id] = 0
-    mo_co_edit_count[month_index][user_id] += edits
+    montly_edits_list[month_index].append(edits)
+    monthly_contributor_sets[month_index].add(user_index)
+    if user_index not in monthly_contributor_edit_count[month_index]:
+        monthly_contributor_edit_count[month_index][user_index] = 0
+    monthly_contributor_edit_count[month_index][user_index] += edits
 
-    if user_id not in co_first_edit:
-        co_first_edit[user_id] = month_index
+    if user_index not in contributor_first_edit:
+        contributor_first_edit[user_index] = month_index
     else:
-        if month_index < co_first_edit[user_id]:
-            co_first_edit[user_id] = month_index
+        if month_index < contributor_first_edit[user_index]:
+            contributor_first_edit[user_index] = month_index
 
-    if len(x) > 0:
-        ye_map_ed[month_index_to_year_index[month_index], int(x), int(y)] += edits
-        total_map_ed[int(x), int(y)] += edits
+    if changesets.pos_x is not None:
+        yearly_map_edits[changesets.month_index_to_year_index[month_index], changesets.pos_x, changesets.pos_y] += edits
+        total_map_ed[changesets.pos_x, changesets.pos_y] += edits
 
-    if len(data[7]) == 0 or (int(data[7]) != maps_me_android_id and int(data[7]) != maps_me_ios_id):
-        mo_co_set_without_maps_me[month_index].add(user_id)
+    if changesets.created_by_index is None or changesets.created_by_index not in maps_me_android_ios_indices:
+        monthly_contributor_sets_without_maps_me[month_index].add(changesets.user_index)
 
 
-mo_co = util.set_to_length(mo_co_set)
-mo_co_without_maps_me = util.set_to_length(mo_co_set_without_maps_me)
-ye_map_ed_max_z_value = np.max(ye_map_ed)
-mo_co_edit_count_higher_then_100 = [
-    np.sum(np.array(list(mo_co_edit_count[month_index].values())) > 100) for month_index in range(len(months))
+monthly_contributor_without_maps_me = util.set_to_length(monthly_contributor_sets_without_maps_me)
+yearly_map_edits_max_z_value = np.max(yearly_map_edits)
+monthly_contributor_edit_count_higher_then_100 = [
+    np.sum(np.array(list(monthly_contributor_edit_count[month_index].values())) > 100)
+    for month_index in range(len(months))
 ]
 
-month_index, first_edit_count = np.unique(list(co_first_edit.values()), return_counts=True)
-mo_new_co = np.zeros((len(months)))
-mo_new_co[month_index] = first_edit_count
+month_index, first_edit_count = np.unique(list(contributor_first_edit.values()), return_counts=True)
+monthly_new_contributors = np.zeros((len(months)))
+monthly_new_contributors[month_index] = first_edit_count
 
-median_ed_per_mo_per_ch = util.get_median(mo_ed_list)
-median_ed_per_mo_per_co = util.get_median(
-    [list(mo_co_edit_count[month_index].values()) for month_index in range(len(months))]
+median_edits_per_month_per_changeset = util.get_median(montly_edits_list)
+median_edits_per_month_per_contributor = util.get_median(
+    [list(monthly_contributor_edit_count[month_index].values()) for month_index in range(len(months))]
 )
 
 # save plots
@@ -74,13 +68,13 @@ with util.add_questions(TOPIC) as add_question:
     add_question(
         "How many people are contributing each month?",
         "63f6",
-        util.get_single_line_plot("contributors per month", "contributors", months, mo_co),
-        util.get_single_line_plot("new contributors per month", "contributors", months, mo_new_co),
+        util.get_single_line_plot("contributors per month", "contributors", months, changesets.monthly_contributors),
+        util.get_single_line_plot("new contributors per month", "contributors", months, monthly_new_contributors),
         util.get_single_line_plot(
             "contributors with more then 100 edits per month",
             "contributors",
             months,
-            mo_co_edit_count_higher_then_100,
+            monthly_contributor_edit_count_higher_then_100,
         ),
     )
 
@@ -94,22 +88,29 @@ with util.add_questions(TOPIC) as add_question:
             " editor quality of their edits was really low."
         ),
         util.get_single_line_plot(
-            "contributors per month without maps.me contributors", "contributors", months, mo_co_without_maps_me
+            "contributors per month without maps.me contributors",
+            "contributors",
+            months,
+            monthly_contributor_without_maps_me,
         ),
     )
 
     add_question(
         "How many edits are added each month?",
         "fe79",
-        util.get_single_line_plot("edits per month", "edits", months, mo_ed),
+        util.get_single_line_plot("edits per month", "edits", months, changesets.monthly_edits),
     )
 
     add_question(
         "What's the total amount of contributors, edits and changesets over time?",
         "7026",
-        util.get_single_line_plot("total contributor count", "contributors", months, util.set_cumsum(mo_co_set)),
-        util.get_single_line_plot("total edit count", "edits", months, util.cumsum(mo_ed)),
-        util.get_single_line_plot("total changeset count", "changesets", months, util.cumsum(mo_ch)),
+        util.get_single_line_plot(
+            "total contributor count", "contributors", months, util.set_cumsum(monthly_contributor_sets)
+        ),
+        util.get_single_line_plot("total edit count", "edits", months, util.cumsum(changesets.monthly_edits)),
+        util.get_single_line_plot(
+            "total changeset count", "changesets", months, util.cumsum(changesets.monthly_changsets)
+        ),
     )
 
     add_question("Where are edits made?", "727b", util.get_map_plot("total edits", total_map_ed))
@@ -117,7 +118,10 @@ with util.add_questions(TOPIC) as add_question:
     add_question(
         "Where are edits made each year?",
         "bd16",
-        *[util.get_map_plot(f"total edits {year}", m, ye_map_ed_max_z_value) for m, year in zip(ye_map_ed, years)],
+        *[
+            util.get_map_plot(f"total edits {year}", m, yearly_map_edits_max_z_value)
+            for m, year in zip(yearly_map_edits, years)
+        ],
     )
 
     add_question(
@@ -127,13 +131,13 @@ with util.add_questions(TOPIC) as add_question:
             "median number of edits per contributor per month",
             "median number of edits per contributor",
             months,
-            median_ed_per_mo_per_co,
+            median_edits_per_month_per_contributor,
         ),
         util.get_single_line_plot(
             "median number of edits per contributor per month since 2010",
             "median number of edits per contributor",
             months[57:],
-            median_ed_per_mo_per_co[57:],
+            median_edits_per_month_per_contributor[57:],
         ),
     )
 
@@ -144,12 +148,12 @@ with util.add_questions(TOPIC) as add_question:
             "median number of edits per changeset per month",
             "median number of edits per changeset",
             months,
-            median_ed_per_mo_per_ch,
+            median_edits_per_month_per_changeset,
         ),
         util.get_single_line_plot(
             "median number of edits per changeset per month since 2010",
             "median number of edits per changeset",
             months[57:],
-            median_ed_per_mo_per_ch[57:],
+            median_edits_per_month_per_changeset[57:],
         ),
     )

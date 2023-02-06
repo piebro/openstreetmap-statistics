@@ -45,7 +45,7 @@ A list of all organized editing teams can be found [here](https://wiki.openstree
 The teams list all users (including inactive ones) who are mapping for them for transparency reasons.
 
 I looked at each team in the list and added all the for-profit companies I could find.
-The companies are added to [src/save_corporation_contibutors.py](src/save_corporation_contibutors.py), which extracts all user names and saves them in the assets folder.
+The companies are added to [src/save_corporation_contributors.py](src/save_corporation_contributors.py), which extracts all user names and saves them in the assets folder.
 The cooperation statistics are gathered with the list of users working at each company.
 Incorrect and out-of-date user lists could be a source of error in the data.
 
@@ -67,14 +67,12 @@ aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 
 Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time.
 ```bash
-mkdir temp
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | python3 src/save_changesets_csv.py temp | gzip > temp/changesets.csv.gz
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | python3 src/save_changesets_csv.py temp
 ```
 
 If you want to add new topics, plots or tables and iterate faster with a subset of all data, you can use every 500th changeset like this.
 ```bash
-mkdir temp_dev
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev | gzip > temp_dev/changesets.csv.gz
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
 ```
 
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script.
@@ -86,7 +84,7 @@ bash generate_plots.sh temp
 
 You can update the list of cooperation with their osm user names in assets/corporation_contributors.json with the following command.
 ```bash
-python3 src/save_corporation_contibutors.py
+python3 src/save_corporation_contributors.py
 ```
 
 ### Update background map

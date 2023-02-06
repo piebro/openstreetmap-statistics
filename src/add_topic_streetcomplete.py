@@ -4,59 +4,42 @@ import util
 
 # init
 DATA_DIR = sys.argv[1]
-TOP_K = 300
-months, years = util.get_months_years(DATA_DIR)
-year_to_year_index = util.list_to_dict(years)
-month_index_to_year_index = {month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(months)}
+changesets = util.Changesets(DATA_DIR)
+top_k, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "streetcomplete_quest_type")
+name_to_color = util.get_unique_name_to_color_mapping(rank_to_name["edits"], rank_to_name["contributors"])
 
-top_ids = util.load_top_k_list(DATA_DIR, "streetcomplete_quest_type")
-ed_id_to_rank = util.list_to_dict(top_ids["edits"])
-co_id_to_rank = util.list_to_dict(top_ids["contributors"])
-
-index_to_tag = util.load_index_to_tag(DATA_DIR, "streetcomplete_quest_type")
-ed_rank_to_name = [index_to_tag[edit_id] for edit_id in top_ids["edits"]]
-co_rank_to_name = [index_to_tag[contributor_id] for contributor_id in top_ids["contributors"]]
-
-name_to_color = util.get_unique_name_to_color_mapping(ed_rank_to_name, co_rank_to_name)
-
-mo_ed = np.zeros((TOP_K, len(months)), dtype=np.int64)
-mo_ed_sc = np.zeros((len(months)), dtype=np.int64)
-mo_ed_all = np.zeros((len(months)), dtype=np.int64)
-mo_ed_that_use_tag = np.zeros((len(months)), dtype=np.int64)
-total_map_ed = np.zeros((360, 180), dtype=np.int64)
-mo_co_set = [[set() for _ in range(len(months))] for _ in range(TOP_K)]
-mo_co_set_sc = [set() for _ in range(len(months))]
-mo_co_set_all = [set() for _ in range(len(months))]
+months, years = changesets.months, changesets.years
+monthly_edits = np.zeros((top_k, len(months)), dtype=np.int64)
+monthly_edits_sc = np.zeros((len(months)), dtype=np.int64)
+total_map_edits = np.zeros((360, 180), dtype=np.int64)
+monthly_contributor_sets = [[set() for _ in range(len(months))] for _ in range(top_k)]
+monthly_contributor_sets_sc = [set() for _ in range(len(months))]
 
 # accumulate data
-for line in sys.stdin:
-    data = line[:-1].split(",")
-    edits = int(data[0])
-    month_index = int(data[1])
-    user_id = int(data[2])
-    x, y = data[4], data[5]
+for csv_line in sys.stdin:
+    changesets.update_data_with_csv_str(csv_line)
+    month_index = changesets.month_index
+    user_index = changesets.user_index
+    edits = changesets.edits
+    sc_index = changesets.streetcomplete_quest_type_index
 
-    mo_ed_all[month_index] += edits
-    mo_co_set_all[month_index].add(user_id)
-
-    if len(data[8]) == 0:
+    if sc_index is None:
         continue
-    quest_type_id = int(data[8])
 
-    mo_ed_sc[month_index] += edits
-    mo_co_set_sc[month_index].add(user_id)
+    monthly_edits_sc[month_index] += edits
+    monthly_contributor_sets_sc[month_index].add(user_index)
 
-    if quest_type_id in ed_id_to_rank:
-        rank = ed_id_to_rank[quest_type_id]
-        mo_ed[rank, month_index] += edits
-        if len(x) > 0:
-            total_map_ed[int(x), int(y)] += edits
+    if sc_index in index_to_rank["edits"]:
+        rank = index_to_rank["edits"][sc_index]
+        monthly_edits[rank, month_index] += edits
+        if changesets.pos_x is not None:
+            total_map_edits[changesets.pos_x, changesets.pos_y] += edits
 
-    if quest_type_id in co_id_to_rank:
-        rank = co_id_to_rank[quest_type_id]
-        mo_co_set[rank][month_index].add(user_id)
+    if sc_index in index_to_rank["contributors"]:
+        rank = index_to_rank["contributors"][sc_index]
+        monthly_contributor_sets[rank][month_index].add(user_index)
 
-mo_co_sc = util.set_to_length(mo_co_set_sc)
+monthly_contributor_sc = util.set_to_length(monthly_contributor_sets_sc)
 
 # save plots
 TOPIC = "StreetComplete"
@@ -75,18 +58,20 @@ with util.add_questions(TOPIC) as add_question:
             "percent of contributors that use streetcomplete per month",
             "%",
             months,
-            util.get_percent(mo_co_sc, util.set_to_length(mo_co_set_all)),
+            util.get_percent(monthly_contributor_sc, changesets.monthly_contributors),
             percent=True,
         ),
-        util.get_single_line_plot("contributors that use streetcomplete per month", "contributors", months, mo_co_sc),
+        util.get_single_line_plot(
+            "contributors that use streetcomplete per month", "contributors", months, monthly_contributor_sc
+        ),
         util.get_single_line_plot(
             "percent of edits made with streetcomplete per month",
             "%",
             months,
-            util.get_percent(mo_ed_sc, mo_ed_all),
+            util.get_percent(monthly_edits_sc, changesets.monthly_edits),
             percent=True,
         ),
-        util.get_single_line_plot("edits made with streetcomplete per month", "edits", months, mo_ed_sc),
+        util.get_single_line_plot("edits made with streetcomplete per month", "edits", months, monthly_edits_sc),
     )
 
     add_question(
@@ -95,9 +80,9 @@ with util.add_questions(TOPIC) as add_question:
         util.get_table(
             "yearly edit count per quest",
             years,
-            util.monthly_to_yearly_with_total(mo_ed, years, month_index_to_year_index),
+            util.monthly_to_yearly_with_total(monthly_edits, years, changesets.month_index_to_year_index),
             TOPIC,
-            ed_rank_to_name,
+            rank_to_name["edits"],
         ),
     )
 
@@ -108,17 +93,17 @@ with util.add_questions(TOPIC) as add_question:
             "total contributor count of quests",
             "contributors",
             months,
-            util.set_cumsum(mo_co_set),
-            co_rank_to_name[:10],
-            colors=[name_to_color[name] for name in co_rank_to_name[:10]],
+            util.set_cumsum(monthly_contributor_sets),
+            rank_to_name["contributors"][:10],
+            colors=[name_to_color[name] for name in rank_to_name["contributors"][:10]],
         ),
         util.get_multi_line_plot(
             "total edit count of quests",
             "edits",
             months,
-            util.cumsum(mo_ed),
-            ed_rank_to_name[:10],
-            colors=[name_to_color[name] for name in ed_rank_to_name[:10]],
+            util.cumsum(monthly_edits),
+            rank_to_name["edits"][:10],
+            colors=[name_to_color[name] for name in rank_to_name["edits"][:10]],
         ),
     )
 
@@ -129,18 +114,18 @@ with util.add_questions(TOPIC) as add_question:
             "total contributor count of quests",
             "contributors",
             months,
-            util.set_cumsum(mo_co_set),
-            co_rank_to_name,
-            colors=[name_to_color[name] for name in co_rank_to_name],
+            util.set_cumsum(monthly_contributor_sets),
+            rank_to_name["contributors"],
+            colors=[name_to_color[name] for name in rank_to_name["contributors"]],
             async_load=True,
         ),
         util.get_multi_line_plot(
             "total edit count of quests",
             "edits",
             months,
-            util.cumsum(mo_ed),
-            ed_rank_to_name,
-            colors=[name_to_color[name] for name in ed_rank_to_name],
+            util.cumsum(monthly_edits),
+            rank_to_name["edits"],
+            colors=[name_to_color[name] for name in rank_to_name["edits"]],
             async_load=True,
         ),
     )
@@ -148,5 +133,5 @@ with util.add_questions(TOPIC) as add_question:
     add_question(
         "Where is StreetComplete used the most?",
         "52ed",
-        util.get_map_plot("total edits with streetcomplete", total_map_ed),
+        util.get_map_plot("total edits with streetcomplete", total_map_edits),
     )
