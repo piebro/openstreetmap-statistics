@@ -89,10 +89,10 @@ with util.add_questions(TOPIC) as add_question:
         ),
     )
     add_question(
-        "What are the most popular tags for changesets per selected Editing Softwares?",
+        "What are the most popular tags for changesets per selected editing software?",
         "2fb7",
         util.get_text_element(
-            "In general the changeset tags are set by the Editing Software. Thats why its interesting to look at"
+            "In general the changeset tags are set by the editing software. Thats why its interesting to look at"
             " the tag usage per editing software.",
         ),
         *[
