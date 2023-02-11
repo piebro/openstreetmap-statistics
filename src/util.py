@@ -221,7 +221,7 @@ def get_multi_line_plot(
     return ("plot", plot)
 
 
-def get_table(table_title, x, y_list, y_names_head, y_names, async_load=False):
+def get_table(table_title, x, y_list, y_names_head, y_names):
     start_xy_index = np.min([np.nonzero(y)[0][0] for y in y_list if np.any(y)])
 
     head = ["Rank", y_names_head] if len(y_list) > 1 else []
