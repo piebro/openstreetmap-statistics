@@ -8,6 +8,7 @@ changesets = util.Changesets(DATA_DIR)
 top_k, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "hashtag")
 
 months, years = changesets.months, changesets.years
+# month_index_to_year_index = changesets.month_index_to_year_index
 monthly_changesets = np.zeros((top_k, len(months)), dtype=np.int64)
 monthly_edits = np.zeros((top_k, len(months)), dtype=np.int64)
 monthly_edits_that_use_tag = np.zeros((len(months)), dtype=np.int64)
@@ -19,11 +20,12 @@ monthly_contributor_sets_that_use_tag = [set() for _ in range(len(months))]
 for csv_line in sys.stdin:
     changesets.update_data_with_csv_str(csv_line)
     month_index = changesets.month_index
+    edits = changesets.edits
 
     if len(changesets.hashtag_indices) == 0:
         continue
 
-    monthly_edits_that_use_tag[month_index] += changesets.edits
+    monthly_edits_that_use_tag[month_index] += edits
     monthly_contributor_sets_that_use_tag[month_index].add(changesets.user_index)
 
     for hashtag_index in changesets.hashtag_indices:
@@ -33,9 +35,9 @@ for csv_line in sys.stdin:
 
         if hashtag_index in index_to_rank["edits"]:
             rank = index_to_rank["edits"][hashtag_index]
-            monthly_edits[rank, month_index] += changesets.edits
+            monthly_edits[rank, month_index] += edits
             if changesets.pos_x is not None and rank < 10:
-                total_map_ed[rank, changesets.pos_x, changesets.pos_y] += changesets.edits
+                total_map_ed[rank, changesets.pos_x, changesets.pos_y] += edits
 
         if hashtag_index in index_to_rank["contributors"]:
             rank = index_to_rank["contributors"][hashtag_index]
