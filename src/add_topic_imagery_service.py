@@ -55,7 +55,7 @@ with util.add_questions(TOPIC) as add_question:
             "This graph is based on imagery tag set automatically by iD, Vespucci and Go Map!!. As other editors are"
             " not using it and iD is vastly more popular than other relevant editors this graph is very close to"
             " 'market share of iD by edit volume'. JOSM users are typically using source field to note actually"
-            " used sources"
+            " used sources."
         ),
     )
 

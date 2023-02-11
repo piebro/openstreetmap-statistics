@@ -106,6 +106,22 @@ def monthly_set_to_yearly_with_total(y_monthly_set_list, years, month_index_to_y
         )
 
 
+def yearly_to_yearly_with_total(y_yearly):
+    if isinstance(y_yearly[0], (int, np.integer)):
+        return np.concatenate([y_yearly, np.array([np.sum(y_yearly)])])
+    else:
+        return np.array([yearly_to_yearly_with_total(inner_y_yearly) for inner_y_yearly in y_yearly])
+
+
+def yearly_set_to_yearly_with_total(y_yearly):
+    if isinstance(y_yearly[0], set):
+        y_yearly_len = [len(y_year) for y_year in y_yearly]
+        y_yearly_len.append(len(set().union(*y_yearly)))
+        return np.array(y_yearly_len)
+    else:
+        return np.array([yearly_set_to_yearly_with_total(inner_y_yearly) for inner_y_yearly in y_yearly])
+
+
 def get_median(y):
     return [np.median(yy) if len(yy) > 0 else 0 for yy in y]
 
@@ -205,7 +221,7 @@ def get_multi_line_plot(
     return ("plot", plot)
 
 
-def get_table(table_title, x, y_list, y_names_head, y_names):
+def get_table(table_title, x, y_list, y_names_head, y_names, async_load=False):
     start_xy_index = np.min([np.nonzero(y)[0][0] for y in y_list if np.any(y)])
 
     head = ["Rank", y_names_head] if len(y_list) > 1 else []
@@ -217,6 +233,11 @@ def get_table(table_title, x, y_list, y_names_head, y_names):
     for i, (name, y) in enumerate(zip(y_names, y_list)):
         if name in name_to_link:
             name = f'<a href="{name_to_link[name]}">{name}</a>'
+        if name[:16] == "#hotosm-project-":
+            num = name.split("-")[2]
+            if len(num) > 2:
+                name = f'<a href="https://tasks.hotosm.org/projects/{num}">{name}</a>'
+
         row = [str(i + 1), name] if len(y_list) > 1 else []
         row.extend([f"{yy:,}" for yy in list(y[start_xy_index:])])
         body.append(row)
@@ -396,15 +417,15 @@ class Changesets:
             month_i: year_to_year_index[month[:4]] for month_i, month in enumerate(self.months)
         }
 
-        self.all_tags_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "all_tags"))
-        self.created_by_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "created_by"))
-        self.hashtag_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "hashtag"))
-        self.imagery_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "imagery"))
-        self.source_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "source"))
-        self.streetcomplete_quest_type_tag_to_id = list_to_dict(
-            load_index_to_tag(data_dir, "streetcomplete_quest_type")
-        )
-        self.user_name_tag_to_id = list_to_dict(load_index_to_tag(data_dir, "user_name"))
+        # self.all_tags_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "all_tags"))
+        # self.created_by_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "created_by"))
+        # self.hashtag_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "hashtag"))
+        # self.imagery_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "imagery"))
+        # self.source_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "source"))
+        # self.streetcomplete_quest_type_tag_to_index = list_to_dict(
+        #     load_index_to_tag(data_dir, "streetcomplete_quest_type")
+        # )
+        # self.user_name_tag_to_index = list_to_dict(load_index_to_tag(data_dir, "user_name"))
 
         with open(os.path.join(data_dir, "infos.json"), "r", encoding="UTF-8") as json_file:
             infos = json.load(json_file)
@@ -461,58 +482,3 @@ class Changesets:
             self.all_tags_indices = []
 
         self.bot_used = len(data[11]) > 0
-
-    # top_ids = util.load_top_k_list(DATA_DIR, "imagery")
-    # ch_id_to_rank = util.list_to_dict(top_ids["changesets"])
-    # ed_id_to_rank = util.list_to_dict(top_ids["edits"])
-    # co_id_to_rank = util.list_to_dict(top_ids["contributors"])
-
-    # def get_imagery_in_top_k(self, data_type):
-    #     return [(self.top_k_imagery[data_type][i], i) for i in self.imagery_indices if i in self.top_k_imagery[data_type]]
-
-    # was brauche ich hier genau?
-    # was ist mit top_k? will ich das auch hierher bekommen?
-
-    # def get_user_name(self):
-    # return self.user_name_tag_to_id[self.user_index]
-
-
-# @dataclass
-# class CSVData:
-#     month_index: int
-#     edits: int
-#     pos_x: int = None
-#     pos_y: int = None
-#     user_index: int = None
-#     created_by_index: int = None
-#     streetcomplete_quest_type_index: int = None
-#     imagery_index_list: list = ()
-#     hashtag_index_list: list = ()
-#     # source_index: str = ""
-#     bot_used: bool = None
-#     # all_tags: str = ""
-#     # has_pos: bool = False
-#     # has_created_by: bool = False
-
-#     def __init__(self, csv_line):
-#         data = csv_line[:-1].split(",")
-#         self.month_index = int(data[0])
-#         self.edits = int(data[1])
-#         if len(data[2]) > 0:
-#             self.pos_x = int(data[2])
-#             self.pos_y = int(data[3])
-
-#         self.user_index = int(data[4])
-#         if len(data[5]) > 0:
-#             self.created_by_index = int(data[5])
-
-#         if len(data[6]) > 0:
-#             self.streetcomplete_quest_type_index = int(data[6])
-
-#         if len(data[7]) > 0:
-#             self.imagery_index_list = [int(i) for i in data[7].split(";")]
-
-#         if len(data[8]) > 0:
-#             self.hashtag_index_list = [int(i) for i in data[8].split(";")]
-
-#         self.bot_used = len(data[10]) > 0 and data[10] == "1"
