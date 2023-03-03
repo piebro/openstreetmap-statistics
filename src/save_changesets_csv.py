@@ -7,7 +7,11 @@ from datetime import datetime
 
 import numpy as np
 
-created_by_regex = re.compile(r"(?: *\(.*|(?: v\. |/| |-|_| \(| v)\d+\.?\d*.*)")
+import util
+
+# created_by_regex = re.compile(r"(?: *\(.*|(?: v\. |/| |-|_| \(| v)\d+\.?\d*.*)")
+created_by_regex = re.compile(r"(?: \d+(?:\.\d+)+$)")
+
 
 # change some streetcomplete quest type tags that changed their name over the time to the newest name
 # https://github.com/streetcomplete/StreetComplete/issues/1749#issuecomment-593450124
@@ -114,10 +118,11 @@ def add_pos(data):
         return "", ""
 
 
-def add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index):
+def add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index, replace_rules):
     if "created_by" in tags and len(tags["created_by"]) > 0:
         created_by = tags["created_by"].replace("%20%", " ").replace("%2c%", ",")
-        created_by = re.sub(created_by_regex, "", created_by)
+        created_by = replace_with_rules(created_by, replace_rules["created_by"])
+
         created_by_index = index_dicts["created_by"].add(created_by, edits, user_index)
 
         if created_by == "StreetComplete" and "StreetComplete:quest_type" in tags:
@@ -131,7 +136,7 @@ def add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index):
         return "", ""
 
 
-def add_imagery(tags, index_dicts, edits, user_index):
+def add_imagery(tags, index_dicts, edits, user_index, replace_rules):
     if "imagery_used" in tags and len(tags["imagery_used"]) > 0:
         imagery_list = [
             key for key in tags["imagery_used"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(key) > 0
@@ -139,21 +144,7 @@ def add_imagery(tags, index_dicts, edits, user_index):
         for i in range(len(imagery_list)):
             if imagery_list[i][0] == " ":
                 imagery_list[i] = imagery_list[i][1:]
-
-            if imagery_list[i][:4] == "Bing":
-                imagery_list[i] = "Bing Maps Aerial"
-            elif imagery_list[i][:8] == "Custom (":
-                imagery_list[i] = "Custom"
-            elif imagery_list[i][-4:] == ".gpx":
-                imagery_list[i] = ".gpx data file"
-            elif imagery_list[i][:25] == "https://tasks.hotosm.org/":
-                imagery_list[i] = "tasks.hotosm.org/"
-            elif imagery_list[i][:35] == "http://www.openstreetmap.org/trace/":
-                imagery_list[i] = "www.openstreetmap.org/trace/"
-            elif imagery_list[i][:36] == "https://www.openstreetmap.org/trace/":
-                imagery_list[i] = "www.openstreetmap.org/trace/"
-            elif imagery_list[i][-13:] == "/{x}/{y}.png)":
-                imagery_list[i] = "unknown"
+            imagery_list[i] = replace_with_rules(imagery_list[i], replace_rules["imagery"])
 
         return index_dicts["imagery"].add_keys(imagery_list, edits, user_index)
     else:
@@ -167,41 +158,17 @@ def add_hashtags(tags, index_dicts, edits, user_index):
         return ""
 
 
-def add_source(tags, index_dicts, edits, user_index):
+def add_source(tags, index_dicts, edits, user_index, replace_rules):
     if "source" in tags and len(tags["source"]) > 0:
         source_list = [
             key for key in tags["source"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(key) > 0
         ]
+        # there are some source tags that are seperated with ",". Maybe split "," if there is no ";" present.
         for i in range(len(source_list)):
             if source_list[i][0] == " ":
                 source_list[i] = source_list[i][1:]
-            source_list[i] = source_list[i][:80]
-
-            if source_list[i][:8] == "tms[22]:":
-                source_list[i] = source_list[i][8:]
-
-            if source_list[i][:7] == "http://":
-                source_list[i] = source_list[i][7:].split("/")[0]
-            elif source_list[i][:8] == "https://":
-                source_list[i] = source_list[i][8:].split("/")[0]
-
-            if source_list[i] == "survey":
-                source_list[i] = "Survey"
-            elif source_list[i] == "bing":
-                source_list[i] = "Bing"
-            elif source_list[i] == "knowledge":
-                source_list[i] = "Knowledge"
-            elif source_list[i] == "local knowledge":
-                source_list[i] = "Local Knowledge"
-
-            # elif source_list[i][:21] == "Maxar Premium Imagery":
-            #     source_list[i] = "Maxar Premium Imagery"
-            # elif source_list[i][:18] == "Esri World Imagery":
-            #     source_list[i] = "Esri World Imagery"
-            # elif source_list[i][:13] == "Maxar-Premium":
-            #     source_list[i] = "Maxar Premium Imagery"
-            # elif source_list[i][:22] == "Maxar Standard Imagery":
-            #     source_list[i] = "Maxar Standard Imagery"
+            source_list[i] = replace_with_rules(source_list[i], replace_rules["source"])
+            source_list[i] = source_list[i][:120]
 
         return index_dicts["source"].add_keys(source_list, edits, user_index)
     else:
@@ -219,7 +186,7 @@ def add_bot_usage(tags):
         return ""
 
 
-def osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter):
+def osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter, replace_rules):
     data = osmium_line.split(" ")
     if data[2][1:8] not in month_to_index:  # if its the current month
         return None
@@ -241,14 +208,59 @@ def osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter):
     csv_str_array.extend(add_pos(data))
 
     tags = get_tags(data[11][1:-1])
-    csv_str_array.extend(add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index))
-    csv_str_array.append(add_imagery(tags, index_dicts, edits, user_index))
+    csv_str_array.extend(add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index, replace_rules))
+    csv_str_array.append(add_imagery(tags, index_dicts, edits, user_index, replace_rules))
     csv_str_array.append(add_hashtags(tags, index_dicts, edits, user_index))
-    csv_str_array.append(add_source(tags, index_dicts, edits, user_index))
+    csv_str_array.append(add_source(tags, index_dicts, edits, user_index, replace_rules))
     csv_str_array.append(add_all_tags(tags, index_dicts, edits, user_index))
     csv_str_array.append(add_bot_usage(tags))
 
     return ",".join(csv_str_array)
+
+
+def create_replace_rules():
+    replace_rules = {}
+    for tag_name, file_name in [
+        ("created_by", "replace_rules_created_by.json"),
+        ("imagery", "replace_rules_imagery_and_source.json"),
+        ("source", "replace_rules_imagery_and_source.json"),
+    ]:
+        name_to_tags_and_link = util.load_json(os.path.join("src", file_name))
+        tag_to_name = {}
+        starts_with_list = []
+        ends_with_list = []
+        for name, name_infos in name_to_tags_and_link.items():
+            if "aliases" in name_infos:
+                for alias in name_infos["aliases"]:
+                    tag_to_name[alias] = name
+            if "starts_with" in name_infos:
+                for starts_with in name_infos["starts_with"]:
+                    starts_with_list.append((len(starts_with), starts_with, name))
+            if "ends_with" in name_infos:
+                for ends_with in name_infos["ends_with"]:
+                    ends_with_list.append((len(ends_with), ends_with, name))
+
+        replace_rules[tag_name] = {
+            "tag_to_name": tag_to_name,
+            "starts_with_list": starts_with_list,
+            "ends_with_list": ends_with_list,
+        }
+    return replace_rules
+
+
+def replace_with_rules(tag, replace_rules):
+    if tag in replace_rules["tag_to_name"]:
+        return replace_rules["tag_to_name"][tag]
+
+    for compare_str_length, compare_str, replace_str in replace_rules["starts_with_list"]:
+        if tag[:compare_str_length] == compare_str:
+            return replace_str
+
+    for compare_str_length, compare_str, replace_str in replace_rules["ends_with_list"]:
+        if tag[-compare_str_length:] == compare_str:
+            return replace_str
+
+    return tag
 
 
 def main():
@@ -270,10 +282,6 @@ def main():
         "all_tags": IndexDict("all_tags", 100),
     }
 
-    top_k_counter = {}
-    for tag in ("all_tags", "created_by", "hashtag", "imagery", "source", "streetcomplete_quest_type"):
-        top_k_counter[tag] = {"changeset": [], "edits": [], "contributors": []}
-
     counter = {
         "total_changesets": 0,
         "total_edits": 0,
@@ -282,9 +290,11 @@ def main():
         "monthly_contributors": [set() for _ in range(len(months))],
     }
 
+    replace_rules = create_replace_rules()
+
     with gzip.open(os.path.join(save_dir, "changesets.csv.gz"), "w") as f:
         for osmium_line in sys.stdin:
-            csv_str = osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter)
+            csv_str = osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter, replace_rules)
             if csv_str is None:
                 continue
 
@@ -295,8 +305,7 @@ def main():
     counter["monthly_edits"] = counter["monthly_edits"].tolist()
     counter["monthly_contributors"] = [len(s) for s in counter["monthly_contributors"]]
 
-    with open(os.path.join(save_dir, "infos.json"), "w", encoding="UTF-8") as f:
-        f.write(json.dumps(counter, separators=(",", ":")))
+    util.save_json(os.path.join(save_dir, "infos.json"), counter)
 
     for index_dict in index_dicts.values():
         index_dict.save(save_dir)

@@ -1,0 +1,202 @@
+{
+    ".gpx data file": {
+        "aliases": [
+            "Local GPX"
+        ],
+        "ends_with": [
+            ".gpx"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks"
+    },
+    "AGIS": {
+        "ends_with": [
+            "(AGIS 2022)",
+            "(AGIS 2021)",
+            "(AGIS 2011)"
+        ]
+    },
+    "basemap.at": {
+        "aliases": [
+            "basemap.at Orthofoto",
+            "basemap.at-orthofoto",
+            "basemap.at orthofoto"
+        ]
+    },
+    "Bavaria (80 cm)": {
+        "aliases": [
+            "bavaria-80cm",
+            "Bavaria DOP 80cm",
+            "Bavaria (80 cm) TMS"
+        ]
+    },
+    "Berlin aerial photography": {
+        "starts_with": [
+            "Berlin aerial photography "
+        ]
+    },
+    "Bing Aerial Imagery": {
+        "aliases": [
+            "Bing",
+            "Bing Maps Aerial",
+            "Bing Aerial",
+            "Bing aerial imagery",
+            "bing2012",
+            "bing",
+            "Bing aerial Imagery",
+            "Bing Imagery",
+            "Bing imagery",
+            "bing aerial imagery",
+            "aerial imagery",
+            "BING"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/Bing_Maps"
+    },
+    "Custom": {
+        "starts_with": [
+            "Custom ("
+        ]
+    },
+    "{switch:a,b,c,d}.tiles.mapbox.com":{
+        "starts_with":[
+            "https://{switch:a,b,c,d}.tiles.mapbox.com"
+        ]
+    },
+    "DigitalGlobe Imagery (now Maxar)": {
+        "aliases": [
+            "DigitalGlobe Premium Imagery",
+            "DigitalGlobe Standard Imagery",
+            "DigitalGlobe Standard",
+            "Digital Globe Premium",
+            "DG Standard Imagery",
+            "DigitalGlobe Premium",
+            "DigitalGlobe",
+            "DG Premium",
+            "Digital Globe",
+            "digitalglobe",
+            "Digital Globe Premium Imagery"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/Maxar"
+    },
+    "Esri World Imagery": {
+        "aliases": [
+            "Esri",
+            "esri",
+            "Esri world imagery",
+            "esri world imagery",
+            "ESRI World Imagery",
+            "ESRI",
+            "Esri world Imagery"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/Esri",
+        "starts_with": [
+            "Esri World Imagery ",
+            "EsriWorldImageryClarity",
+            "EsriWorldImagery"
+        ]
+    },
+    "Geoportal 2: Orthophotomap": {
+        "starts_with": [
+            "Geoportal 2: ",
+            "Geoportal2"
+        ]
+    },
+    "GPS": {
+        "aliases": [
+            "gps"
+        ]
+    },
+    "HOTOSM": {
+        "starts_with": [
+            "https://tasks.hotosm.org/"
+        ]
+    },
+    "Japan GSI": {
+        "starts_with": [
+            "Japan GSI "
+        ]
+    },
+    "Knowledge": {
+        "aliases": [
+            "knowledge"
+        ]
+    },
+    "Local Knowledge": {
+        "aliases": [
+            "local knowledge",
+            "Local knowledge",
+            "local_knowledge"
+        ]
+    },
+    "Mapbox Satellite": {
+        "aliases": [
+            "mapbox",
+            "Mapbox Satellite Imagery",
+            "mapbox satellite",
+            "MapBox Satellite",
+            "Mapbox"
+        ]
+    },
+    "Mapillary": {
+        "aliases": [
+            "mapillary"
+        ]
+    },
+    "Maxar Imagery": {
+        "aliases": [
+            "Maxar Premium Imagery (Beta)",
+            "Maxar Premium Imagery",
+            "Maxar Standard Imagery",
+            "Maxar Standard Imagery (Beta)",
+            "Maxar Premium Aerial",
+            "Facebook's Map With AI - Maxar Imagery",
+            "Maxar-Premium",
+            "Maxar-Standard",
+            "Maxar Premium",
+            "Maxar Standard",
+            "Maxar premium Imagery",
+            "maxar",
+            "Maxar premium imagery",
+            "maxar standard imagery",
+            "maxar standard",
+            "maxar premium",
+            "Maxar"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/Maxar"
+    },
+    "PDOK aerial imagery": {
+        "link": "https://Beeldmateriaal.nl",
+        "starts_with": [
+            "PDOK aerial imagery "
+        ]
+    },
+    "Survey": {
+        "aliases": [
+            "survey",
+            "surveys",
+            "Surveys"
+        ]
+    },
+    "TIGER Roads": {
+        "starts_with": [
+            "TIGER Roads ",
+            "US-TIGER-Roads-",
+            "TIGER 2012 Roads Overlay",
+            "TIGER 2012"
+        ]
+    },
+    "tms[]:https://": {
+        "starts_with": [
+            "tms[22]:https://",
+            "tms[22]:http://",
+            "tms[1,22]:https://",
+            "tms:https:/",
+            "tms[19]:http://",
+            "tms:http://"
+        ]
+    },
+    "UMD Landsat": {
+        "starts_with": [
+            "UMD Landsat "
+        ]
+    }
+}

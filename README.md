@@ -20,23 +20,26 @@ It also means that changing the geometry of a way or relation count as many edit
 This leads to an overrepresented of changes in the geometry of ways and relations compared to edits that add or change information to existing nodes.
 It's important to keep this in mind looking and interpreting the data.
 
+Another aspect is that the `created_by`, `imagery` and `source` tag use filters to determine the editing software and imagery.
+Some categories are opinionated (e.g., should stats for Android and iOS editing apps be counted separately?), and other categories could be very reasonable, depending on the purpose.
+The filtering process is done with simple rules to make it as transparent as possible and easily extendable by anyone.
+The rules are definded at [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
+
 ### Editing Software
 
 Most changesets have a `created_by` tag which indicates which editing software was used to make the changes.
-It's necessary to filter out version numbers or other information in the tag to get a better overview of what kind of editors are used.
-The filtering is done with regex expression, which can be seen at [src/save_changesets_csv.py](src/save_changesets_csv.py).
-The regex can eliminate the additional info but preserve the original editing software name.
-In some cases, it might fail and be a source of error.
-Feel free to open an issue if you see cases where the regex is not working correctly.
+Many `created_by` tags also include the version number or additional irrelevant information for determining the editing software and are therefore filtered.
+<!-- Therefore rules are used to filter the tags.
+The rules can be overviewed in [src/replace_rules_created_by.json](src/replace_rules_created_by.json).
+The rules are simple to make the filtering process as transparent as possible and easily extendable by anyone. -->
 
 ### Imagery Software
 
-One optional tag for changesets is the `imagery` tag, which is used by some editors to add an image source if aerial or other imagery is used. 
-It's necessary to filter the tag to get an overview of the most common image sources.
-The filtering is done with `if` statements and can be reviewed at [src/save_changesets_csv.py](src/save_changesets_csv.py).
-Feel free to open an issue if the filter is not working as intended.
-
-Note that `imagery` tag is set by iD, Vespucci and Go Map!! and is not set by JOSM.
+One optional tag for changesets is the `imagery` tag, which iD, Vespucci and Go Map!! use to add an image source if aerial or other imagery is used.
+Many `imagery` tags also include irrelevant information for determining the used imagery and are therefore filtered.
+<!-- Therefore rules are used to filter the tags.
+The rules can be overviewed in [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
+The rules are simple to make the filtering process as transparent as possible and easily extendable by anyone. -->
 
 ### Cooperations
 
@@ -106,6 +109,9 @@ This has the advantage of having a smaller plotly file while still being able to
 
 If there are other topics and questions about OpenStreetMap you think are interesting and that can be abstracted from the changeset, feel free to open an issue or create a pull request.
 Also, if you see any typos or other mistakes, feel free to correct them and create a pull request.
+
+Another valuable way to contribute is to add editing software or imagery sources to [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
+This can make the statistics more accurate.
 
 Adding a new plot also needs adding a new `url_hash`. A new unique one can be printed with running `python3 src/create_new_unique_url_hash.py`.
 
