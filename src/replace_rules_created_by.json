@@ -1,0 +1,747 @@
+{
+    "ADDR": {
+        "starts_with": [
+            "ADDR "
+        ],
+        "type": "mobile_editor or desktop_editor or tool"
+    },
+    "addr2osm": {
+        "link": "https://github.com/NKAmapper/addr2osm",
+        "starts_with": [
+            "addr2osm "
+        ]
+    },
+    "AddressHunter": {
+        "starts_with": [
+            "AddressHunter "
+        ]
+    },
+    "AND node cleaner": {
+        "link": "https://wiki.openstreetmap.org/wiki/AND_data"
+    },
+    "ArcGIS Editor for OpenStreetMap": {
+        "starts_with": [
+            "ArcGIS Editor for OpenStreetMap "
+        ]
+    },
+    "autoAWS": {
+        "starts_with": [
+            "autoAWS "
+        ]
+    },
+    "Brick": {
+        "link": "https://github.com/OSMBuildings/Brick"
+    },
+    "bulk_upload_sax.py": {
+        "link": "https://wiki.openstreetmap.org/wiki/Bulk_upload_sax.py"
+    },
+    "bulk_upload.py": {
+        "link": "https://wiki.openstreetmap.org/wiki/Bulk_upload.py",
+        "starts_with": [
+            "bulk_upload.py"
+        ]
+    },
+    "bulkyosm.py": {
+        "aliases": [
+            "bulkyosm.py/0.1 Python/2.7.8"
+        ]
+    },
+    "Bus Contributor": {
+        "starts_with": [
+            "Bus Contributor "
+        ]
+    },
+    "BusLanes": {
+        "starts_with": [
+            "BusLanes "
+        ]
+    },
+    "Busy Hours": {
+        "starts_with": [
+            "Busy Hours "
+        ]
+    },
+    "catatom3dfix": {
+        "starts_with": [
+            "catatom3dfix/"
+        ]
+    },
+    "CityZen Android": {
+        "starts_with": [
+            "CityZen Android app "
+        ]
+    },
+    "CODAP": {
+        "starts_with": [
+            "CODAP "
+        ]
+    },
+    "Completionist": {
+        "starts_with": [
+            "Completionist "
+        ]
+    },
+    "Cualbondi Editor": {
+        "starts_with": [
+            "Cualbondi Editor "
+        ]
+    },
+    "DataNovaImportScripts": {
+        "starts_with": [
+            "DataNovaImportScripts "
+        ]
+    },
+    "Every Door Android": {
+        "starts_with": [
+            "Every Door Android ",
+            "Every Door android "
+        ]
+    },
+    "Every Door ios": {
+        "starts_with": [
+            "Every Door ios "
+        ]
+    },
+    "Every Door iOS": {
+        "starts_with": [
+            "Every Door iOS "
+        ]
+    },
+    "finde.cash": {
+        "starts_with": [
+            "finde.cash "
+        ]
+    },
+    "FindvejBot": {
+        "starts_with": [
+            "FindvejBot "
+        ]
+    },
+    "FixKarlsruheSchema": {
+        "link": "https://wiki.openstreetmap.org/wiki/Xybot#So_what_does_the_FixKarlsruheSchema_ruleset_do_exactly"
+    },
+    "freemap.sk": {
+        "starts_with": [
+            "freemap.sk "
+        ]
+    },
+    "Geocropping": {
+        "link": "https://geocropping.xsalto.com/guide.html"
+    },
+    "geoMapTool": {
+        "starts_with": [
+            "geoMapTool "
+        ]
+    },
+    "Globe": {
+        "link": "https://wiki.gnome.org/Apps/Maps",
+        "starts_with": [
+            "Globe "
+        ]
+    },
+    "gnome-maps": {
+        "starts_with": [
+            "gnome-maps "
+        ]
+    },
+    "GNU Emacs": {
+        "starts_with": [
+            "GNU Emacs "
+        ]
+    },
+    "Go Kaart!!": {
+        "starts_with": [
+            "Go Kaart!! "
+        ]
+    },
+    "Go Map!!": {
+        "link": "https://github.com/bryceco/GoMap/",
+        "starts_with": [
+            "Go Map!! "
+        ]
+    },
+    "GpsMid": {
+        "starts_with": [
+            "GpsMid_"
+        ]
+    },
+    "https_all_the_things": {
+        "starts_with": [
+            "https_all_the_things/"
+        ]
+    },
+    "https://aed.openstreetmap.org.pl": {
+        "link": "https://aed.openstreetmap.org.pl"
+    },
+    "https://osm.wikidata.link/": {
+        "ends_with": [
+            ".wikidata.link/"
+        ],
+        "link": "https://osm.wikidata.link/"
+    },
+    "iD": {
+        "link": "https://wiki.openstreetmap.org/wiki/ID",
+        "starts_with": [
+            "iD "
+        ]
+    },
+    "iD-indoor": {
+        "link": "https://wiki.openstreetmap.org/wiki/ID-indoor",
+        "starts_with": [
+            "iD-indoor "
+        ]
+    },
+    "iLOE": {
+        "link": "https://wiki.openstreetmap.org/wiki/ILOE",
+        "starts_with": [
+            "iLOE "
+        ]
+    },
+    "IsraelHiking.osm.org.il": {
+        "link": "https://israelhiking.osm.org.il/"
+    },
+    "Jeff's Uploader": {
+        "starts_with": [
+            "Jeff's Uploader "
+        ]
+    },
+    "JOSM": {
+        "link": "https://josm.openstreetmap.de/",
+        "starts_with": [
+            "JOSM"
+        ]
+    },
+    "Jungle Bus": {
+        "starts_with": [
+            "Jungle Bus "
+        ]
+    },
+    "LangToolsOSM": {
+        "starts_with": [
+            "LangToolsOSM "
+        ]
+    },
+    "Level0": {
+        "link": "https://wiki.openstreetmap.org/wiki/Level0",
+        "starts_with": [
+            "Level0 "
+        ]
+    },
+    "LINZ Address Import": {
+        "link": "https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)",
+        "starts_with": [
+            "LINZ Address Import "
+        ]
+    },
+    "LINZ Data Import": {
+        "link": "https://wiki.openstreetmap.org/wiki/Import/New_Zealand_Street_Addresses_(2021)",
+        "starts_with": [
+            "LINZ Data Import "
+        ]
+    },
+    "LoPoi": {
+        "starts_with": [
+            "LoPoi "
+        ]
+    },
+    "Map builder": {
+        "link": "https://www.bing.com/mapbuilder/",
+        "starts_with": [
+            "Map builder "
+        ]
+    },
+    "Mapa AED": {
+        "link": "https://aed.openstreetmap.org.pl/"
+    },
+    "Mapcat": {
+        "starts_with": [
+            "Mapcat "
+        ]
+    },
+    "MapComplete": {
+        "starts_with": [
+            "MapComplete "
+        ]
+    },
+    "MapContrib": {
+        "starts_with": [
+            "MapContrib "
+        ]
+    },
+    "MAPS.ME android": {
+        "link": "https://maps.me/",
+        "starts_with": [
+            "MAPS.ME android "
+        ]
+    },
+    "MAPS.ME ios": {
+        "link": "https://maps.me/",
+        "starts_with": [
+            "MAPS.ME ios "
+        ]
+    },
+    "mapthis.space": {
+        "starts_with": [
+            "mapthis.space"
+        ]
+    },
+    "Mapzen": {
+        "aliases": [
+            "Mapzen Alpha 1",
+            "Mapzen Beta"
+        ]
+    },
+    "Mapzen POI Collector": {
+        "link": "https://wiki.openstreetmap.org/wiki/Mapzen_POI_Collector",
+        "starts_with": [
+            "Mapzen POI Collector "
+        ]
+    },
+    "Merkaartor": {
+        "link": "https://github.com/openstreetmap/merkaartor",
+        "starts_with": [
+            "Merkaartor"
+        ]
+    },
+    "MyStreetComplete": {
+        "starts_with": [
+            "MyStreetComplete "
+        ]
+    },
+    "noteSolver_plugin (JOSM)": {
+        "starts_with": [
+            "noteSolver_plugin/"
+        ]
+    },
+    "nsr2osm": {
+        "starts_with": [
+            "nsr2osm "
+        ]
+    },
+    "OMaps android": {
+        "starts_with": [
+            "OMaps android "
+        ]
+    },
+    "OMaps ios": {
+        "starts_with": [
+            "OMaps ios "
+        ]
+    },
+    "OpenMapKit Server": {
+        "starts_with": [
+            "OpenMapKit Server "
+        ]
+    },
+    "OpenMaps iOS": {
+        "aliases": [
+            "OpenMaps for iOS",
+            "OpenMaps iPhone"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/OpenMaps_(IZE)"
+    },
+    "OpenPOI iOS": {
+        "starts_with": [
+            "OpenPOI iOS "
+        ]
+    },
+    "OpenRecycleMap": {
+        "link": "https://openrecyclemap.org/"
+    },
+    "OpenSeaMap-Editor": {
+        "starts_with": [
+            "OpenSeaMap-Editor-"
+        ]
+    },
+    "OpenSidewalks Quests": {
+        "starts_with": [
+            "OpenSidewalks Quests "
+        ]
+    },
+    "OpenStop": {
+        "starts_with": [
+            "OpenStop "
+        ]
+    },
+    "OpenStreetMap Nomino": {
+        "starts_with": [
+            "OpenStreetMap Nomino / http://yapafo.net "
+        ]
+    },
+    "OpenStreetQuests": {
+        "starts_with": [
+            "OpenStreetQuests "
+        ]
+    },
+    "Organic Maps android": {
+        "link": "https://organicmaps.app/de/",
+        "starts_with": [
+            "Organic Maps android "
+        ]
+    },
+    "Organic Maps ios": {
+        "link": "https://organicmaps.app/de/",
+        "starts_with": [
+            "Organic Maps ios "
+        ]
+    },
+    "OSM Conflator (JOSM)": {
+        "starts_with": [
+            "OSM Conflator "
+        ]
+    },
+    "OSM Contributor": {
+        "starts_with": [
+            "OSM Contributor "
+        ]
+    },
+    "Osm Go!": {
+        "starts_with": [
+            "Osm Go! "
+        ]
+    },
+    "OSM Microtasks": {
+        "starts_with": [
+            "OSM Microtasks "
+        ]
+    },
+    "osm-beschilderung": {
+        "starts_with": [
+            "osm-beschilderung "
+        ]
+    },
+    "osm-revert": {
+        "starts_with": [
+            "osm-revert "
+        ]
+    },
+    "Osm.Org Tags Editor": {
+        "link": "https://wiki.openstreetmap.org/wiki/OpenStreetMap_Tags_Editor"
+    },
+    "OSM+Wikidata": {
+        "starts_with": [
+            "OSM+Wikidata "
+        ]
+    },
+    "osm2go": {
+        "starts_with": [
+            "osm2go "
+        ]
+    },
+    "OsmAnd": {
+        "link": "https://osmand.net/",
+        "starts_with": [
+            "OsmAnd ",
+            "OsmAnd+ ",
+            "OsmAnd~ ",
+            "Osmand+ ",
+            "Osmand ",
+            "Osmand~ "
+        ]
+    },
+    "OsmAndF~": {
+        "starts_with": [
+            "OsmAndF~ "
+        ]
+    },
+    "osmapi": {
+        "starts_with": [
+            "osmapi/",
+            "posiki_python_script ",
+            "Healthsites.io (osmapi/"
+        ]
+    },
+    "osmapis": {
+        "starts_with": [
+            "osmapis/"
+        ]
+    },
+    "OsmAPP": {
+        "starts_with": [
+            "OsmAPP "
+        ]
+    },
+    "OsmHydrant": {
+        "link": "https://wiki.openstreetmap.org/wiki/OsmHydrant",
+        "starts_with": [
+            "OsmHydrant "
+        ]
+    },
+    "OsmInEdit": {
+        "starts_with": [
+            "OsmInEdit "
+        ]
+    },
+    "OSMiOS": {
+        "starts_with": [
+            "OSMiOS "
+        ]
+    },
+    "osmitter": {
+        "starts_with": [
+            "osmitter "
+        ]
+    },
+    "osmlinzaddr.py": {
+        "aliases": [
+            "https://git.nzoss.org.nz/ewblen/osmlinzaddr/blob/master/osmlinzaddr.py"
+        ]
+    },
+    "Osmose Editor": {
+        "link": "https://wiki.openstreetmap.org/wiki/Osmose#Osmose_integrated_tags_editor"
+    },
+    "OsmPipeline": {
+        "link": "https://wiki.openstreetmap.org/wiki/Import/Maine_E911_Addresses"
+    },
+    "OSMPOIEditor": {
+        "link": "https://wiki.openstreetmap.org/wiki/POI+"
+    },
+    "OsmSharp": {
+        "starts_with": [
+            "OsmSharp "
+        ]
+    },
+    "osmt": {
+        "starts_with": [
+            "osmt/"
+        ]
+    },
+    "osmtools": {
+        "link": "https://github.com/woodpeck/osm-revert-scripts",
+        "starts_with": [
+            "osmtools/"
+        ]
+    },
+    "osmupload.py": {
+        "starts_with": [
+            "osmupload.py "
+        ]
+    },
+    "Paint The Town Red (StreetComplete)": {
+        "starts_with": [
+            "Paint The Town Red (StreetComplete) "
+        ]
+    },
+    "Parking-Mapper": {
+        "starts_with": [
+            "Parking-Mapper "
+        ]
+    },
+    "PeanutButter": {
+        "starts_with": [
+            "PeanutButter/"
+        ]
+    },
+    "peundemerg.ro": {
+        "starts_with": [
+            "peundemerg.ro"
+        ]
+    },
+    "pgsql2osm": {
+        "starts_with": [
+            "pgsql2osm "
+        ]
+    },
+    "PHP": {
+        "starts_with": [
+            "PHP/"
+        ]
+    },
+    "Pic4Review": {
+        "starts_with": [
+            "Pic4Review "
+        ]
+    },
+    "places-of-worship": {
+        "starts_with": [
+            "places-of-worship "
+        ]
+    },
+    "PLanes": {
+        "starts_with": [
+            "PLanes "
+        ]
+    },
+    "POI Collector": {
+        "starts_with": [
+            "POI Collector "
+        ]
+    },
+    "POI+": {
+        "starts_with": [
+            "POI+ "
+        ]
+    },
+    "Potlatch": {
+        "link": "https://wiki.openstreetmap.org/wiki/Potlatch",
+        "starts_with": [
+            "Potlatch"
+        ]
+    },
+    "ProjetDuMois.fr": {
+        "link": "https://projetdumois.fr/"
+    },
+    "Pushpin iOS": {
+        "link": "https://wiki.openstreetmap.org/wiki/Pushpin_OSM"
+    },
+    "PythonOsmApi": {
+        "link": "https://wiki.openstreetmap.org/wiki/Osmapi_(Python_library)",
+        "starts_with": [
+            "PythonOsmApi/",
+            "bot-source-cadastre.py (PythonOsmApi",
+            "./bot-source-cadastre.py (PythonOsmApi",
+            "botika fixer (PythonOsmApi",
+            "bot-source-cadastre-ng.py (PythonOsmApi/",
+            "bot-toponymie-geodesie-v01.py (PythonOsmApi/",
+            "bot-ref-ng.py (PythonOsmApi/",
+            "bot-toponymie-geodesie-v01.py (PythonOsmApi/",
+            "bot-key-insee.py (PythonOsmApi/",
+            "RoOsmLocImporter (PythonOsmApi/",
+            "zoosmarazzi 0.1 (PythonOsmApi/",
+            "Z0OSM 0.2 (PythonOsmApi/"
+        ]
+    },
+    "QGIS OSM": {
+        "link": "https://wiki.openstreetmap.org/wiki/QGIS_OSM_Plugin",
+        "starts_with": [
+            "QGIS OSM "
+        ]
+    },
+    "RapiD": {
+        "link": "https://github.com/facebook/RapiD",
+        "starts_with": [
+            "RapiD "
+        ]
+    },
+    "Redaction bot": {
+        "link": "https://wiki.openstreetmap.org/wiki/OSMF_Redaction_Bot"
+    },
+    "reverter_plugin (JOSM)": {
+        "link": "https://wiki.openstreetmap.org/wiki/JOSM/Plugins/Reverter",
+        "starts_with": [
+            "reverter_plugin/",
+            "reverter;JOSM/"
+        ]
+    },
+    "RevertUI": {
+        "starts_with": [
+            "RevertUI "
+        ]
+    },
+    "Rocketdata Conflator (JOSM)": {
+        "starts_with": [
+            "Rocketdata Conflator "
+        ]
+    },
+    "rocketdata.io": {
+        "link": "https://rocketdata.io/"
+    },
+    "RoofMapper": {
+        "starts_with": [
+            "RoofMapper "
+        ]
+    },
+    "rosemary": {
+        "link": "https://github.com/sozialhelden/rosemary",
+        "starts_with": [
+            "rosemary "
+        ]
+    },
+    "Roy": {
+        "starts_with": [
+            "Roy "
+        ]
+    },
+    "Services_OpenStreetMap": {
+        "starts_with": [
+            "Services_OpenStreetMap/"
+        ]
+    },
+    "SketchOSM": {
+        "link": "https://mindsightstudios.com/sketchosm/",
+        "starts_with": [
+            "SketchOSM "
+        ]
+    },
+    "Sophox": {
+        "starts_with": [
+            "Sophox "
+        ]
+    },
+    "StreetComplete": {
+        "link": "https://streetcomplete.app/",
+        "starts_with": [
+            "StreetComplete "
+        ]
+    },
+    "StreetComplete_ee": {
+        "link": "https://github.com/Helium314/StreetComplete",
+        "starts_with": [
+            "StreetComplete_ee "
+        ]
+    },
+    "StreetComplete_expert_edition": {
+        "starts_with": [
+            "StreetComplete_expert_edition "
+        ]
+    },
+    "StreetComplete_modified": {
+        "starts_with": [
+            "StreetComplete_modified "
+        ]
+    },
+    "StreetComplete-modified": {
+        "starts_with": [
+            "StreetComplete-modified "
+        ]
+    },
+    "SweetThooths": {
+        "starts_with": [
+            "SweetThooths "
+        ]
+    },
+    "Tino Pinilla (JOSM)": {
+        "starts_with": [
+            "Tino Pinilla;JOSM"
+        ]
+    },
+    "upload.py": {
+        "starts_with": [
+            "./upload.py v. ",
+            "upload.py v. ",
+            "osm-bulk-upload/upload.py v. ",
+            "teryt2osm upload.py v. "
+        ]
+    },
+    "Vespucci": {
+        "link": "http://vespucci.io/",
+        "starts_with": [
+            "Vespucci "
+        ]
+    },
+    "w3GIS": {
+        "starts_with": [
+            "w3GIS "
+        ]
+    },
+    "Wemapp Social": {
+        "starts_with": [
+            "Wemapp Social("
+        ]
+    },
+    "YAPIS": {
+        "starts_with": [
+            "YAPIS "
+        ]
+    },
+    "Zazolc": {
+        "starts_with": [
+            "Zazolc "
+        ]
+    },
+    "zażółć": {
+        "starts_with": [
+            "zażółć "
+        ]
+    }
+}

@@ -6,6 +6,7 @@ import util
 DATA_DIR = sys.argv[1]
 changesets = util.Changesets(DATA_DIR)
 top_k, index_to_rank, rank_to_name = util.get_rank_infos(DATA_DIR, "imagery")
+name_to_link = util.load_name_to_link("replace_rules_imagery_and_source.json")
 
 months, years = changesets.months, changesets.years
 monthly_changesets = np.zeros((top_k, len(months)), dtype=np.int64)
@@ -75,6 +76,7 @@ with util.add_questions(TOPIC) as add_question:
             util.monthly_set_to_yearly_with_total(montly_contributor_sets, years, changesets.month_index_to_year_index),
             TOPIC,
             rank_to_name["contributors"],
+            name_to_link,
         ),
     )
 
@@ -90,6 +92,7 @@ with util.add_questions(TOPIC) as add_question:
             util.monthly_to_yearly_with_total(montly_edits, years, changesets.month_index_to_year_index),
             TOPIC,
             rank_to_name["edits"],
+            name_to_link,
         ),
     )
 

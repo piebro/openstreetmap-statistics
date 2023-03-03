@@ -221,19 +221,18 @@ def get_multi_line_plot(
     return ("plot", plot)
 
 
-def get_table(table_title, x, y_list, y_names_head, y_names):
+def get_table(table_title, x, y_list, y_names_head, y_names, name_to_link=None):
     start_xy_index = np.min([np.nonzero(y)[0][0] for y in y_list if np.any(y)])
 
     head = ["Rank", y_names_head] if len(y_list) > 1 else []
     head.extend(x[start_xy_index:])
     head.append("Total")
 
-    name_to_link = load_json("src/links.json")
     body = []
     for i, (name, y) in enumerate(zip(y_names, y_list)):
-        if name in name_to_link:
+        if name_to_link is not None and name in name_to_link:
             name = f'<a href="{name_to_link[name]}">{name}</a>'
-        if name[:16] == "#hotosm-project-":
+        elif name[:16] == "#hotosm-project-":
             num = name.split("-")[2]
             if len(num) > 2:
                 name = f'<a href="https://tasks.hotosm.org/projects/{num}">{name}</a>'
@@ -394,6 +393,16 @@ def get_rank_infos(data_dir, tag):
         "contributors": [index_to_tag[index] for index in top_k_dict["contributors"]],
     }
     return top_k, index_to_rank, rank_to_name
+
+
+def load_name_to_link(file_name):
+    name_to_tags_and_link = load_json(os.path.join("src", file_name))
+    name_to_link = {}
+    for name, name_infos in name_to_tags_and_link.items():
+        if "link" in name_infos:
+            name_to_link[name] = name_infos["link"]
+
+    return name_to_link
 
 
 class Changesets:

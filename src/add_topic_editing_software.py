@@ -12,6 +12,7 @@ name_to_color = util.get_unique_name_to_color_mapping(
     rank_to_name["edits"][:TOP_K_PLOT],
     rank_to_name["contributors"][:TOP_K_PLOT],
 )
+name_to_link = util.load_name_to_link("replace_rules_created_by.json")
 
 
 device_type_labels = ["desktop editor", "mobile editor", "tools", "other/unspecified"]
@@ -52,18 +53,13 @@ mobile_editor_names = [
     "iLOE",
     "MAPS.ME android",
     "MAPS.ME ios",
-    "Mapzen Beta",
+    "Mapzen",
     "Mapzen POI Collector",
-    "Mapzen POI Collector for Android",
     "OMaps ios",
+    "OpenMaps iOS",
     "Organic Maps android",
     "Organic Maps ios",
-    "OpenMaps iPhone",
-    "OpenMaps for iOS",
     "OsmAnd",
-    "OsmAnd+",
-    "OsmAnd~",
-    "OsmAnd Maps",
     "OSMapTuner",
     "OSMPOIEditor",
     "OSM Contributor",
@@ -81,12 +77,7 @@ tool_names = [
     "addr2osm",
     "autoAWS",
     "bash script",
-    "bot-source-cadastre.py",
     "bulk_upload.py",
-    "bulk_upload.py/Apr Python",
-    "bulk_upload.py/error Python",
-    "bulk_upload.py/khalilst Python/",
-    "bulk_upload.py/posiki",
     "bulk_upload_sax.py",
     "bulkyosm.py",
     "custom upload script written in ruby",
@@ -94,7 +85,6 @@ tool_names = [
     "FixDoubleNodes",
     "FixKarlsruheSchema",
     "https_all_the_things",
-    "https://git.nzoss.org.nz/ewblen/osmlinzaddr/blob/master/osmlinzaddr.py",
     "Jeff's Uploader",
     "LangToolsOSM",
     "LINZ Address Import",
@@ -105,22 +95,19 @@ tool_names = [
     "osmapi",
     "osmapis",
     "Osmaxil",
+    "osmlinzaddr.py",
     "OsmSharp",
     "osmtools",
-    "osm-bulk-upload/upload.py",
     "OsmPipeline",
     "osmupload.py",
-    "posiki_python_script",
     "PythonOsmApi",
     "Redaction bot",
     "RevertUI",
-    "reverter_plugin",  # might be a plugin for JOSM, it's still a tool though
-    "reverter;JOSM",
+    "reverter_plugin (JOSM)",  # might be a plugin for JOSM, it's still a tool though
     "Roy",
     "simple_revert.py",
     "SviMik",
     "upload.py",
-    "./upload.py",
 ]
 tools = [tag_to_index[tag] for tag in tool_names]
 
@@ -230,6 +217,7 @@ with util.add_questions(TOPIC) as add_question:
             ),
             TOPIC,
             rank_to_name["contributors"],
+            name_to_link,
         ),
     )
 
