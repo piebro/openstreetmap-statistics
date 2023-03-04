@@ -29,17 +29,11 @@ The rules are definded at [src/replace_rules_created_by.json](src/replace_rules_
 
 Most changesets have a `created_by` tag which indicates which editing software was used to make the changes.
 Many `created_by` tags also include the version number or additional irrelevant information for determining the editing software and are therefore filtered.
-<!-- Therefore rules are used to filter the tags.
-The rules can be overviewed in [src/replace_rules_created_by.json](src/replace_rules_created_by.json).
-The rules are simple to make the filtering process as transparent as possible and easily extendable by anyone. -->
 
 ### Imagery Software
 
 One optional tag for changesets is the `imagery` tag, which iD, Vespucci and Go Map!! use to add an image source if aerial or other imagery is used.
 Many `imagery` tags also include irrelevant information for determining the used imagery and are therefore filtered.
-<!-- Therefore rules are used to filter the tags.
-The rules can be overviewed in [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
-The rules are simple to make the filtering process as transparent as possible and easily extendable by anyone. -->
 
 ### Cooperations
 

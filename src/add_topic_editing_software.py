@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 import util
@@ -17,99 +18,23 @@ name_to_link = util.load_name_to_link("replace_rules_created_by.json")
 
 device_type_labels = ["desktop editor", "mobile editor", "tools", "other/unspecified"]
 tag_to_index = util.list_to_dict(util.load_index_to_tag(DATA_DIR, "created_by"))
-desktop_editor_names = [
-    "ArcGIS Editor for OpenStreetMap",
-    "Deriviste",
-    "gnome-maps",
-    "iD",
-    "iD-indoor",
-    "JOSM",
-    "Level0",
-    "Map builder",
-    "MapComplete",
-    "MapContrib",
-    "MapRoulette",
-    "Merkaartor",
-    "https://openaedmap.org",
-    "OpenRecycleMap",
-    "OsmHydrant",
-    "OsmInEdit",
-    "Osmose Editor",
-    "Osmose Raw Editor",
-    "Pic4Review",
-    "Potlatch",
-    "QGIS OSM",
-    "RapiD",
-    "RawEdit",
-    "rosemary",  # most of it is wheelmap.org
-    "wheelmap.org",
-]
-desktop_editors = [tag_to_index[tag] for tag in desktop_editor_names]
 
-mobile_editor_names = [
-    "Every Door Android",
-    "Every Door iOS",
-    "Go Map!!",
-    "iLOE",
-    "MAPS.ME android",
-    "MAPS.ME ios",
-    "Mapzen",
-    "Mapzen POI Collector",
-    "OMaps ios",
-    "OpenMaps iOS",
-    "Organic Maps android",
-    "Organic Maps ios",
-    "OsmAnd",
-    "OSMapTuner",
-    "OSMPOIEditor",
-    "OSM Contributor",
-    "Osm Go!",
-    "POI+",
-    "Pushpin iOS",
-    "StreetComplete",
-    "StreetComplete_ee",
-    "Vespucci",
-]
-mobile_editors = [tag_to_index[tag] for tag in mobile_editor_names]
-
-tool_names = [
-    "AND node cleaner",
-    "addr2osm",
-    "autoAWS",
-    "bash script",
-    "bulk_upload.py",
-    "bulk_upload_sax.py",
-    "bulkyosm.py",
-    "custom upload script written in ruby",
-    "FindvejBot",
-    "FixDoubleNodes",
-    "FixKarlsruheSchema",
-    "https_all_the_things",
-    "Jeff's Uploader",
-    "LangToolsOSM",
-    "LINZ Address Import",
-    "LINZ Data Import",
-    "mat's little ruby script",
-    "MyUploader",
-    "naptan2osm",
-    "osmapi",
-    "osmapis",
-    "Osmaxil",
-    "osmlinzaddr.py",
-    "OsmSharp",
-    "osmtools",
-    "OsmPipeline",
-    "osmupload.py",
-    "PythonOsmApi",
-    "Redaction bot",
-    "RevertUI",
-    "reverter_plugin (JOSM)",  # might be a plugin for JOSM, it's still a tool though
-    "Roy",
-    "simple_revert.py",
-    "SviMik",
-    "upload.py",
-]
-tools = [tag_to_index[tag] for tag in tool_names]
+name_to_info = util.load_json(os.path.join("src", "replace_rules_created_by.json"))
+desktop_editors, mobile_editors, tools = [], [], []
+for name, info in name_to_info.items():
+    if name not in tag_to_index:
+        print(f"{name} in 'replace_rules_created_by.json' but not in 'tag_to_index' (this is expected when working"
+        " with a part of all changesets)")
+        continue
+    if "type" in info:
+        if info["type"] == "desktop_editor":
+            desktop_editors.append(tag_to_index[name])
+        elif info["type"] == "mobile_editor":
+            mobile_editors.append(tag_to_index[name])
+        elif info["type"] == "tool":
+            tools.append(tag_to_index[name])
+        else:
+            print(f"unknown type: {name['type']} at name {name}")
 
 
 months, years = changesets.months, changesets.years
