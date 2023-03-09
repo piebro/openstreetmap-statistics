@@ -85,7 +85,11 @@
             "esri world imagery",
             "ESRI World Imagery",
             "ESRI",
-            "Esri world Imagery"
+            "Esri world Imagery",
+            "Esri World (Clarity)",
+            "Esri Worl (Clarity)",
+            "Esri Clarity Beta",
+            "Esri Clarity"
         ],
         "link": "https://wiki.openstreetmap.org/wiki/Esri",
         "starts_with": [
@@ -197,6 +201,21 @@
     "UMD Landsat": {
         "starts_with": [
             "UMD Landsat "
+        ]
+    },
+    "vectortile:": {
+        "starts_with": [
+            "vectortile:"
+        ]
+    },
+    "Kartverket ": {
+        "starts_with": [
+            "Kartverket "
+        ]
+    },
+    "IBGE": {
+        "starts_with":[
+            "IBGE-"
         ]
     }
 }

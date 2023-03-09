@@ -207,7 +207,8 @@
     "iD": {
         "link": "https://wiki.openstreetmap.org/wiki/ID",
         "starts_with": [
-            "iD "
+            "iD ",
+            "ID "
         ],
         "type": "desktop_editor"
     },
@@ -284,9 +285,6 @@
             "Map builder "
         ],
         "type": "desktop_editor"
-    },
-    "Mapa AED": {
-        "link": "https://aed.openstreetmap.org.pl/"
     },
     "Mapcat": {
         "starts_with": [
@@ -385,6 +383,9 @@
         "type": "mobile_editor"
     },
     "openaedmap.org": {
+        "aliases":[
+            "https://openaedmap.org"
+        ],
         "link": "https://openaedmap.org",
         "type": "desktop_editor"
     },
@@ -599,6 +600,18 @@
             "osmupload.py "
         ],
         "type": "tool"
+    },
+    "other": {
+        "starts_with": [
+            "DEVK Versicherung ",
+            "DEVK-Hauptdienstadresse DEVK Regionaldirektion ",
+            "Thermondo GmbH ",
+            "Victor's Residenz-Hotel ",
+            "Pro Seniore Residenz ",
+            "Residenz Ambiente ",
+            "Seniorenresidenz ",
+            "Versicherungen "
+        ]
     },
     "Paint The Town Red (StreetComplete)": {
         "starts_with": [
