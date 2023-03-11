@@ -300,7 +300,7 @@ def main():
     with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
-    
+
     with open(os.path.join(save_dir, "years.txt"), "w", encoding="UTF-8") as f:
         f.writelines("\n".join(years))
         f.writelines("\n")

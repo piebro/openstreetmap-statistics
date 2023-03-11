@@ -74,7 +74,7 @@ osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | sed -n '0~500p'
 
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script.
 ```bash
-bash generate_plots.sh temp
+python3 src/data_crunching_and_saving.py temp
 ```
 
 ### Update cooperation user names

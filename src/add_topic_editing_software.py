@@ -128,7 +128,6 @@ with util.add_questions(TOPIC) as add_question:
     # top_100_indices_contributors = (-total_contributors.values.astype(np.int64)).argsort()[:100]
     # top_10_indices_contributors = top_100_indices_contributors[:10]
 
-
     # add_question(
     #     "How many people are contributing per editing software each month?",
     #     "c229",
@@ -194,12 +193,12 @@ with util.add_questions(TOPIC) as add_question:
     #     "How many edits are added per editing software each month?",
     #     "eb30",
     #     # util.get_multi_line_plot(
-        #     "monthly new contributor count per editing software",
-        #     "contributors",
-        #     months,
-        #     util.multi_index_series_to_series_list(top_10_monthly_edits, top_10_indices_edits),
-        #     [created_by_index_to_tag[i] for i in top_10_indices_edits]
-        # ),
+    #     "monthly new contributor count per editing software",
+    #     "contributors",
+    #     months,
+    #     util.multi_index_series_to_series_list(top_10_monthly_edits, top_10_indices_edits),
+    #     [created_by_index_to_tag[i] for i in top_10_indices_edits]
+    # ),
     #     util.get_table(
     #         "yearly edits count per editing software",
     #         years,

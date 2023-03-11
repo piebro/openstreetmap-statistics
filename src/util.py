@@ -478,11 +478,11 @@ def cumsum_new_nunique(series):
         indices.append(index)
         values.append(len(value - previous_set))
         previous_set.update(value)
-    
+
     if isinstance(indices[0], tuple):
         return pd.Series(data=values, index=pd.MultiIndex.from_tuples(indices, names=series.index.names))
     return pd.Series(data=values, index=indices)
 
 
 def multi_index_series_to_series_list(multi_index_series, level_1_indices):
-    return [multi_index_series[multi_index_series.index.get_level_values(1)==i].droplevel(1) for i in level_1_indices]
+    return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]

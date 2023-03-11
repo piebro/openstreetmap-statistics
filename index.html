@@ -7,38 +7,60 @@
   <meta name="description" content="Monthly updated interactive statistics of OpenStreetMap.">
   <title>OpenStreetMap Statistics</title>
   <script src="assets/plotly-custom.min.js"></script>
-  <script src="assets/data.js"></script>
+  <link rel="stylesheet" type="text/css" href="index.css">
   <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/plausible.js"></script>
 </head>
 
 <script>
 
-selection_options = {}
-url_hash_to_topic_question = {}
-for (topic of Object.keys(data)){
-    selection_options[topic] = {}
-    for (question of Object.keys(data[topic])){
-        selection_options[topic][question] = {}
-        url_hash_to_topic_question[data[topic][question]["url_hash"]] = [topic, question]
+// TODO: add units to the data file?
+topics = {
+    "general": {
+        "How many people are contributing each month?": {
+            "url_hash": "63f6",
+            "content_functions": [
+                single_line_plot("monthly_contributor_count", "contributors per month", "contributors"),
+                single_line_plot("monthly_new_contributor_count", "new contributors per month", "contributors"),
+                multi_line_plot("monthly_contributors_count_more_then_k_edits", "contributors with more then k edits total", "contributors")
+            ]
+        },
+        "Why is there rapid growth in monthly contributors in 2016?":{
+            "url_hash": "21d9",
+            "content_functions": [
+                text_div("That's because a lot of new people were contributing using the maps.me app. Looking at the plot of" + 
+                         " monthly contributors not using maps.me shows that there is linear growth. It is also worth noting" +
+                         " that vast majority of maps.me mappers made only few edits. And due to definciencies in provided" +
+                         " editor quality of their edits was really low."),
+                single_line_plot("monthly_contributor_count_no_maps_me", "contributors per month without maps.me contributors", "contributors")
+            ]
+        },
+        "How many edits are added each month?": {
+            "url_hash": "fe79",
+            "content_functions":[
+                single_line_plot("monthly_edits", "edits per month", "edits")
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets over time?": {
+            "url_hash": "7026",
+            "content_functions":[
+                single_line_plot("monthly_contributor_cumsum", "total contributor count", "contributors"),
+                single_line_plot("monthly_edits_cumsum", "total edit count", "edits"),
+                single_line_plot("monthly_changesets_cumsum", "total changeset count", "changesets"),
+            ]
+        }
     }
 }
 
-function init(){
-    update_select_0()
-    if(window.location.hash) {
-        url_hash = window.location.hash.substring(1)
-        if (url_hash in url_hash_to_topic_question){
-            topic = url_hash_to_topic_question[url_hash][0]
-            question = url_hash_to_topic_question[url_hash][1]
-            if (topic in selection_options && question in selection_options[topic]){
-                document.getElementById('select_0').value = topic
-                update_select_1()
-                document.getElementById('select_1').value = question
-            }
-        }
+
+
+selection_options = {}
+url_hash_to_topic_question = {}
+for (const [topic, topic_obj] of Object.entries(topics)) {
+    selection_options[topic] = {}
+    for (const [question, question_obj] of Object.entries(topic_obj)) {
+        selection_options[topic][question] = {}
+        url_hash_to_topic_question[question_obj["url_hash"]] = [topic, question]
     }
-    update_content()
-    window.addEventListener('resize', function(event) {update_content()}, true);
 }
 
 function options_to_selection(select, keys){
@@ -57,21 +79,83 @@ function options_to_selection(select, keys){
     }
 }
 
-function get_current_select(){
-    return [document.getElementById('select_0').value, document.getElementById('select_1').value]
+async function load_data(data_name){
+    return await fetch("assets/data/" + data_name + ".json").then(response => {return response.json()})
 }
 
-function update_content(){
-    document.getElementById("data").innerHTML = ""  
-    topic_question = get_current_select()
-    topic = topic_question[0]
-    question = topic_question[1]
-    data[topic][question]["update"]()
+function add_div(id, class_str){
+    let div = document.createElement('div')
+    div.id = String(id)
+    div.style.display = "inline-block"
+    div.classList.add(class_str);
+    document.getElementById('data').appendChild(div)
+    return div
+}
 
-    document.getElementById('save_plot_btn').onclick = data[topic][question]["save_plot"]
-    document.getElementById('save_data_btn').onclick = data[topic][question]["save_data"]
+function text_div(text){
+    show_content = async function(div_id){
+        div = add_div(div_id, "textDiv")
+        div.insertAdjacentHTML('beforeend', text);
+    }
+    return {"show": show_content}
+}
 
-    history.replaceState(null, "", "#" + data[topic][question]["url_hash"])
+function get_line_plot_config(){
+    return {"displayModeBar": false, "staticPlot":(screen.width < 850)}
+}
+
+function get_line_plot_layout(plot_title, unit){
+    return {
+        "font": {"family": "Times", "size": "15"},
+        "paper_bgcolor": "#dfdfdf",
+        "plot_bgcolor": "#dfdfdf",
+        "margin": {"l": 55, "r": 55, "b": 55, "t": 55},
+        "title": {"text": plot_title},
+        "xaxis": {"title": {"text": "time"}},
+        "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
+    }
+}
+
+function single_line_plot(data_name, plot_title, unit){
+    show_content = async function(div_id){
+        data = await load_data(data_name)
+        div = add_div(div_id, "dataDiv")
+        traces = [{"x": data["month"], "y": data[data_name], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_line_plot_config())
+    }
+    return {"show": show_content}
+}
+
+
+function multi_line_plot(data_name, plot_title, unit){
+    show_content = async function(div_id){
+        data = await load_data(data_name)
+        div = add_div(div_id, "dataDiv")
+        traces = []
+        for (const [y_name, y] of Object.entries(data[data_name])) {
+            traces.push({"x": data["month"], "y": y, "mode": "lines", "name": y_name, "hovertemplate": "%{x}<br>%{y:,} " + unit})
+        }
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_line_plot_config())
+    }
+    return {"show": show_content}
+}
+
+function init(){
+    update_select_0()
+    if(window.location.hash) {
+        url_hash = window.location.hash.substring(1)
+        if (url_hash in url_hash_to_topic_question){
+            topic = url_hash_to_topic_question[url_hash][0]
+            question = url_hash_to_topic_question[url_hash][1]
+            if (topic in selection_options && question in selection_options[topic]){
+                document.getElementById('select_0').value = topic
+                update_select_1()
+                document.getElementById('select_1').value = question
+            }
+        }
+    }
+    update_content()
+    window.addEventListener('resize', function(event) {update_content()}, true);
 }
 
 function update_select_0(){
@@ -93,289 +177,27 @@ function on_change_select_1(){
     update_content()
 }
 
-
-function add_div(id, class_str){
-    let div = document.createElement('div')
-    div.id = id
-    div.style.display = "inline-block"
-    div.classList.add(class_str);
-    document.getElementById('data').appendChild(div)
-    return div
+function get_current_select(){
+    return [document.getElementById('select_0').value, document.getElementById('select_1').value]
 }
 
-async function load_data(topic, question, div_id){
-    if (!(div_id in data[topic][question])){
-        path = "assets/" + data[topic][question]["data_path_" + div_id]
-        data[topic][question][div_id] = await fetch(path).then(response => {return response.json()})
-        return data[topic][question][div_id]
-    } else {
-        return data[topic][question][div_id]
-    }
-}
+async function update_content(){
+    document.getElementById("data").innerHTML = ""  
+    topic_question = get_current_select()
+    topic = topic_question[0]
+    question = topic_question[1]
+    console.log(topic, question)
 
-function download(data_str, title, file_ending){
-    const downloadLink = document.createElement('a');
-    downloadLink.download = title + "." + file_ending;
-    if (file_ending == "csv"){
-        data_str = window.URL.createObjectURL(new Blob([data_str], { type: 'text/csv' }))
-    } else if (file_ending == "json"){
-        data_str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data_str))
-    }
-    downloadLink.href = data_str
-    downloadLink.style.display = 'none';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-}
-
-
-function add_plot(topic, question, div_id){
-    div = add_div(div_id, "dataDiv")
-    plot = data[topic][question][div_id]
-    plot["config"]["staticPlot"] = (screen.width < 850)
-    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
-}
-
-async function save_plot(topic, question, div_id){
-    await Plotly.toImage(document.getElementById(div_id), {format:'png',height:500,width:1000}).then(function(png_str){
-        title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_")
-        download(png_str, title, "png")
-    })
-}
-
-function save_plot_data(topic, question, div_id){
-    x = data[topic][question][div_id]["traces"][0]["x"]
-    y_list = []
-    y_names = []
-    for (trace of data[topic][question][div_id]["traces"]){
-        y_list.push(trace["y"])
-        y_names.push(trace["name"])
-    }
-    var rows = ["x," + y_names.join(",")]
-    for (i=0; i<x.length; i++){
-        row = [x[i]]
-        for (j=0; j<y_list.length; j++){
-            row.push(y_list[j][i])
-        }
-        rows.push(row.join(","))
-    }
-    title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_")
-    download(rows.join("\n"), title, "csv")
-}
-
-
-async function add_async_load_plot(topic, question, div_id){
-    div = add_div(div_id, "dataDiv")
-    plot = await load_data(topic, question, div_id)
-    plot["config"]["staticPlot"] = (screen.width < 850)
-    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
-}
-
-async function save_async_load_plot(topic, question, div_id){
-    save_plot(topic, question, div_id)
-}
-
-async function save_async_load_plot_data(topic, question, div_id){
-    save_plot_data(topic, question, div_id)
-}
-
-
-function add_text(topic, question, div_id){
-    div = add_div(div_id, "textDiv")
-    div.insertAdjacentHTML('beforeend', data[topic][question][div_id]);
-}
-
-
-async function add_map(topic, question, div_id){
-    div = add_div(div_id, "dataDiv")
-    plot = await load_data(topic, question, div_id)
-    plot["config"]["staticPlot"] = (screen.width < 850)
-    Plotly.newPlot(div, plot["traces"], plot["layout"], plot["config"])
-}
-
-async function save_map(topic, question, div_id){
-    await Plotly.toImage(document.getElementById(div_id), {format:'png',height:500,width:1000}).then(function(png_str){
-        title = data[topic][question][div_id+"_data"]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_") + "_map"
-        download(png_str, title, "png")
-    })
-}
-
-function save_map_data(topic, question, div_id){
-    div_id += "_data"
-    title = data[topic][question][div_id]["layout"]["title"]["text"].toLowerCase().replaceAll(" ", "_") + "_map"
-    download(data[topic][question][div_id]["traces"], title, "json")
-}
-
-
-async function add_table(topic, question, div_id){
-    div = add_div(div_id, "dataDiv")
-    div.style.width = "100%"
-    div.style.aspectRatio = "auto"
-    table = await load_data(topic, question, div_id)
-    div.innerHTML = get_table_html(table)
-}
-
-function get_table_html(table){
-    let head = "<tr>"
-    for (var i in table["head"]){
-        if (i == 0){
-            head += "<th>" + table["head"][i] + "</th>"
-        } else {
-            head += "<th class=\"sorting\" onclick=\"sort_table(event)\">" + table["head"][i] + "</th>"
-        }
-    }
-    head += "</tr>"
-    const body = table["body"].map(row => "<tr>" + row.map(v => "<td>" + v + "</td>").join("") + "</tr>").join("")
-    return "<h3>" + table["title"] + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
-}
-
-async function sort_table(e){
-    for (var child=e.srcElement.parentElement.firstChild.nextSibling; child!==null; child=child.nextSibling) {
-        if (child != e.srcElement && !child.classList.contains('sorting')){
-            child.classList.remove('sorting_asc', 'sorting_desc');
-            child.classList.add('sorting');
-        }
+    for (const [index, content_functions] of topics[topic][question]["content_functions"].entries()){
+        await content_functions["show"](index)
     }
 
-    if (e.srcElement.classList.contains('sorting')){
-        e.srcElement.classList.remove('sorting');
-        e.srcElement.classList.add('sorting_desc');
-        var th = e.srcElement
-        var ascending = false
-    } else if (e.srcElement.classList.contains('sorting_desc')){
-        e.srcElement.classList.remove('sorting_desc');
-        e.srcElement.classList.add('sorting_asc');
-        var th = e.srcElement
-        var ascending = true
-    } else {
-        e.srcElement.classList.remove('sorting_asc');
-        e.srcElement.classList.add('sorting');
-        var th = e.srcElement.parentElement.firstChild
-        var ascending = true
-    }
-    
-    const getCellValue = (tr, idx) => tr.children[idx].innerText.replaceAll(",", "") || tr.children[idx].textContent.replaceAll(",", "");
-
-    const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
-        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-
-    const table = th.closest('table');
-    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), ascending))
-        .forEach(tr => table.appendChild(tr));
-    
-    for (var i in table.rows){
-        if (i > 0){
-            table.rows[i].cells[0].innerText = String(i)
-        }
-    }
+    // document.getElementById('save_plot_btn').onclick = data[topic][question]["save_plot"]
+    // document.getElementById('save_data_btn').onclick = data[topic][question]["save_data"]
+    history.replaceState(null, "", "#" + topics[topic][question]["url_hash"])
 }
-
-function save_table_data(topic, question, div_id){
-    div_id += "_data"
-    title = data[topic][question][div_id]["title"].toLowerCase().replaceAll(" ", "_") + "_table"
-    csv_str = data[topic][question][div_id]["head"].join(',') + "\n"
-    
-    for (row of data[topic][question][div_id]["body"]){
-        csv_str += row.join(',') + "\n"
-    }
-    download(csv_str, title, "csv")
-}
-
 </script>
 
-<style>
-.sorting{
-	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIUnC2nKLnT4or00PvyrQwrPzUZshQAOw==) no-repeat center right;
-    cursor:pointer;
-}
-.sorting_asc{
-	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIRnC2nKLnT4or00Puy3rx7VQAAOw==) no-repeat center right;
-    cursor:pointer;
-}
-.sorting_desc{
-	background:url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=) no-repeat center right;
-    cursor:pointer;
-}
-
-
-table, th, td {
-  border:1px solid black;
-  text-align: center;
-  border-collapse: collapse;
-}
-th, td {
-    padding: 7px 12px 0px 12px;
-}
-tr:nth-child(even){
-    background-color:#dfdfdf;
-}
-
-.textDiv {
-  text-align: justify;
-  width: 51%;
-  margin: 0 auto;
-  padding: 25px 0px 25px 0px;
-}
-
-.dataDiv {
-    width: 51%;
-    aspect-ratio: 2/1;
-    padding: 25px 0px 25px 0px;
-}
-
-body {
-    font-family: times;
-    font-size: 22px;
-    text-align: center;
-
-    height: 100%;
-    overflow: auto;
-}
-
-html {
-    overflow: hidden;
-    height: 100%;
-}
-
-select, button {
-    font-size: 16px;
-    max-width: 95%;
-}
-
-@media (max-width: 1600px) {
-  .dataDiv {
-    width: 70%;
-  }
-  .textDiv {
-    width: 70%;
-  }
-}
-
-@media (max-width: 1200px) {
-  .dataDiv {
-    width: 90%;
-  }
-  .textDiv {
-    width: 90%;
-  }
-}
-
-
-@media (max-width: 800px) {
-  .dataDiv {
-    width: 784px;
-  }
-  .textDiv {
-    width: 784px;
-  }
-  body {
-    font-size: 16px;
-  } 
-}
-
-</style>
 
 <body onload="init()">
 <h2>OpenStreetMap Statistics</h2>
