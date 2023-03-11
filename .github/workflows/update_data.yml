@@ -25,7 +25,7 @@ jobs:
           aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 
       - name: save compressed changeset csv
-        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp | gzip > temp/changesets.csv.gz
+        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp
       
       - name: save plots and tables
         run: bash generate_plots.sh temp
