@@ -170,7 +170,7 @@ with util.add_questions(TOPIC) as add_question:
     #     ),
     # )
 
-    # TODO: very similar to "monthly new contributor count per editing software". Maybe do a pie chart with top-10/all (with other)
+    
     # monthly_user_to_first_created_by = ddf[ddf["created_by"].isin(top_10_indices_contributors)].groupby(["user_index"])["month_index", "created_by"].first().compute()
     # monthly_user_to_first_created_by_count = monthly_user_to_first_created_by.groupby("month_index")["created_by"].count()
     # add_question(

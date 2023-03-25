@@ -6,6 +6,9 @@ from functools import partial
 import numpy as np
 import pandas as pd
 
+from json import encoder
+encoder.FLOAT_REPR = lambda o: format(o, '.5f')
+
 DEFAULT_PLOT_LAYOUT = {
     "font": {"family": "Times", "size": "15"},
     "paper_bgcolor": "#dfdfdf",
@@ -29,7 +32,8 @@ DEFAULT_COLOR_PALETTE = [
 
 def save_json(file_path, obj):
     with open(file_path, "w", encoding="UTF-8") as json_file:
-        json_file.write(json.dumps(obj, separators=(",", ":")))
+        #json_file.write(json.dumps(obj, separators=(",", ":")))
+        json_file.write(pd.io.json.dumps(obj, double_precision=2))
 
 
 def load_json(file_path):
@@ -486,3 +490,6 @@ def cumsum_new_nunique(series):
 
 def multi_index_series_to_series_list(multi_index_series, level_1_indices):
     return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
+
+def series_to_series_list(series, level_0_indices):
+    return [series[series.index.get_level_values(0) == i] for i in level_0_indices]

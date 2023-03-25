@@ -15,13 +15,13 @@
 
 // TODO: add units to the data file?
 topics = {
-    "general": {
+    "General": {
         "How many people are contributing each month?": {
             "url_hash": "63f6",
             "content_functions": [
-                single_line_plot("monthly_contributor_count", "contributors per month", "contributors"),
-                single_line_plot("monthly_new_contributor_count", "new contributors per month", "contributors"),
-                multi_line_plot("monthly_contributors_count_more_then_k_edits", "contributors with more then k edits total", "contributors")
+                add_single_line_plot("contributor_count_monthly", "contributors per month", "contributors"),
+                add_single_line_plot("new_contributor_count_monthly", "new contributors per month", "contributors"),
+                add_multi_line_plot("contributor_count_more_the_k_edits_monthly", "contributors with more then k edits total", "contributors")
             ]
         },
         "Why is there rapid growth in monthly contributors in 2016?":{
@@ -31,21 +31,62 @@ topics = {
                          " monthly contributors not using maps.me shows that there is linear growth. It is also worth noting" +
                          " that vast majority of maps.me mappers made only few edits. And due to definciencies in provided" +
                          " editor quality of their edits was really low."),
-                single_line_plot("monthly_contributor_count_no_maps_me", "contributors per month without maps.me contributors", "contributors")
+                add_single_line_plot("contributor_count_no_maps_me_monthly", "contributors per month without maps.me contributors", "contributors")
             ]
         },
         "How many edits are added each month?": {
             "url_hash": "fe79",
             "content_functions":[
-                single_line_plot("monthly_edits", "edits per month", "edits")
+                add_single_line_plot("edit_count_monthly", "edits per month", "edits")
             ]
         },
         "What's the total amount of contributors, edits and changesets over time?": {
             "url_hash": "7026",
             "content_functions":[
-                single_line_plot("monthly_contributor_cumsum", "total contributor count", "contributors"),
-                single_line_plot("monthly_edits_cumsum", "total edit count", "edits"),
-                single_line_plot("monthly_changesets_cumsum", "total changeset count", "changesets"),
+                add_single_line_plot("contributor_count_accumulated_monthly", "total contributor count", "contributors"),
+                add_single_line_plot("edit_count_accumulated_monthly", "total edit count", "edits"),
+                add_single_line_plot("changeset_count_accumulated_monthly", "total changeset count", "changesets"),
+            ]
+        },
+        "Where are edits made?": {
+            "url_hash": "727b",
+            "content_functions": [
+                add_map_plot("edit_count_map_total", "total edits")
+            ]
+        },
+        "Where are edits made each year?": {
+            "url_hash": "bd16",
+            "content_functions": [
+                add_multiple_map_plots("edit_count_maps_yearly")
+            ]
+        },
+        "What's the median edit count per contributor each month?": {
+            "url_hash": "a3ed",
+            "content_functions": [
+                add_single_line_plot("edit_count_per_contributor_median_monthly", "median number of edits per contributor per month", "median number of edits per contributor"),
+                add_single_line_plot("edit_count_per_contributor_median_monthly_since_2010", "median number of edits per contributor per month since 2010", "median number of edits per contributor")
+            ]
+        }
+    },
+    "Editing Software": {
+        "How many people are contributing per editing software each month?": {
+            "url_hash": "c229",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_contributor_count_monthly", "monthly contributor count per editing software", "contributors"),
+                add_multi_line_plot("created_by_top_10_new_contributor_count_monthly", "monthly new contributor count per editing software", "contributors"),
+                add_table("created_by_top_100_contributor_count_yearly", "yearly contributor count per editing software", "Editing Software", "created_by_top_100_contributor_count_total", "created_by_name_to_link"),
+            ]
+        },
+        "How popular is each editing software per month?": {
+            "url_hash": "158c",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_contributor_count_percent_monthly", "percent of contributors that use each editing software per month", "%", percent=true),
+            ]
+        },
+        "Which editing software is used for the first edit?": {
+            "url_hash": "7662",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_contributor_count_first_changeset_monthly", "monthly first editing software contributor count", "contributors"),
             ]
         }
     }
@@ -83,12 +124,16 @@ async function load_data(data_name){
     return await fetch("assets/data/" + data_name + ".json").then(response => {return response.json()})
 }
 
-function add_div(id, class_str){
+function add_div(id, class_str, parent_div=null){
     let div = document.createElement('div')
     div.id = String(id)
     div.style.display = "inline-block"
     div.classList.add(class_str);
-    document.getElementById('data').appendChild(div)
+    if (parent_div == null){
+        document.getElementById('data').appendChild(div)
+    } else {
+        parent_div.appendChild(div)
+    }
     return div
 }
 
@@ -100,45 +145,170 @@ function text_div(text){
     return {"show": show_content}
 }
 
-function get_line_plot_config(){
+function get_plot_config(){
     return {"displayModeBar": false, "staticPlot":(screen.width < 850)}
 }
 
-function get_line_plot_layout(plot_title, unit){
+function get_plot_layout(){
     return {
         "font": {"family": "Times", "size": "15"},
         "paper_bgcolor": "#dfdfdf",
         "plot_bgcolor": "#dfdfdf",
+    }
+}
+
+function get_line_plot_layout(plot_title, unit, percent){
+    layout = Object.assign({}, get_plot_layout(), {
         "margin": {"l": 55, "r": 55, "b": 55, "t": 55},
         "title": {"text": plot_title},
         "xaxis": {"title": {"text": "time"}},
         "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
+    })
+    if (percent){
+        layout["yaxis"]["range"] = [0, 100]
     }
+    return  layout
 }
 
-function single_line_plot(data_name, plot_title, unit){
+function get_map_plot_layout(plot_title, max_z_value){
+    colorscale = [
+        [0, "rgba(255,255,255,0)"],
+        [0.00000001, "rgb(12,51,131)"],
+        [1 / 1000, "rgb(10,136,186)"],
+        [1 / 100, "rgb(242,211,56)"],
+        [1 / 10, "rgb(242,143,56)"],
+        [1, "rgb(217,30,30)"],
+    ]
+    layout = Object.assign({}, get_plot_layout(), {
+        "margin": {"l": 20, "r": 20, "b": 35, "t": 35},
+        "images": [{
+            "source": "assets/background_map.png",
+            "xref": "x",
+            "yref": "y",
+            "x": 0,
+            "y": 180,
+            "sizex": 360,
+            "sizey": 180,
+            "sizing": "stretch",
+            "opacity": 1,
+            "layer": "below",
+        }],
+        "xaxis": {"showgrid": false, "visible": false},
+        "yaxis": {"showgrid": false, "visible": false, "scaleanchor": "x", "scaleratio": 1},
+        "coloraxis": {"colorscale": colorscale, "cmin": 0, "cmax": max_z_value},
+        "title": {"text": plot_title},
+    })
+    return layout
+}
+
+function add_single_line_plot(data_name, plot_title, unit){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
-        traces = [{"x": data["month"], "y": data[data_name], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_line_plot_config())
+        traces = [{"x": data["x"], "y": data["y"], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_plot_config())
     }
     return {"show": show_content}
 }
 
-
-function multi_line_plot(data_name, plot_title, unit){
+function add_multi_line_plot(data_name, plot_title, unit, percent=false){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
         traces = []
-        for (const [y_name, y] of Object.entries(data[data_name])) {
-            traces.push({"x": data["month"], "y": y, "mode": "lines", "name": y_name, "hovertemplate": "%{x}<br>%{y:,} " + unit})
+        for (i in data["y_names"]){
+            traces.push({"x": data["x"], "y": data["y_list"][i], "mode": "lines", "name": data["y_names"][i], "hovertemplate": "%{x}<br>%{y:,} " + unit})
         }
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_line_plot_config())
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
     }
     return {"show": show_content}
 }
+
+function get_map_plot_traces(x, y, z, max_z_value){
+    traces = [{
+            "type": "histogram2d",
+            "x": x,
+            "y": y,
+            "z": z,
+            "zmax": max_z_value,
+            "histfunc": "sum",
+            "autobinx": false,
+            "xbins": {"start": 0, "end": 360, "size": 1},
+            "autobiny": false,
+            "ybins": {"start": 0, "end": 180, "size": 1},
+            "coloraxis": "coloraxis",
+    }]
+    return traces
+}
+
+function add_map_plot(data_name, plot_title){
+    show_content = async function(div_id){
+        data = await load_data(data_name)
+        div = add_div(div_id, "dataDiv")
+        traces = get_map_plot_traces(data[data_name]["x"], data[data_name]["y"], data[data_name]["z"], data["max_z_value"])
+        Plotly.newPlot(div, traces, get_map_plot_layout(plot_title, data["max_z_value"]), get_plot_config())
+    }
+    return {"show": show_content}
+}
+
+function add_multiple_map_plots(data_name){
+    show_content = async function(div_id){
+        data = await load_data(data_name)
+        div = add_div(div_id, "dataDiv")
+        for (const map_name of Object.keys(data[data_name])) {
+            child_div = add_div(map_name, "dataDiv", div)
+            traces = get_map_plot_traces(data[data_name][map_name]["x"], data[data_name][map_name]["y"], data[data_name][map_name]["z"], data["max_z_value"])
+            Plotly.newPlot(child_div, traces, get_map_plot_layout(map_name, data["max_z_value"]), get_plot_config())
+        }
+    }
+    return {"show": show_content}
+}
+
+function add_table(data_name, title, y_names_category, data_name_total, data_name_name_to_link=undefined){
+    show_content = async function(div_id){
+        data = await load_data(data_name)
+        data_total = await load_data(data_name_total)
+        if (data_name_name_to_link !== undefined){
+            name_to_link = await load_data(data_name_name_to_link)
+        } else {
+            name_to_link = {}
+        }
+        
+        
+        div = add_div(div_id, "dataDiv")
+        div.style.width = "100%"
+        div.style.aspectRatio = "auto"
+        div.innerHTML = get_table_html(title, data, data_total, y_names_category, name_to_link)
+    }
+    return {"show": show_content}
+}
+
+function get_table_html(title, data, data_total, y_names_category, name_to_link){
+    let head_entries = ["Rank", y_names_category].concat(data["x"]).concat(["total"])
+    let head = "<tr>"
+    for (var i in head_entries){
+        if (i == 0){
+            head += "<th>" + head_entries[i] + "</th>"
+        } else {
+            head += "<th class=\"sorting\" onclick=\"sort_table(event)\">" + head_entries[i] + "</th>"
+        }
+    }
+    head += "</tr>"
+    let body = ""
+    for (row_index in data["y_names"]){
+        let name = data["y_names"][row_index]
+        if (name in name_to_link){
+            name = "<a href=" + name_to_link[name] + ">" + name + "</a>"
+        }
+        body += "<tr><td>" + row_index + "</td><td>" + name + "</td>"
+        for (y_value of data["y_list"][row_index]){
+            body += "<td>" + y_value.toLocaleString() + "</td>"
+        }
+        body += "<td>" + data_total["y_list"][row_index].toLocaleString() + "</td></tr>"
+    }
+    return "<h3>" + title + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
+}
+
 
 function init(){
     update_select_0()
@@ -196,6 +366,50 @@ async function update_content(){
     // document.getElementById('save_data_btn').onclick = data[topic][question]["save_data"]
     history.replaceState(null, "", "#" + topics[topic][question]["url_hash"])
 }
+
+async function sort_table(e){
+    for (var child=e.srcElement.parentElement.firstChild.nextSibling; child!==null; child=child.nextSibling) {
+        if (child != e.srcElement && !child.classList.contains('sorting')){
+            child.classList.remove('sorting_asc', 'sorting_desc');
+            child.classList.add('sorting');
+        }
+    }
+
+    if (e.srcElement.classList.contains('sorting')){
+        e.srcElement.classList.remove('sorting');
+        e.srcElement.classList.add('sorting_desc');
+        var th = e.srcElement
+        var ascending = false
+    } else if (e.srcElement.classList.contains('sorting_desc')){
+        e.srcElement.classList.remove('sorting_desc');
+        e.srcElement.classList.add('sorting_asc');
+        var th = e.srcElement
+        var ascending = true
+    } else {
+        e.srcElement.classList.remove('sorting_asc');
+        e.srcElement.classList.add('sorting');
+        var th = e.srcElement.parentElement.firstChild
+        var ascending = true
+    }
+    
+    const getCellValue = (tr, idx) => tr.children[idx].innerText.replaceAll(",", "") || tr.children[idx].textContent.replaceAll(",", "");
+
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    const table = th.closest('table');
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), ascending))
+        .forEach(tr => table.appendChild(tr));
+    
+    for (var i in table.rows){
+        if (i > 0){
+            table.rows[i].cells[0].innerText = String(i)
+        }
+    }
+}
+
 </script>
 
 
