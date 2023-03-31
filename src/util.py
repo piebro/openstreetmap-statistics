@@ -476,7 +476,6 @@ def cumsum_new_nunique(series):
     previous_set = set()
     indices = []
     values = []
-    # TODO: das hier ist nicht für miltiindx ausgelegt. Ich bruache n viele previous sets.
     for index, value in series.items():
         value = set(value)
         indices.append(index)
@@ -490,6 +489,7 @@ def cumsum_new_nunique(series):
 
 def multi_index_series_to_series_list(multi_index_series, level_1_indices):
     return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
+
 
 def series_to_series_list(series, level_0_indices):
     return [series[series.index.get_level_values(0) == i] for i in level_0_indices]

@@ -88,7 +88,58 @@ topics = {
             "content_functions": [
                 add_multi_line_plot("created_by_top_10_contributor_count_first_changeset_monthly", "monthly first editing software contributor count", "contributors"),
             ]
+        },
+        "How many edits are added per editing software each month?": {
+            "url_hash": "eb30",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_edit_count_monthly", "monthly edit count per editing software", "edits"),
+                add_table("created_by_top_100_edit_count_yearly", "yearly edit count per editing software", "Editing Software", "created_by_top_100_edit_count_total", "created_by_name_to_link"),
+            ]
+        },
+        "What's the market share of edits per month?": {
+            "url_hash": "a008",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_edit_count_percent_monthly", "percent of edits that use each editing software per month", "%", percent=true),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets of editing software over time?": {
+            "url_hash": "6320",
+            "content_functions": [
+                add_multi_line_plot("created_by_top_10_contributor_count_accumulated_monthly", "total contributor count of editing software", "contributors"),
+                add_multi_line_plot("created_by_top_10_edit_count_accumulated_monthly", "total edit count of editing software", "edits"),
+                add_multi_line_plot("created_by_top_10_changeset_count_accumulated_monthly", "total changeset count of editing software", "changesets"),
+            ]
+        },
+        "What kind of devices are used for mapping?": {
+            "url_hash": "8ba9",
+            "content_functions": [
+                add_multi_line_plot("created_by_device_type_contributor_count_monthly", "monthly contributor count per device", "contributors"),
+                add_multi_line_plot("created_by_device_type_edit_count_monthly", "monthly edit count per device", "edits"),
+                add_multi_line_plot("created_by_device_type_edit_count_percent_monthly", "market share of edit per device", "%", percent=true),
+            ]
         }
+    },
+    "Corporations": {
+        "Which corporations are contributing how much?": {
+            "url_hash": "b34d",
+            "content_functions": [
+                add_multi_line_plot("corporation_edit_count_monthly", "monthly edits per corporation", "edits"),
+            ]
+        }
+        // # add_question(
+        // #     "",
+        // #     "",
+        // #     util.get_multi_line_plot(
+        // #         "", "edits", months, monthly_edits[:10], corporations_edits[:10]
+        // #     ),
+        // #     util.get_table(
+        // #         "yearly edits per corporation",
+        // #         years,
+        // #         util.monthly_to_yearly_with_total(monthly_edits, years, changesets.month_index_to_year_index),
+        // #         TOPIC,
+        // #         corporations_with_link_edits,
+        // #     ),
+        // # )
     }
 }
 
