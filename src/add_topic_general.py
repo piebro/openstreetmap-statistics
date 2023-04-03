@@ -47,7 +47,7 @@ for csv_line in sys.stdin:
 
 monthly_contributor_without_maps_me = util.set_to_length(monthly_contributor_sets_without_maps_me)
 yearly_map_edits_max_z_value = np.max(yearly_map_edits)
-monthly_contributor_edit_count_higher_then_100 = [
+monthly_contributor_edit_count_higher_than_100 = [
     np.sum(np.array(list(monthly_contributor_edit_count[month_index].values())) > 100)
     for month_index in range(len(months))
 ]
@@ -71,10 +71,10 @@ with util.add_questions(TOPIC) as add_question:
         util.get_single_line_plot("contributors per month", "contributors", months, changesets.monthly_contributors),
         util.get_single_line_plot("new contributors per month", "contributors", months, monthly_new_contributors),
         util.get_single_line_plot(
-            "contributors with more then 100 edits per month",
+            "contributors with more than 100 edits per month",
             "contributors",
             months,
-            monthly_contributor_edit_count_higher_then_100,
+            monthly_contributor_edit_count_higher_than_100,
         ),
     )
 
