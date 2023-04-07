@@ -696,10 +696,11 @@
         ],
         "type": "desktop_editor"
     },
-    "RapiD": {
+    "Rapid": {
         "link": "https://github.com/facebook/RapiD",
         "starts_with": [
-            "RapiD "
+            "RapiD ",
+            "Rapid "
         ],
         "type": "desktop_editor"
     },
