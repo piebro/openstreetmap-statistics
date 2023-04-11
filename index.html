@@ -1,4 +1,4 @@
-<!doctype html>
+    <!doctype html>
 
 <html lang="en">
 <head>
@@ -13,58 +13,57 @@
 
 <script>
 
-// TODO: add units to the data file?
 topics = {
     "General": {
         "How many people are contributing each month?": {
             "url_hash": "63f6",
             "content_functions": [
-                add_single_line_plot("contributor_count_monthly", "contributors per month", "contributors"),
-                add_single_line_plot("new_contributor_count_monthly", "new contributors per month", "contributors"),
-                add_multi_line_plot("contributor_count_more_the_k_edits_monthly", "contributors with more then k edits total", "contributors")
+                add_single_line_plot("general_contributor_count_monthly", "contributors per month", "contributors"),
+                add_single_line_plot("general_new_contributor_count_monthly", "new contributors per month", "contributors"),
+                add_multi_line_plot("general_contributor_count_more_the_k_edits_monthly", "contributors with more than k edits total", "contributors")
             ]
         },
         "Why is there rapid growth in monthly contributors in 2016?":{
             "url_hash": "21d9",
             "content_functions": [
-                text_div("That's because a lot of new people were contributing using the maps.me app. Looking at the plot of" + 
+                add_text("That's because a lot of new people were contributing using the maps.me app. Looking at the plot of" + 
                          " monthly contributors not using maps.me shows that there is linear growth. It is also worth noting" +
                          " that vast majority of maps.me mappers made only few edits. And due to definciencies in provided" +
                          " editor quality of their edits was really low."),
-                add_single_line_plot("contributor_count_no_maps_me_monthly", "contributors per month without maps.me contributors", "contributors")
+                add_single_line_plot("general_no_maps_me_contributor_count_monthly", "contributors per month without maps.me contributors", "contributors")
             ]
         },
         "How many edits are added each month?": {
             "url_hash": "fe79",
             "content_functions":[
-                add_single_line_plot("edit_count_monthly", "edits per month", "edits")
+                add_single_line_plot("general_edit_count_monthly", "edits per month", "edits")
             ]
         },
         "What's the total amount of contributors, edits and changesets over time?": {
             "url_hash": "7026",
             "content_functions":[
-                add_single_line_plot("contributor_count_accumulated_monthly", "total contributor count", "contributors"),
-                add_single_line_plot("edit_count_accumulated_monthly", "total edit count", "edits"),
-                add_single_line_plot("changeset_count_accumulated_monthly", "total changeset count", "changesets"),
+                add_single_line_plot("general_new_contributor_count_monthly_accumulated", "total contributor count", "contributors"),
+                add_single_line_plot("general_edit_count_monthly_accumulated", "total edit count", "edits"),
+                add_single_line_plot("general_changeset_count_monthly_accumulated", "total changeset count", "changesets"),
             ]
         },
         "Where are edits made?": {
             "url_hash": "727b",
             "content_functions": [
-                add_map_plot("edit_count_map_total", "total edits")
+                add_map_plot("general_edit_count_map_total", "total edits")
             ]
         },
         "Where are edits made each year?": {
             "url_hash": "bd16",
             "content_functions": [
-                add_multiple_map_plots("edit_count_maps_yearly")
+                add_multiple_map_plots("general_edit_count_maps_yearly")
             ]
         },
         "What's the median edit count per contributor each month?": {
             "url_hash": "a3ed",
             "content_functions": [
-                add_single_line_plot("edit_count_per_contributor_median_monthly", "median number of edits per contributor per month", "median number of edits per contributor"),
-                add_single_line_plot("edit_count_per_contributor_median_monthly_since_2010", "median number of edits per contributor per month since 2010", "median number of edits per contributor")
+                add_single_line_plot("general_edit_count_per_contributor_median_monthly", "median number of edits per contributor per month", "median number of edits per contributor"),
+                add_single_line_plot("general_edit_count_per_contributor_median_monthly_since_2010", "median number of edits per contributor per month since 2010", "median number of edits per contributor")
             ]
         }
     },
@@ -80,7 +79,7 @@ topics = {
         "How popular is each editing software per month?": {
             "url_hash": "158c",
             "content_functions": [
-                add_multi_line_plot("created_by_top_10_contributor_count_percent_monthly", "percent of contributors that use each editing software per month", "%", percent=true),
+                add_multi_line_plot("created_by_top_10_contributor_count_monthly_percent", "percent of contributors that use each editing software per month", "%", percent=true),
             ]
         },
         "Which editing software is used for the first edit?": {
@@ -99,15 +98,15 @@ topics = {
         "What's the market share of edits per month?": {
             "url_hash": "a008",
             "content_functions": [
-                add_multi_line_plot("created_by_top_10_edit_count_percent_monthly", "percent of edits that use each editing software per month", "%", percent=true),
+                add_multi_line_plot("created_by_top_10_edit_count_monthly_percent", "percent of edits that use each editing software per month", "%", percent=true),
             ]
         },
         "What's the total amount of contributors, edits and changesets of editing software over time?": {
             "url_hash": "6320",
             "content_functions": [
-                add_multi_line_plot("created_by_top_10_contributor_count_accumulated_monthly", "total contributor count of editing software", "contributors"),
-                add_multi_line_plot("created_by_top_10_edit_count_accumulated_monthly", "total edit count of editing software", "edits"),
-                add_multi_line_plot("created_by_top_10_changeset_count_accumulated_monthly", "total changeset count of editing software", "changesets"),
+                add_multi_line_plot("created_by_top_10_new_contributor_count_monthly_accumulated", "total contributor count of editing software", "contributors"),
+                add_multi_line_plot("created_by_top_10_edit_count_monthly_accumulated", "total edit count of editing software", "edits"),
+                add_multi_line_plot("created_by_top_10_changeset_count_monthly_accumulated", "total changeset count of editing software", "changesets"),
             ]
         },
         "What kind of devices are used for mapping?": {
@@ -120,26 +119,214 @@ topics = {
         }
     },
     "Corporations": {
+        "How many edits are added from corporations each month?":{
+            "url_hash": "7034",
+            "content_functions": [
+                add_single_line_plot("corporation_top_100_edit_count_monthly_sum_top_k_percent", "percent of edits from corporation per month", "%", percent=true),
+            ]
+        },
         "Which corporations are contributing how much?": {
             "url_hash": "b34d",
             "content_functions": [
-                add_multi_line_plot("corporation_edit_count_monthly", "monthly edits per corporation", "edits"),
+                add_multi_line_plot("corporation_top_10_edit_count_monthly", "monthly edits per corporation", "edits"),
+                add_table("corporation_top_100_edit_count_yearly", "monthly edits per corporation", "Corporation", "corporation_top_100_edit_count_total", "corporation_name_to_link"),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets from corporations over time?": {
+            "url_hash": "4ef4",
+            "content_functions": [
+                add_multi_line_plot("corporation_top_10_new_contributor_count_monthly_accumulated", "total contributor count of corporations", "contributors"),
+                add_multi_line_plot("corporation_top_10_edit_count_monthly_accumulated", "total edit count of corporations", "edits"),
+                add_multi_line_plot("corporation_top_10_changeset_count_monthly_accumulated", "total changeset count of corporations", "changesets"),
+            ]
+        },
+        "Where are the top 10 corporations contributing?": {
+            "url_hash": "e19b",
+            "content_functions": [
+                add_multiple_map_plots("corporation_top_10_edit_count_maps_total")
+            ]
+        },
+    },
+    "Source":{
+        "How often is the 'source' tag used?": {
+            "url_hash": "9267",
+            "content_functions": [
+                add_single_line_plot("source_edit_count_monthly_percent", "monthly percent of edits that use at least one source tag", "%", percent=true),
+            ]
+        },
+        "How many contributors use which source each month?": {
+            "url_hash": "6c08",
+            "content_functions": [
+                add_multi_line_plot("source_top_10_contributor_count_monthly", "monthly contributor count per source", "contributors"),
+                add_table("source_top_100_contributor_count_yearly", "yearly contributor count per source", "Corporation", "source_top_100_edit_count_total", "imagery_and_source_name_to_link"),
+            ]
+        },
+        "How many edits does each source have per month?": {
+            "url_hash": "daf4",
+            "content_functions": [
+                add_multi_line_plot("source_top_10_edit_count_monthly", "monthly edit count per source", "edits"),
+                add_table("source_top_100_edit_count_yearly", "yearly edit count per source", "Source", "source_top_100_edit_count_total", "imagery_and_source_name_to_link"),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets of sources over time?": {
+            "url_hash": "7e84",
+            "content_functions": [
+                add_multi_line_plot("source_top_10_new_contributor_count_monthly_accumulated", "total contributor count of sources", "contributors"),
+                add_multi_line_plot("source_top_10_edit_count_monthly_accumulated", "total edit count of sources", "edits"),
+                add_multi_line_plot("source_top_10_changeset_count_monthly_accumulated", "total changeset count of sources", "changesets"),
             ]
         }
-        // # add_question(
-        // #     "",
-        // #     "",
-        // #     util.get_multi_line_plot(
-        // #         "", "edits", months, monthly_edits[:10], corporations_edits[:10]
-        // #     ),
-        // #     util.get_table(
-        // #         "yearly edits per corporation",
-        // #         years,
-        // #         util.monthly_to_yearly_with_total(monthly_edits, years, changesets.month_index_to_year_index),
-        // #         TOPIC,
-        // #         corporations_with_link_edits,
-        // #     ),
-        // # )
+    },
+    "Imagery Service":{
+        "How popular are imagery services?": {
+            "url_hash": "4f2c",
+            "content_functions": [
+                add_single_line_plot("imagery_edit_count_monthly_percent", "monthly percent of edits that use at least one imagery tag", "%", percent=true),
+                add_text(
+                    "This graph is based on imagery tag set automatically by iD, Vespucci and Go Map!!. As other editors are" +
+                    " not using it and iD is vastly more popular than other relevant editors this graph is very close to" +
+                    " 'market share of iD by edit volume'. JOSM users are typically using source field to note actually" +
+                    " used sources."
+                ),
+            ]
+        },
+        "How many contributors does each imagery service have per month?": {
+            "url_hash": "5bc5",
+            "content_functions": [
+                add_multi_line_plot("imagery_top_10_contributor_count_monthly", "monthly contributor count per imagery software", "contributors"),
+                add_table("imagery_top_100_contributor_count_yearly", "yearly contributor count per imagery software", "Imagery Software", "imagery_top_100_contributor_count_total", "imagery_and_source_name_to_link"),
+            ]
+        },
+        "How many edits does each imagery service have per month?": {
+            "url_hash": "af79",
+            "content_functions": [
+                add_multi_line_plot("imagery_top_10_edit_count_monthly", "monthly edit count per imagery service", "edits"),
+                add_table("imagery_top_100_edit_count_yearly", "yearly edit count per imagery software", "Imagery Software", "imagery_top_100_edit_count_total", "imagery_and_source_name_to_link"),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets of imagery services over time?": {
+            "url_hash": "327d",
+            "content_functions": [
+                add_multi_line_plot("imagery_top_10_new_contributor_count_monthly_accumulated", "total contributor count of imagery services", "contributors"),
+                add_multi_line_plot("imagery_top_10_edit_count_monthly_accumulated", "total edit count of imagery services", "edits"),
+                add_multi_line_plot("imagery_top_10_changeset_count_monthly_accumulated", "total changeset count of imagery services", "changesets"),
+            ]
+        }
+    },
+    "Hashtags":{
+        "How popular are hashtags?": {
+            "url_hash": "2e20",
+            "content_functions": [
+                add_single_line_plot("hashtag_edit_count_monthly_percent", "percent of monthly edits that use at least one hashtag", "%", percent=true),
+                add_single_line_plot("hashtag_contributor_count_monthly_percent", "percent of monthly contributors that use at least one hashtag", "%", percent=true),
+            ]
+        },
+        "How many contributors does each hashtag have per month?": {
+            "url_hash": "bd85",
+            "content_functions": [
+                add_multi_line_plot("hashtag_top_10_contributor_count_monthly", "monthly contributor count per hashtag", "contributors"),
+                add_table("hashtag_top_100_contributor_count_yearly", "yearly contributor count per hashtag", "Hashtag", "hashtag_top_100_contributor_count_total"),
+            ]
+        },
+        "How many edits does each hashtag have per month?": {
+            "url_hash": "f0e6",
+            "content_functions": [
+                add_multi_line_plot("hashtag_top_10_edit_count_monthly", "monthly edit count per hashtag", "edits"),
+                add_table("hashtag_top_100_edit_count_yearly", "yearly edit count per hashtag", "Hashtag", "hashtag_top_100_edit_count_total"),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets of hashtags over time?": {
+            "url_hash": "4b4a",
+            "content_functions": [
+                add_multi_line_plot("hashtag_top_10_new_contributor_count_monthly_accumulated", "total contributor count of hashtags", "contributors"),
+                add_multi_line_plot("hashtag_top_10_edit_count_monthly_accumulated", "total edit count of hashtags", "edits"),
+                add_multi_line_plot("hashtag_top_10_changeset_count_monthly_accumulated", "total changeset count of hashtags", "changesets"),
+            ]
+        },
+        "Where are the top 10 hashtags used?": {
+            "url_hash": "bea0",
+            "content_functions": [
+                add_multiple_map_plots("hashtag_top_10_edit_count_maps_total")
+            ]
+        },
+    },
+    "StreetComplete":{
+        "How popular is StreetComplete in the OSM community?": {
+            "url_hash": "465b",
+            "content_functions": [
+                add_text(
+                    "<a href='https://streetcomplete.app/'>StreetComplete</a> is an Android app where editing is done by" +
+                    " answering predefined questions called 'quests'. This editor is much simpler to use than alternatives" +
+                    ", but does not allow freeform editing. For example, adding missing opening hours is really easy, but" +
+                    " you cannot map a missing road."
+                ),
+                add_single_line_plot("streetcomplete_contributor_count_monthly_percent", "percent of contributors that use streetcomplete per month", "%", percent=true),
+                add_single_line_plot("streetcomplete_contributor_count_monthly", "contributors that use streetcomplete per month", "contributors"),
+                add_single_line_plot("streetcomplete_edit_count_monthly_percent", "percent of edits made with streetcomplete per month", "%", percent=true),
+                add_single_line_plot("streetcomplete_edit_count_monthly", "edits made with streetcomplete per month", "edits"),
+            ]
+        },
+        "How many edits does each quest have?": {
+            "url_hash": "6773",
+            "content_functions": [
+                add_table("streetcomplete_top_300_edit_count_yearly", "yearly edit count per quest", "StreetComplete Quest", "streetcomplete_top_300_edit_count_total"),
+            ]
+        },
+        "What's the total amount of contributors and edits of the top quests over time?": {
+            "url_hash": "d06d",
+            "content_functions": [
+                add_multi_line_plot("streetcomplete_top_10_new_contributor_count_monthly_accumulated", "total contributor count of quests", "contributors"),
+                add_multi_line_plot("streetcomplete_top_10_edit_count_monthly_accumulated", "total edit count of quests", "edits"),
+                add_multi_line_plot("streetcomplete_top_10_changeset_count_monthly_accumulated", "total changeset count of quests", "changesets"),
+            ]
+        },
+        "Where is StreetComplete used the most?": {
+            "url_hash": "52ed",
+            "content_functions": [
+                add_map_plot("streetcomplete_edit_count_map_total", "total edits")
+            ]
+        },
+    },
+    "Bot": {
+        "How often are edits created with the help of bots?": {
+            "url_hash": "785b",
+            "content_functions": [
+                add_single_line_plot("bot_edit_count_monthly_percent", "percent of edits created with a bot per month", "%", percent=true),
+                add_single_line_plot("bot_edit_count_monthly", "edits created with a bot per month", "edits"),
+            ]
+        },
+        "What's the total amount of contributors, edits and changesets that use bots over time?": {
+            "url_hash": "0725",
+            "content_functions": [
+                add_single_line_plot("bot_new_contributor_count_monthly_accumulated", "total contributor count that used a bot", "contributors"),
+                add_single_line_plot("bot_edit_count_monthly_accumulated", "total edit count that used a bot", "edits"),
+                add_single_line_plot("bot_changeset_count_monthly_accumulated", "total changeset count that used a bot", "changesets"),
+            ]
+        },
+        "How many distinct users use bots per month?": {
+            "url_hash": "da7d",
+            "content_functions": [
+                add_single_line_plot("bot_contributor_count_monthly", "contributors using bots per month", "contributors"),
+            ]
+        },
+        "Where are bots used?": {
+            "url_hash": "ed95",
+            "content_functions": [
+                add_map_plot("bot_edit_count_map_total", "total edits")
+            ]
+        },
+        "What's the average edit count per changeset over time?": {
+            "url_hash": "ae72",
+            "content_functions": [
+                add_single_line_plot("bot_avg_edit_count_per_changeset_monthly", "average number of edits per changeset per month using bots", "average number of edits per changeset")
+            ]
+        },
+        "What are the most used bot tools?": {
+            "url_hash": "e985",
+            "content_functions": [
+                add_table("bot_created_by_top_100_edit_count_yearly", "yearly edit count per bot", "Bot", "bot_created_by_top_100_edit_count_total", "created_by_name_to_link")
+            ]
+        }
     }
 }
 
@@ -188,7 +375,7 @@ function add_div(id, class_str, parent_div=null){
     return div
 }
 
-function text_div(text){
+function add_text(text){
     show_content = async function(div_id){
         div = add_div(div_id, "textDiv")
         div.insertAdjacentHTML('beforeend', text);
@@ -252,12 +439,12 @@ function get_map_plot_layout(plot_title, max_z_value){
     return layout
 }
 
-function add_single_line_plot(data_name, plot_title, unit){
+function add_single_line_plot(data_name, plot_title, unit, percent=false){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
         traces = [{"x": data["x"], "y": data["y"], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit), get_plot_config())
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
     }
     return {"show": show_content}
 }

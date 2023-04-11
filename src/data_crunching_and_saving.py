@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 
 import numpy as np
 import dask.dataframe as dd
@@ -27,7 +28,9 @@ def load_data_dict(name):
 
 def pd_series_to_y(x, series, cumsum=False):
     if x == None:
-        return series.values.tolist()[0]
+        if isinstance(series, np.int64):
+           return series
+        return series.values.tolist()[0] 
     else:
         y = np.zeros(len(x), dtype=series.values.dtype)
         y[series.index.values] = series.values
@@ -52,7 +55,7 @@ def save_y_list(name, x, pd_series_list, y_names, index_offset=3, cumsum=False):
     if x is None:
         data_dict = {"y_list": y_list, "y_names": y_names}
     else:
-        start_index = np.min([np.max([0, np.nonzero(y)[0][0] - index_offset]) for y in y_list])
+        start_index = np.min([np.max([0, np.nonzero(y)[0][0] - index_offset]) for y in y_list if np.any(y)])
         y_list = [y[start_index:] for y in y_list]
         data_dict = {"x": x[start_index:], "y_list": y_list, "y_names": y_names}
     save_data_dict(name, data_dict)
@@ -92,7 +95,7 @@ def get_name_to_link(replace_rules_file_name):
 
 
 
-def save_general_maps():
+def save_general_maps_old():
     ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
 
     monthly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["month_index", "pos_x", "pos_y"])["edits"].sum().compute()
@@ -104,20 +107,9 @@ def save_general_maps():
     year_map_names = [f"total edits {year}" for year in YEARS]
     save_maps("edit_count_maps_yearly", year_maps, year_map_names)
 
-def save_general_median():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    monthly_contributor_edits = ddf.groupby(["month_index", "user_index"])["edits"].sum().compute()
-    edit_count_per_contributor_median_monthly = monthly_contributor_edits.groupby(["month_index"]).median()
 
-    edit_count_per_contributor_median_monthly_since_2010 = edit_count_per_contributor_median_monthly[
-        edit_count_per_contributor_median_monthly.index >= 57
-    ]
-    edit_count_per_contributor_median_monthly_since_2010.index -= 57
 
-    save_y("edit_count_per_contributor_median_monthly", MONTHS, edit_count_per_contributor_median_monthly)
-    save_y("edit_count_per_contributor_median_monthly_since_2010", MONTHS[57:], edit_count_per_contributor_median_monthly_since_2010)
-
-def save_tag_top_100_unit_yearly(tag, unit, top_100_indices, top_100_names):
+def save_tag_top_100_unit_yearly_old(tag, unit, top_100_indices, top_100_names):
     ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
 
     if unit == "contributor_count":
@@ -137,20 +129,9 @@ def save_tag_top_100_unit_yearly(tag, unit, top_100_indices, top_100_names):
         index_offset=0
     )
 
-def save_tag_top_10_contributor_count_first_changeset_monthly(tag, top_10_indices, top_10_names):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    
-    contibutor_monthly = ddf[ddf[tag].isin(top_10_indices)].groupby(["user_index"])["month_index", tag].first().compute()
-    contibutor_count_monthly = contibutor_monthly.reset_index().groupby(["month_index", tag])["user_index"].count()
 
-    save_y_list(
-        f"{tag}_top_10_contributor_count_first_changeset_monthly",
-        MONTHS,
-        util.multi_index_series_to_series_list(contibutor_count_monthly, top_10_indices),
-        top_10_names,
-    )
     
-def save_unit_monthly(unit):
+def save_unit_monthly_old(unit):
     ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
 
     if unit == "contributor_count":
@@ -172,76 +153,9 @@ def save_unit_monthly(unit):
     save_y(f"{unit}_monthly", MONTHS, monthly)
     return monthly
 
-def save_contributor_count_more_the_k_edits_monthly(monthly_contributors_unique):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
 
-    total_edits_of_contributors = ddf.groupby(["user_index"])["edits"].sum().compute()
-    monthly_contributors_set = monthly_contributors_unique.apply(set)
-    monthly_contributors_unique = None
 
-    min_edit_count = [10, 100, 1_000, 10_000, 100_000]
-    contributor_count_more_the_k_edits_monthly = []
-    for k in min_edit_count:
-        contributors_with_more_then_k_edits = set(
-            total_edits_of_contributors[total_edits_of_contributors > k].index.to_numpy()
-        )
-        contributor_count_more_the_k_edits_monthly.append(
-            monthly_contributors_set.apply(lambda x: len(x.intersection(contributors_with_more_then_k_edits)))
-        )
-    save_y_list("contributor_count_more_the_k_edits_monthly", MONTHS, contributor_count_more_the_k_edits_monthly, min_edit_count)
-
-def save_contributor_count_no_maps_me_monthly():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
-    map_me_indices = (created_by_tag_to_index["MAPS.ME android"], created_by_tag_to_index["MAPS.ME ios"])
-    contributor_count_no_maps_me_monthly = (
-        ddf[~ddf["created_by"].isin(map_me_indices)].groupby(["month_index"])["user_index"].nunique().compute()
-    )
-    save_y("contributor_count_no_maps_me_monthly", MONTHS, contributor_count_no_maps_me_monthly)
-
-def save_created_by_unit(unit, unit_monthly):
-    top_100_indices, top_100_names = save_tag_top_100_unit_total("created_by", unit)
-    save_tag_top_10_unit_monthly(
-        "created_by",
-        unit,
-        top_100_indices[:10],
-        top_100_names[:10],
-        save_percent=unit_monthly,
-        save_new_contributor_count=True,
-        cum_sum=True
-    )
-    save_tag_top_100_unit_yearly("created_by", unit, top_100_indices, top_100_names)
-    if unit == "contributor_count":
-        save_tag_top_10_contributor_count_first_changeset_monthly("created_by", top_100_indices[:10], top_100_names[:10])
-
-def save_tag_top_100_unit_total(tag, unit):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    index_to_tag = util.load_index_to_tag(DATA_DIR, tag)
-
-    if tag == "created_by":
-        ddf = ddf[ddf[tag]<4294967295]
-
-    if unit == "contributor_count":
-        total = ddf.groupby(tag)["user_index"].nunique().compute()
-    elif unit == "edit_count":
-        total = ddf.groupby(tag)["edits"].sum().compute()
-    elif unit == "changeset_count":
-        total = ddf.groupby(tag).size().compute()
-    else:
-        raise Exception(f"Unkown unit: {unit}")
-
-    top_100_indices = (-total.values.astype(np.int64)).argsort()[:100]
-    top_100_names = [index_to_tag[i] for i in top_100_indices]
-    
-    save_y_list(
-        f"{tag}_top_100_{unit}_total",
-        None,
-        util.series_to_series_list(total, top_100_indices),
-        top_100_names
-    )
-    return (top_100_indices, top_100_names)
-
-def save_tag_top_10_unit_monthly(tag, unit, top_10_indices, top_10_names, save_percent=None, save_new_contributor_count=False, cum_sum=False):
+def save_tag_top_10_unit_monthly_old(tag, unit, top_10_indices, top_10_names, save_percent=None, save_new_contributor_count=False, cum_sum=False):
     ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
 
     if unit == "contributor_count":
@@ -315,8 +229,7 @@ def get_software_editor_type_lists():
     return device_type
 
 
-def save_created_by_editor_type_stats(edit_count_monthly):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
+def save_created_by_editor_type_stats(ddf):
     editor_type_lists = get_software_editor_type_lists()
 
     save_y_list(
@@ -325,134 +238,391 @@ def save_created_by_editor_type_stats(edit_count_monthly):
         [ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["user_index"].nunique().compute() for l in editor_type_lists.values()],
         list(editor_type_lists.keys())
     )
-
-    editor_type_edit_count_monthly = [
-        ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["edits"].sum().compute() for l in editor_type_lists.values()
-    ]
     save_y_list(
         "created_by_device_type_edit_count_monthly",
         MONTHS,
-        editor_type_edit_count_monthly,
+        [ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["edits"].sum().compute() for l in editor_type_lists.values()],
         list(editor_type_lists.keys())
     )
-    save_y_list(
-        "created_by_device_type_edit_count_percent_monthly",
-        MONTHS,
-        [s.divide(edit_count_monthly, fill_value=0)*100 for s in editor_type_edit_count_monthly],
-        list(editor_type_lists.keys())
-    )
+    save_percent("created_by_device_type_edit_count_monthly", "general_edit_count_monthly")
     
 
 
 
-def save_corporation_stats():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
+def save_base_statistics(
+    ddf,
+    prefix,
+    edit_count_monthly=False,
+    changeset_count_monthly=False,
+    contributors_unique_yearly=False,
+    contributor_count_monthly=False,
+    new_contributor_count_monthly=False,
+    edit_count_map_total=False,
+    ):
 
-    corporation_contributors = util.load_json(os.path.join("assets", "corporation_contributors.json"))
-    user_name_tag_to_index = util.load_tag_to_index(DATA_DIR, "user_name")
+    if edit_count_monthly:
+        save_y(f"{prefix}_edit_count_monthly", MONTHS, ddf.groupby(["month_index"])["edits"].sum().compute())
+        
 
-    corporation_user_index_lists = {}
-    for corporation_name, corporation_link_user_name_list in corporation_contributors.items():
-        corporation_user_name_list = corporation_link_user_name_list[1]
-        corporation_user_index_lists[corporation_name] = np.array([user_name_tag_to_index[user_name] for user_name in corporation_user_name_list if user_name in user_name_tag_to_index], dtype=np.int64)
+    if changeset_count_monthly:
+        save_y(f"{prefix}_changeset_count_monthly", MONTHS, ddf.groupby(["month_index"]).size().compute())
 
-    all_corporation_user_index = np.concatenate(list(corporation_user_index_lists.values()))
-    df_filtered = ddf[ddf["user_index"].isin(all_corporation_user_index)].groupby(["month_index", "user_index"])["edits"].sum().compute()
-    df_filtered = df_filtered.reset_index()
+    if contributors_unique_yearly:
+        save_y(f"{prefix}_contributors_unique_yearly", YEARS, ddf.groupby(["year_index"])["user_index"].nunique().compute())
+    
+    if contributor_count_monthly or new_contributor_count_monthly:
+        contributors_unique_monthly = ddf.groupby(["month_index"])["user_index"].unique().compute()
+        if contributor_count_monthly:
+            save_y(f"{prefix}_contributor_count_monthly", MONTHS, contributors_unique_monthly.apply(len))
+        if new_contributor_count_monthly:
+            save_y(f"{prefix}_new_contributor_count_monthly", MONTHS, util.cumsum_new_nunique(contributors_unique_monthly))
+        contributors_unique_monthly = None
 
-    corporation_edit_count_monthly = []
-    corporation_names = []
-    for corporation_name, corporation_user_index_list in corporation_user_index_lists.items():
-        if len(corporation_user_index_list) > 0:
-            corporation_names.append(corporation_name)
-            corporation_edit_count_monthly.append(
-                df_filtered[df_filtered["user_index"].isin(corporation_user_index_list)].groupby(["month_index"])["edits"].sum()
+    if edit_count_map_total:
+        save_map(f"{prefix}_edit_count_map_total", ddf[ddf["pos_x"] >= 0].groupby(["pos_x", "pos_y"])["edits"].sum().compute())
+
+
+
+def get_tag_top_k_and_save_top_k_total(ddf, tag, prefix, k, contributor_count=False, edit_count=False, changeset_count=False):
+    index_to_tag = util.load_index_to_tag(DATA_DIR, tag)
+
+    if tag in ["created_by", "corporation", "streetcomplete"]:
+        highest_number = np.iinfo(ddf[tag].dtype).max
+        ddf = ddf[ddf[tag]<highest_number]
+    
+    units = []
+    if contributor_count:
+        units.append("contributor_count")
+    if edit_count:
+        units.append("edit_count")
+    if changeset_count:
+        units.append("changeset_count")
+
+    unit_to_top_k_indices_and_names = {"tag": tag}
+    for unit in units:
+        if unit == "contributor_count":
+            total = ddf.groupby(tag)["user_index"].nunique().compute()
+        if unit == "edit_count":
+            total = ddf.groupby(tag)["edits"].sum().compute()
+        if unit == "changeset_count":
+            total = ddf.groupby(tag).size().compute()
+
+        indices = total.index[(-total.values.astype(np.int64)).argsort()[:k]]
+        names = [index_to_tag[i] for i in indices]
+        unit_to_top_k_indices_and_names[unit] = (indices, names)
+
+        save_y_list(
+            f"{prefix}{tag}_top_{k}_{unit}_total",
+            None,
+            util.series_to_series_list(total, indices),
+            names
+        )
+
+    return unit_to_top_k_indices_and_names
+
+def save_base_statistics_tag(
+    ddf,
+    tag,
+    k=100,
+    prefix=None,
+    edit_count_monthly=False,
+    changeset_count_monthly=False,
+    contributors_unique_yearly=False,
+    contributor_count_monthly=False,
+    new_contributor_count_monthly=False,
+    edit_count_map_total=False
+    ):
+    
+    prefix = "" if prefix is None else f"{prefix}_"
+
+    top_k = get_tag_top_k_and_save_top_k_total(
+        ddf,
+        tag,
+        prefix,
+        k=k,
+        contributor_count=(contributors_unique_yearly or contributor_count_monthly or new_contributor_count_monthly),
+        edit_count=edit_count_monthly,
+        changeset_count=changeset_count_monthly
+    )
+
+    if edit_count_monthly:
+        indices, names = top_k["edit_count"]
+        monthly_list = util.multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag])["edits"].sum().compute(),
+            indices
+        )
+        save_y_list(f"{prefix}{tag}_top_{k}_edit_count_monthly", MONTHS, monthly_list, names)
+    
+    if changeset_count_monthly:
+        indices, names = top_k["changeset_count"]
+        monthly_list = util.multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag]).size().compute(),
+            indices
+        )
+        save_y_list(f"{prefix}{tag}_top_{k}_changeset_count_monthly", MONTHS, monthly_list, names)
+
+    if contributors_unique_yearly:
+        indices, names = top_k["contributor_count"]
+        yearly_list = util.multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["year_index", tag])["user_index"].nunique().compute(),
+            indices
+        )
+        save_y_list(f"{prefix}{tag}_top_{k}_contributor_count_yearly", YEARS, yearly_list, names)
+    
+    if contributor_count_monthly or new_contributor_count_monthly:
+        indices, names = top_k["contributor_count"]
+        unique_monthly_list = util.multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag])["user_index"].unique().compute(),
+            indices
+        )
+        if contributor_count_monthly:
+            save_y_list(
+                f"{prefix}{tag}_top_{k}_contributor_count_monthly",
+                MONTHS,
+                [unique_monthly.apply(len) for unique_monthly in unique_monthly_list],
+                names
+            )
+        if new_contributor_count_monthly:
+            save_y_list(
+                f"{prefix}{tag}_top_{k}_new_contributor_count_monthly",
+                MONTHS,
+                [util.cumsum_new_nunique(unique_monthly) for unique_monthly in unique_monthly_list],
+                names
             )
 
+    if edit_count_map_total:
+        indices, names = top_k["edit_count"]
+        indices = indices[:10]
+        names = names[:10]
+        ddf_is_in = ddf[ddf[tag].isin(indices)]
+        tag_map_edits = ddf_is_in[ddf_is_in["pos_x"] >= 0].groupby(["pos_x", "pos_y", tag])["edits"].sum().compute()
+        tag_maps = [tag_map_edits[tag_map_edits.index.get_level_values(tag)==i].droplevel(2) for i in indices]
+        save_maps(f"{prefix}{tag}_top_10_edit_count_maps_total", tag_maps, names)
+
+
+def save_edit_count_map_yearly(ddf, prefix):
+    yearly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"])["edits"].sum().compute()
+    year_maps = [yearly_map_edits[yearly_map_edits.index.get_level_values("year_index")==year_i].droplevel(0) for year_i in range(len(YEARS))]
+    year_map_names = [f"total edits {year}" for year in YEARS]
+    save_maps(f"{prefix}_edit_count_maps_yearly", year_maps, year_map_names)
+
+def save_general_edit_count_per_contributor_median_monthly(ddf):
+    contributor_edits_monthly = ddf.groupby(["month_index", "user_index"])["edits"].sum().compute()
+    edit_count_per_contributor_median_monthly = contributor_edits_monthly.groupby(["month_index"]).median()
+
+    edit_count_per_contributor_median_monthly_since_2010 = edit_count_per_contributor_median_monthly[
+        edit_count_per_contributor_median_monthly.index >= 57
+    ]
+    edit_count_per_contributor_median_monthly_since_2010.index -= 57
+
+    save_y("general_edit_count_per_contributor_median_monthly", MONTHS, edit_count_per_contributor_median_monthly)
+    save_y("general_edit_count_per_contributor_median_monthly_since_2010", MONTHS[57:], edit_count_per_contributor_median_monthly_since_2010)
+
+def save_general_contributor_count_more_the_k_edits_monthly(ddf):
+    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
+
+    total_edits_of_contributors = ddf.groupby(["user_index"])["edits"].sum().compute()
+    contributors_unique_monthly_set = ddf.groupby(["month_index"])["user_index"].unique().compute().apply(set)
+
+    min_edit_count = [10, 100, 1_000, 10_000, 100_000]
+    contributor_count_more_the_k_edits_monthly = []
+    for k in min_edit_count:
+        contributors_with_more_than_k_edits = set(
+            total_edits_of_contributors[total_edits_of_contributors > k].index.to_numpy()
+        )
+        contributor_count_more_the_k_edits_monthly.append(
+            contributors_unique_monthly_set.apply(lambda x: len(x.intersection(contributors_with_more_than_k_edits)))
+        )
+    save_y_list("general_contributor_count_more_the_k_edits_monthly", MONTHS, contributor_count_more_the_k_edits_monthly, min_edit_count)
+
+
+def save_tag_top_10_contributor_count_first_changeset_monthly(ddf, tag, data_name_for_top_names):
+    names = util.load_json(os.path.join("assets", "data", f"{data_name_for_top_names}.json"))["y_names"][:10]
+    tag_to_index = util.load_tag_to_index(DATA_DIR, tag)
+    indices = [tag_to_index[tag_name] for tag_name in names]
+
+    contibutor_monthly = ddf[ddf[tag].isin(indices)].groupby(["user_index"])["month_index", tag].first().compute()
+    contibutor_count_monthly = contibutor_monthly.reset_index().groupby(["month_index", tag])["user_index"].count()
+
     save_y_list(
-        "corporation_edit_count_monthly",
+        f"{tag}_top_10_contributor_count_first_changeset_monthly",
         MONTHS,
-        corporation_edit_count_monthly,
-        corporation_names
+        util.multi_index_series_to_series_list(contibutor_count_monthly, indices),
+        names,
     )
+
+
+def save_accumulated(data_name):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    if "y" in data:
+        data["y"] = np.cumsum(data["y"])
+    if "y_list" in data:
+        data["y_list"] = [np.cumsum(y) for y in data["y_list"]]
+    util.save_json(os.path.join("assets", "data", f"{data_name}_accumulated.json"), data)
+
+def save_top_k(k, data_name):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    data["y_list"] = data["y_list"][:k]
+    data["y_names"] = data["y_names"][:k]
+    new_data_name = re.sub(r"_top_\d+_", f"_top_{k}_", data_name)
+    util.save_json(os.path.join("assets", "data", f"{new_data_name}.json"), data)
+
+def save_percent(data_name, data_name_divide):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    data_divide = util.load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
+    if "y" in data:
+        data["y"] = (util.save_div(data["y"], data_divide["y"][-len(data["y"]):])*100).tolist()
+    if "y_list" in data:
+        data["y_list"] = [(util.save_div(y, data_divide["y"][-len(y):])*100).tolist() for y in data["y_list"]]
+    util.save_json(os.path.join("assets", "data", f"{data_name}_percent.json"), data)
+
+def save_monthly_to_yearly(data_name):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    years = sorted(list(set([month[:4] for month in data["x"]])))
     
-    # corporation_names_with_link = np.array(
-    #     [f'<a href="{corporation_contributors[corporation_name][0]}">{corporation_name}</a>' for corporation_name in corporation_names]
-    # )
+    if "y" in data:
+        year_to_value = {year:0 for year in years}
+        for value, month in zip(data["y"], data["x"]):
+            year_to_value[month[:4]] += value
+        data["y"] = [year_to_value[year] for year in years]
+    if "y_list" in data:
+        new_y_list = []
+        for y in data["y_list"]:
+            year_to_value = {year:0 for year in years}
+            for value, month in zip(y, data["x"]):
+                year_to_value[month[:4]] += value
+            new_y_list.append([year_to_value[year] for year in years])
+        data["y_list"] = new_y_list
 
-    # add_question(
-    #     "How many edits are added from corporations each month?",
-    #     "7034",
-    #     util.get_single_line_plot(
-    #         "percent of edits from corporation per month",
-    #         "%",
-    #         months,
-    #         util.get_percent(monthly_edits_that_are_corporate, changesets.monthly_edits),
-    #         percent=True,
-    #     ),
-    # )
+    data["x"] = years
+    util.save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}.json"), data)
 
-    # add_question(
-    #     "Which corporations are contributing how much?",
-    #     "b34d",
-    #     util.get_multi_line_plot(
-    #         "monthly edits per corporation", "edits", months, monthly_edits[:10], corporations_edits[:10]
-    #     ),
-    #     util.get_table(
-    #         "yearly edits per corporation",
-    #         years,
-    #         util.monthly_to_yearly_with_total(monthly_edits, years, changesets.month_index_to_year_index),
-    #         TOPIC,
-    #         corporations_with_link_edits,
-    #     ),
-    # )
 
-    # add_question(
-    #     "What's the total amount of contributors, edits and changesets from corporations over time?",
-    #     "4ef4",
-    #     util.get_multi_line_plot(
-    #         "total contributor count of corporations",
-    #         "contributors",
-    #         months,
-    #         monthly_contributor_accurancy,
-    #         corporations_contibutors[:10],
-    #     ),
-    #     util.get_multi_line_plot(
-    #         "total edit count of corporations", "edits", months, util.cumsum(monthly_edits), corporations_edits[:10]
-    #     ),
-    #     util.get_multi_line_plot(
-    #         "total changeset count of corporations",
-    #         "changesets",
-    #         months,
-    #         util.cumsum(monthly_changesets),
-    #         corporations_changesets[:10],
-    #     ),
-    # )
 
-    # add_question(
-    #     "Where are the top 10 corporations contributing?",
-    #     "e19b",
-    #     *[
-    #         util.get_map_plot(f"total edits of the corporation: {name}", m, total_map_edits_max_z_value)
-    #         for m, name in zip(total_map_edits[:10], corporations_edits[:10])
-    #     ],
-    # )
+def save_sum_of_top_k(data_name):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    save_data = {
+        "x": data["x"],
+        "y": np.sum(data["y_list"], axis=0)
+    }
+    util.save_json(os.path.join("assets", "data", f"{data_name}_sum_top_k.json"), save_data)
+
+def save_div(save_data_name, data_name, data_name_divide):
+    data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    data_divide = util.load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
+    if "y" in data:
+        data["y"] = (util.save_div(data["y"], data_divide["y"][-len(data["y"]):])).tolist()
+    if "y_list" in data:
+        data["y_list"] = [(util.save_div(y, data_divide["y"][-len(y):])).tolist() for y in data["y_list"]]
+    util.save_json(os.path.join("assets", "data", f"{save_data_name}.json"), data)
 
 
 def main():
+    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
     # util.save_json(os.path.join(SAVE_DIR, "created_by_name_to_link.json"), get_name_to_link("replace_rules_created_by.json"))
+    # util.save_json(os.path.join(SAVE_DIR, "imagery_and_source_name_to_link.json"), get_name_to_link("replace_rules_imagery_and_source.json"))
+    # util.save_json(os.path.join(SAVE_DIR, "corporation_name_to_link.json"), {name: link for name, (link, _) in util.load_json(os.path.join("assets", "corporation_contributors.json")).items()})
 
-    # contributor_count_monthly = save_unit_monthly("contributor_count")
-    # edit_count_monthly = save_unit_monthly("edit_count")
-    # changeset_count_monthly = save_unit_monthly("changeset_count")
-    # save_general_maps()
-    # save_general_median()
+    # topic: general
+    # save_base_statistics(ddf, "general", edit_count_monthly=True, changeset_count_monthly=True, contributors_unique_yearly=True, contributor_count_monthly=True, new_contributor_count_monthly=True, edit_count_map_total=True)
+    # save_general_contributor_count_more_the_k_edits_monthly(ddf)
+    # save_edit_count_map_yearly(ddf, "general")
+    # save_general_edit_count_per_contributor_median_monthly(ddf)
     
-    # save_created_by_unit("contributor_count", contributor_count_monthly)
-    # save_created_by_unit("edit_count", edit_count_monthly)
-    # save_created_by_unit("changeset_count", changeset_count_monthly)
-    # save_created_by_editor_type_stats(edit_count_monthly)
-    save_corporation_stats()
+    # map_me_indices = np.array([created_by_tag_to_index["MAPS.ME android"], created_by_tag_to_index["MAPS.ME ios"]])
+    # save_base_statistics(ddf[~ddf["created_by"].isin(map_me_indices)], "general_no_maps_me", contributor_count_monthly=True)
+
+    # save_accumulated("general_new_contributor_count_monthly")
+    # save_accumulated("general_edit_count_monthly")
+    # save_accumulated("general_changeset_count_monthly")
+    
+    
+    
+    # # topic: Editing Software
+    #save_base_statistics_tag(ddf, "created_by", edit_count_monthly=True, changeset_count_monthly=True, contributors_unique_yearly=True, contributor_count_monthly=True, new_contributor_count_monthly=True)
+
+    # save_top_10("created_by_top_100_contributor_count_monthly")
+    # save_top_10("created_by_top_100_new_contributor_count_monthly")
+    # save_top_10("created_by_top_100_edit_count_monthly")
+    # save_top_10("created_by_top_100_changeset_count_monthly")
+
+    # save_percent("created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly")
+    # save_tag_top_10_contributor_count_first_changeset_monthly(ddf, "created_by", "created_by_top_10_contributor_count_monthly")
+    # save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
+    # save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly")
+
+    # save_accumulated("created_by_top_10_new_contributor_count_monthly")
+    # save_accumulated("created_by_top_10_edit_count_monthly")
+    # save_accumulated("created_by_top_100_changeset_count_monthly")
+    # save_created_by_editor_type_stats(ddf)
+
+    # topic: Corporations
+    # save_base_statistics_tag(ddf, "corporation", edit_count_monthly=True, changeset_count_monthly=True, new_contributor_count_monthly=True, edit_count_map_total=True)
+    # save_sum_of_top_k("corporation_top_100_edit_count_monthly")
+    # save_percent("corporation_top_100_edit_count_monthly_sum_top_k", "general_edit_count_monthly")
+    # save_top_10("corporation_top_100_new_contributor_count_monthly")
+    # save_top_10("corporation_top_100_edit_count_monthly")
+    # save_top_10("corporation_top_100_changeset_count_monthly")
+    # save_monthly_to_yearly("corporation_top_100_edit_count_monthly")    
+    # save_accumulated("corporation_top_10_new_contributor_count_monthly")
+    # save_accumulated("corporation_top_10_edit_count_monthly")
+    # save_accumulated("corporation_top_10_changeset_count_monthly")
+    
+
+
+    # topic: Source, Imagery Service, Hashtags
+    # ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
+    # all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
+
+    # for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
+    #     save_base_statistics(ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index[tag_name_in_all_tags]], tag, edit_count_monthly=True)
+    #     save_percent(f"{tag}_edit_count_monthly", "general_edit_count_monthly")
+        
+    #     ddf_tag = dd.read_parquet(os.path.join(PARQUET_DIR, f"{tag}_*.parquet"))
+    #     edit_count_map_total = True if tag == "hashtag" else False
+    #     save_base_statistics_tag(ddf_tag, tag, edit_count_monthly=True, changeset_count_monthly=True, contributors_unique_yearly=True, contributor_count_monthly=True, new_contributor_count_monthly=True, edit_count_map_total=edit_count_map_total)
+    #     save_top_10(f"{tag}_top_100_contributor_count_monthly")
+    #     save_top_10(f"{tag}_top_100_new_contributor_count_monthly")
+    #     save_top_10(f"{tag}_top_100_edit_count_monthly")
+    #     save_top_10(f"{tag}_top_100_changeset_count_monthly")
+    #     save_monthly_to_yearly(f"{tag}_top_100_contributor_count_monthly")
+    #     save_monthly_to_yearly(f"{tag}_top_100_edit_count_monthly")
+    #     save_accumulated(f"{tag}_top_10_new_contributor_count_monthly")
+    #     save_accumulated(f"{tag}_top_10_edit_count_monthly")
+    #     save_accumulated(f"{tag}_top_10_changeset_count_monthly")
+
+
+    # topic: streetcomplete
+    # save_base_statistics(ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index["StreetComplete"]], tag, edit_count_monthly=True, contributor_count_monthly=True, edit_count_map_total=True)
+    # save_percent("streetcomplete_contributor_count_monthly", "general_contributor_count_monthly")
+    # save_percent("streetcomplete_edit_count_monthly", "general_edit_count_monthly")
+
+    # save_base_statistics_tag(ddf, "streetcomplete", k=300, edit_count_monthly=True, changeset_count_monthly=True, new_contributor_count_monthly=True)
+    # save_monthly_to_yearly("streetcomplete_top_300_edit_count_monthly")
+    # save_top_k(10, "streetcomplete_top_300_new_contributor_count_monthly")
+    # save_top_k(10, "streetcomplete_top_300_edit_count_monthly")
+    # save_top_k(10, "streetcomplete_top_300_changeset_count_monthly")
+    # save_accumulated("streetcomplete_top_10_new_contributor_count_monthly")
+    # save_accumulated("streetcomplete_top_10_edit_count_monthly")
+    # save_accumulated("streetcomplete_top_10_changeset_count_monthly")
+
+
+
+    # topic: bot
+    # save_base_statistics(ddf[ddf["bot"]==True], "bot", edit_count_monthly=True, changeset_count_monthly=True, contributor_count_monthly=True, new_contributor_count_monthly=True, edit_count_map_total=True)
+    # save_percent("bot_edit_count_monthly", "general_edit_count_monthly")
+    # save_accumulated("bot_new_contributor_count_monthly")
+    # save_accumulated("bot_edit_count_monthly")
+    # save_accumulated("bot_changeset_count_monthly")
+    # save_div("bot_avg_edit_count_per_changeset_monthly", "bot_edit_count_monthly", "bot_changeset_count_monthly")
+
+    # save_base_statistics_tag(ddf[ddf["bot"]==True], "created_by", k=100, prefix="bot", edit_count_monthly=True)
+    # save_monthly_to_yearly("bot_created_by_top_100_edit_count_monthly")
+
+
+
+
+
 
 
 

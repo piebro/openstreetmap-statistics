@@ -11,23 +11,9 @@ from fastparquet import write as parquet_write
 
 import util
 
-TRACKED_TAGS = (
-    "created_by",
-    "comment",
-    "imagery_used",
-    "locale",
-    "source",
-    "host",
-    "changesets_count",
-    "hashtags",
-    "StreetComplete",
-    "version",
-    "bot",
-)
-
 # change some streetcomplete quest type tags that changed their name over the time to the newest name
 # https://github.com/streetcomplete/StreetComplete/issues/1749#issuecomment-593450124
-sc_quest_type_tag_changes = {
+streetcomplete_tag_changes = {
     "AddAccessibleForPedestrians": "AddProhibitedForPedestrians",
     "AddWheelChairAccessPublicTransport": "AddWheelchairAccessPublicTransport",
     "AddWheelChairAccessToilets": "AddWheelchairAccessPublicTransport",
@@ -107,7 +93,7 @@ def get_pos(data):
         return -1, -1
 
 
-def get_created_by_and_sc_quest_type(tags, index_dicts, replace_rules):
+def get_created_by_and_streetcomplete(tags, index_dicts, replace_rules):
     if "created_by" in tags and len(tags["created_by"]) > 0:
         created_by = tags["created_by"].replace("%20%", " ").replace("%2c%", ",")
         created_by = replace_with_rules(created_by, replace_rules["created_by"])
@@ -115,10 +101,10 @@ def get_created_by_and_sc_quest_type(tags, index_dicts, replace_rules):
         created_by_index = index_dicts["created_by"].add(created_by)
 
         if created_by == "StreetComplete" and "StreetComplete:quest_type" in tags:
-            sc_quest_type_tag = tags["StreetComplete:quest_type"]
-            sc_quest_type_tag = sc_quest_type_tag_changes.get(sc_quest_type_tag, sc_quest_type_tag)
-            sc_quest_type_index = index_dicts["streetcomplete_quest_type"].add(sc_quest_type_tag)
-            return created_by_index, sc_quest_type_index
+            streetcomplete_tag = tags["StreetComplete:quest_type"]
+            streetcomplete_tag = streetcomplete_tag_changes.get(streetcomplete_tag, streetcomplete_tag)
+            streetcomplete_index = index_dicts["streetcomplete"].add(streetcomplete_tag)
+            return created_by_index, streetcomplete_index
         else:
             return created_by_index, 65535
     else:
@@ -166,16 +152,22 @@ def add_source(tags, index_dicts, replace_rules):
 
 def add_all_tags(tags, index_dicts):
     return index_dicts["all_tags"].add_keys(
-        [tag_name.split(":")[0] for tag_name in tags.keys() if tag_name not in TRACKED_TAGS]
+        [tag_name.split(":")[0] for tag_name in tags.keys() if tag_name != "created_by"]
     )
 
+def get_corporation_index(user_name, index_dicts, user_name_to_corporation):
+    if user_name in user_name_to_corporation:
+        return index_dicts["corporation"].add(user_name_to_corporation[user_name])
+    else:
+        return 255
 
-# def add_bot_usage(tags):
-#     if "bot" in tags and tags["bot"] == "yes":
-#         return True
-#     else:
-#         return False
-
+def load_user_name_to_corporation_dict():
+    corporation_contributors = util.load_json(os.path.join("assets", "corporation_contributors.json"))
+    user_name_to_corporation = {}
+    for corporation_name, (_, user_name_list) in corporation_contributors.items():
+        for user_name in user_name_list:
+            user_name_to_corporation[user_name] = corporation_name
+    return user_name_to_corporation
 
 def create_replace_rules():
     replace_rules = {}
@@ -232,13 +224,14 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
         "pos_x": np.array(data_dict["pos_x"], dtype=np.int16),
         "pos_y": np.array(data_dict["pos_y"], dtype=np.int16),
         "created_by": np.array(data_dict["created_by"], dtype=np.uint32),
-        "sc_quest_type": np.array(data_dict["sc_quest_type"], dtype=np.uint16),
+        "corporation": np.array(data_dict["corporation"], dtype=np.uint8),
+        "streetcomplete": np.array(data_dict["streetcomplete"], dtype=np.uint16),
         "bot": np.array(data_dict["bot"], dtype=np.bool_),
-        "comment": np.array(data_dict["comment"], dtype=np.bool_),
-        "local": np.array(data_dict["local"], dtype=np.bool_),
-        "host": np.array(data_dict["host"], dtype=np.bool_),
-        "changeset_count": np.array(data_dict["changeset_count"], dtype=np.bool_),
-        "version": np.array(data_dict["changeset_count"], dtype=np.bool_),
+        #"comment": np.array(data_dict["comment"], dtype=np.bool_),
+        #"local": np.array(data_dict["local"], dtype=np.bool_),
+        #"host": np.array(data_dict["host"], dtype=np.bool_),
+        #"changeset_count": np.array(data_dict["changeset_count"], dtype=np.bool_),
+        #"version": np.array(data_dict["changeset_count"], dtype=np.bool_),
     }
     parquet_write(
         os.path.join(parquet_save_dir, f"general_{file_counter}.parquet"),
@@ -268,7 +261,7 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
 
 
 def init_data_dict():
-    # TODO: do this more efficiant with numpy arrays?
+    # TODO: do this more efficiant with numpy arrays or directly as a pandas df
     data_dict = {
         "changeset_index": [],
         "year_index": [],
@@ -278,7 +271,8 @@ def init_data_dict():
         "pos_x": [],
         "pos_y": [],
         "created_by": [],
-        "sc_quest_type": [],
+        "corporation": [],
+        "streetcomplete": [],
         "bot": [],
         "comment": [],
         "local": [],
@@ -308,14 +302,16 @@ def main():
     index_dicts = {
         "user_name": IndexDict("user_name"),
         "created_by": IndexDict("created_by"),
-        "streetcomplete_quest_type": IndexDict("streetcomplete_quest_type"),
+        "streetcomplete": IndexDict("streetcomplete"),
         "imagery": IndexDict("imagery"),
         "hashtag": IndexDict("hashtag"),
         "source": IndexDict("source"),
         "all_tags": IndexDict("all_tags"),
+        "corporation": IndexDict("corporation")
     }
 
     replace_rules = create_replace_rules()
+    user_name_to_corporation = load_user_name_to_corporation_dict()
 
     parquet_save_dir = os.path.join(save_dir, "changeset_data")
     os.makedirs(parquet_save_dir, exist_ok=True)
@@ -337,22 +333,24 @@ def main():
         data_dict["year_index"].append(year_to_index[data[2][1:5]])
         data_dict["month_index"].append(month_to_index[data[2][1:8]])
         data_dict["edits"].append(int(data[1][1:]))
-        data_dict["user_index"].append(int(index_dicts["user_name"].add(data[6][1:])))
+        user_name = data[6][1:]
+        data_dict["user_index"].append(int(index_dicts["user_name"].add(user_name)))
 
         pos_x, pos_y = get_pos(data)
         data_dict["pos_x"].append(pos_x)
         data_dict["pos_y"].append(pos_y)
 
         tags = get_tags(data[11][1:-1])
-        created_by, sc_quest_type = get_created_by_and_sc_quest_type(tags, index_dicts, replace_rules)
+        created_by, streetcomplete = get_created_by_and_streetcomplete(tags, index_dicts, replace_rules)
         data_dict["created_by"].append(created_by)
-        data_dict["sc_quest_type"].append(sc_quest_type)
+        data_dict["streetcomplete"].append(streetcomplete)
+        data_dict["corporation"].append(get_corporation_index(user_name, index_dicts, user_name_to_corporation))
         data_dict["bot"].append("bot" in tags and tags["bot"] == "yes")
-        data_dict["comment"].append("comment" in tags)
-        data_dict["local"].append("local" in tags)
-        data_dict["host"].append("host" in tags)
-        data_dict["changeset_count"].append("changeset_count" in tags)
-        data_dict["version"].append("version" in tags)
+        #data_dict["comment"].append("comment" in tags)
+        #data_dict["local"].append("local" in tags)
+        #data_dict["host"].append("host" in tags)
+        #data_dict["changeset_count"].append("changeset_count" in tags)
+        #data_dict["version"].append("version" in tags)
 
         for index in get_imagery(tags, index_dicts, replace_rules):
             data_dict["imagery_changeset_index"].append(i)
