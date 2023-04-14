@@ -564,7 +564,7 @@ function get_table_html(title, data, data_total, y_names_category, name_to_link)
         if (name in name_to_link){
             name = "<a href=" + name_to_link[name] + ">" + name + "</a>"
         }
-        body += "<tr><td>" + row_index + "</td><td>" + name + "</td>"
+        body += "<tr><td>" + String(parseInt(row_index) + 1) + "</td><td>" + name + "</td>"
         for (y_value of data["y_list"][row_index]){
             body += "<td>" + y_value.toLocaleString() + "</td>"
         }

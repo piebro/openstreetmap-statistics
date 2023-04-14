@@ -1,13 +1,10 @@
 import os
 import json
-import time
-import contextlib
-from functools import partial
+import re
+
 import numpy as np
 import pandas as pd
 
-from json import encoder
-encoder.FLOAT_REPR = lambda o: format(o, '.5f')
 
 DEFAULT_PLOT_LAYOUT = {
     "font": {"family": "Times", "size": "15"},
@@ -32,12 +29,10 @@ DEFAULT_COLOR_PALETTE = [
 
 def save_json(file_path, obj):
     with open(file_path, "w", encoding="UTF-8") as json_file:
-        #json_file.write(json.dumps(obj, separators=(",", ":")))
         json_file.write(pd.io.json.dumps(obj, double_precision=2))
 
 
 def load_json(file_path):
-
     with open(file_path, "r", encoding="UTF-8") as json_file:
         return json.load(json_file)
 
@@ -62,414 +57,12 @@ def load_tag_to_index(data_dir, data_name):
     return list_to_dict(load_index_to_tag(data_dir, data_name))
 
 
-def load_top_k_list(data_dir, tag_name):
-    with open(os.path.join(data_dir, f"top_k_{tag_name}.json"), "r", encoding="UTF-8") as json_file:
-        return json.load(json_file)
+def multi_index_series_to_series_list(multi_index_series, level_1_indices):
+    return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
 
 
-def save_div(a, b):
-    a, b = np.array(a, dtype=float), np.array(b, dtype=float)
-    return np.divide(a, b, out=np.zeros_like(a), where=(b != 0), casting="unsafe")
-
-
-def get_percent(a, b):
-    if isinstance(a, list):
-        return [get_percent(aa, b) for aa in a]
-    return a.divide(b, fill_value=0)
-
-
-def set_to_length(set_list):
-    if isinstance(set_list[0], set):
-        return np.array([len(s) for s in set_list])
-    else:
-        return np.array([set_to_length(inner_set_list) for inner_set_list in set_list])
-
-
-def monthly_to_yearly_with_total(y_monthly, years, month_index_to_year_index, dtype=np.int64):
-    if isinstance(y_monthly[0], (int, np.integer)):
-        y_yearly = np.zeros(len(years) + 1, dtype)
-        for month_i, y in enumerate(y_monthly):
-            y_yearly[month_index_to_year_index[month_i]] += y
-        y_yearly[-1] = np.sum(y_yearly)
-        return y_yearly
-    else:
-        return np.array(
-            [
-                monthly_to_yearly_with_total(inner_y_monthly, years, month_index_to_year_index)
-                for inner_y_monthly in y_monthly
-            ]
-        )
-
-
-def monthly_set_to_yearly_with_total(y_monthly_set_list, years, month_index_to_year_index):
-    if isinstance(y_monthly_set_list[0], set):
-        y_yearly = [set() for _ in years]
-        for month_i, y in enumerate(y_monthly_set_list):
-            y_yearly[month_index_to_year_index[month_i]].update(y)
-        y_yearly_len = [len(y_year) for y_year in y_yearly]
-        y_yearly_len.append(len(set().union(*y_yearly)))
-        return np.array(y_yearly_len)
-    else:
-        return np.array(
-            [
-                monthly_set_to_yearly_with_total(inner_set_list, years, month_index_to_year_index)
-                for inner_set_list in y_monthly_set_list
-            ]
-        )
-
-
-def yearly_to_yearly_with_total(y_yearly):
-    if isinstance(y_yearly[0], (int, np.integer)):
-        return np.concatenate([y_yearly, np.array([np.sum(y_yearly)])])
-    else:
-        return np.array([yearly_to_yearly_with_total(inner_y_yearly) for inner_y_yearly in y_yearly])
-
-
-def yearly_set_to_yearly_with_total(y_yearly):
-    if isinstance(y_yearly[0], set):
-        y_yearly_len = [len(y_year) for y_year in y_yearly]
-        y_yearly_len.append(len(set().union(*y_yearly)))
-        return np.array(y_yearly_len)
-    else:
-        return np.array([yearly_set_to_yearly_with_total(inner_y_yearly) for inner_y_yearly in y_yearly])
-
-
-def get_median(y):
-    return [np.median(yy) if len(yy) > 0 else 0 for yy in y]
-
-
-def cumsum(y):
-    if isinstance(y[0], (int, np.integer)):
-        return np.cumsum(y)
-    else:
-        return [np.cumsum(e) for e in y]
-
-
-def set_cumsum(set_list, dtype=np.int64):
-    if isinstance(set_list[0], set):
-        current_set = set()
-        monthly_accumulated = np.empty(len(set_list), dtype)
-        for i, s in enumerate(set_list):
-            current_set.update(s)
-            monthly_accumulated[i] = len(current_set)
-        return monthly_accumulated
-    else:
-        return np.array([set_cumsum(inner_set_list, dtype) for inner_set_list in set_list])
-
-
-# def total_map_set_to_total_map(total_map, dtype=np.int64):
-#     return np.array([[len(contributors_set) for contributors_set in map_column] for map_column in total_map], dtype)
-
-
-def trim_x_axis_to_non_zero_data(plot, offset=3):
-    start_x_index = max(
-        0, np.min([np.nonzero(trace["y"])[0][0] for trace in plot["traces"] if np.any(trace["y"])]) - offset
-    )
-
-    for trace in plot["traces"]:
-        trace["y"] = trace["y"][start_x_index:]
-        trace["x"] = trace["x"][start_x_index:]
-
-
-def get_text_element(text):
-    return ("text", text)
-
-
-def y_pd_series_to_y(x, y_pd_series, percent):
-    if percent:
-        y = np.zeros(len(x), dtype=np.float64)
-        y[y_pd_series.index.values] = np.round(y_pd_series.values, 4) * 100
-    else:
-        y = np.zeros(len(x), dtype=np.int64)
-        y[y_pd_series.index.values] = y_pd_series.values
-    return y.tolist()
-
-
-def get_single_line_plot(plot_title, unit, x, y_pd_series, percent=False):
-    y = y_pd_series_to_y(x, y_pd_series, percent)
-
-    plot = {
-        "traces": [{"x": x, "y": y, "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}],
-        "config": {"displayModeBar": False},
-        "layout": {
-            **DEFAULT_PLOT_LAYOUT,
-            "title": {"text": plot_title},
-            "xaxis": {"title": {"text": "time"}},
-            "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
-        },
-    }
-    if percent:
-        plot["layout"]["yaxis"]["range"] = [0, 100]
-        plot["traces"][0]["hovertemplate"] = "%{x}<br>%{y}%"
-    trim_x_axis_to_non_zero_data(plot, offset=3)
-    return ("plot", plot)
-
-
-def get_multi_line_plot(
-    plot_title,
-    unit,
-    x,
-    y_pd_series_list,
-    y_names,
-    percent=False,
-    on_top_of_each_other=False,
-    async_load=False,
-    colors=None,
-):
-    y_list = [y_pd_series_to_y(x, y_pd_series, percent) for y_pd_series in y_pd_series_list]
-    plot = {
-        "traces": [
-            {"x": x, "y": y, "mode": "lines", "name": name, "hovertemplate": "%{x}<br>%{y:,} " + unit}
-            for y, name in zip(y_list, y_names)
-        ],
-        "config": {"displayModeBar": False},
-        "layout": {
-            **DEFAULT_PLOT_LAYOUT,
-            "title": {"text": plot_title},
-            "xaxis": {"title": {"text": "time"}},
-            "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
-        },
-    }
-    if percent:
-        plot["layout"]["yaxis"]["range"] = [0, 100]
-        for trace in plot["traces"]:
-            trace["hovertemplate"] = "%{x}<br>%{y}%"
-    if on_top_of_each_other:
-        for trace in plot["traces"]:
-            trace["stackgroup"] = "one"
-    trim_x_axis_to_non_zero_data(plot, offset=3)
-    if colors is not None:
-        for color, trace in zip(colors, plot["traces"]):
-            trace["line"] = {"color": f"'rgb({color[0]},{color[1]},{color[2]})'"}
-    if async_load:
-        return ("async_load_plot", plot)
-    return ("plot", plot)
-
-
-def get_table(table_title, x, y_pd_series_list, y_total_list, y_names, y_names_head, name_to_link=None):
-    y_list = [y_pd_series_to_y(x, y_pd_series, percent=False) for y_pd_series in y_pd_series_list]
-    for y, y_total in zip(y_list, y_total_list):
-        y.append(y_total)
-
-    start_xy_index = np.min([np.nonzero(y)[0][0] for y in y_list if np.any(y)])
-
-    head = ["Rank", y_names_head] if len(y_list) > 1 else []
-    head.extend(x[start_xy_index:])
-    head.append("Total")
-
-    body = []
-    for i, (name, y) in enumerate(zip(y_names, y_list)):
-        if name_to_link is not None and name in name_to_link:
-            name = f'<a href="{name_to_link[name]}">{name}</a>'
-        elif name[:16] == "#hotosm-project-":
-            num = name.split("-")[2]
-            if len(num) > 2:
-                name = f'<a href="https://tasks.hotosm.org/projects/{num}">{name}</a>'
-
-        row = [str(i + 1), name] if len(y_list) > 1 else []
-        row.extend([f"{yy:,}" for yy in list(y[start_xy_index:])])
-        body.append(row)
-
-    table_json = {
-        "title": table_title,
-        "head": head,
-        "body": body,
-    }
-    return ("table", table_json)
-
-
-def get_month_index_to_year_index(data_dir):
-    months, years = get_months_years(data_dir)
-    year_to_year_index = list_to_dict(years)
-    month_index_to_year_index = [year_to_year_index[month[:4]] for month in months]
-    return month_index_to_year_index
-
-
-def get_year_index_to_month_indices(data_dir):
-    month_index_to_year_index = get_month_index_to_year_index(data_dir)
-    year_index_to_month_indices = []
-    for month_i, year_i in enumerate(month_index_to_year_index):
-        if len(year_index_to_month_indices) <= year_i:
-            year_index_to_month_indices.append([])
-        year_index_to_month_indices[year_i].append(month_i)
-    return year_index_to_month_indices
-
-
-def get_map_plot(title, pd_histogram_2d, max_z_value=None):
-    # histogram_2d = pd_histogram_2d.unstack(fill_value=0).to_numpy()[1:,1:]
-
-    histogram_2d = np.zeros((360, 180), dtype=np.uint32)
-    for index, value in pd_histogram_2d.items():
-        histogram_2d[index] = value
-
-    if max_z_value is None:
-        max_z_value = int(np.max(histogram_2d))
-    else:
-        max_z_value = int(max_z_value)
-
-    colorscale = [
-        (0, "rgba(255,255,255,0)"),
-        (0.00000001, "rgb(12,51,131)"),
-        (1 / 1000, "rgb(10,136,186)"),
-        (1 / 100, "rgb(242,211,56)"),
-        (1 / 10, "rgb(242,143,56)"),
-        (1, "rgb(217,30,30)"),
-    ]
-    x, y = histogram_2d.nonzero()
-    x, y, z = (x.tolist(), y.tolist(), histogram_2d[x, y].tolist())
-
-    plot = {
-        "config": {"displayModeBar": False},
-        "layout": {
-            **DEFAULT_PLOT_LAYOUT,
-            "images": [
-                dict(
-                    source="assets/background_map.png",
-                    xref="x",
-                    yref="y",
-                    x=0,
-                    y=180,
-                    sizex=360,
-                    sizey=180,
-                    sizing="stretch",
-                    opacity=1,
-                    layer="below",
-                )
-            ],
-            "xaxis": dict(showgrid=False, visible=False),
-            "yaxis": dict(showgrid=False, visible=False, scaleanchor="x", scaleratio=1),
-            "margin": {"l": 20, "r": 20, "b": 35, "t": 35},
-            "coloraxis": {"colorscale": colorscale, "cmin": 0, "cmax": max_z_value},
-            "title": {"text": title},
-        },
-        "traces": [
-            dict(
-                type="histogram2d",
-                x=x,
-                y=y,
-                z=z,
-                zmax=max_z_value,
-                histfunc="sum",
-                autobinx=False,
-                xbins=dict(start=0, end=360, size=1),
-                autobiny=False,
-                ybins=dict(start=0, end=180, size=1),
-                coloraxis="coloraxis",
-            )
-        ],
-    }
-    return ("map", plot)
-
-
-def write_js_str(file, topic, question, url_hash, *div_elements):
-    js_str_arr = [f'url_hash:"{url_hash}"']
-    for i, (t, e) in enumerate(div_elements):
-        if t == "plot":
-            js_str_arr.append(f'{i}: {json.dumps(e, separators=(",", ":"))}')
-        elif t == "async_load_plot":
-            title = e["layout"]["title"]["text"]
-            save_path = os.path.join(
-                "plot_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json'
-            ).replace("#", "")
-            save_json(os.path.join("assets", save_path), e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
-        elif t == "text":
-            js_str_arr.append(f'{i}: "{e}"')
-        elif t == "map":
-            title = e["layout"]["title"]["text"]
-            save_path = os.path.join(
-                "map_data", f'{topic.lower().replace(" ", "_")}_{title.lower().replace(" ", "_")}.json'
-            ).replace("#", "")
-            save_json(os.path.join("assets", save_path), e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
-        elif t == "table":
-            save_path = os.path.join(
-                "table_data", f'{topic.lower().replace(" ", "_")}_{e["title"].lower().replace(" ", "_")}.json'
-            )
-            save_json(os.path.join("assets", save_path), e)
-            js_str_arr.append(f'data_path_{i}: "{save_path}"')
-
-    update_str_arr = ["update: async function(){"]
-    update_str_arr.extend([f'await add_{t}("{topic}","{question}","{i}");' for i, (t, _) in enumerate(div_elements)])
-    update_str_arr.append("}")
-    js_str_arr.append("".join(update_str_arr))
-
-    save_plot_str_arr = ["save_plot: function(){"]
-    save_plot_str_arr.extend(
-        [f'save_{t}("{topic}","{question}","{i}");' for i, (t, _) in enumerate(div_elements) if t != "table"]
-    )
-    save_plot_str_arr.append("}")
-    js_str_arr.append("".join(save_plot_str_arr))
-
-    save_data_str_arr = ["save_data: function(){"]
-    save_data_str_arr.extend([f'save_{t}_data("{topic}","{question}","{i}");' for i, (t, _) in enumerate(div_elements)])
-    save_data_str_arr.append("}")
-    js_str_arr.append("".join(save_data_str_arr))
-
-    js_str = f'data["{topic}"]["{question}"]={{{",".join(js_str_arr)}}};\n'
-    file.write(js_str)
-    print(f"added question: {question}")
-
-
-@contextlib.contextmanager
-def add_questions(topic):
-    start_time = time.time()
-    print(f"adding question to topic: {topic}")
-    file = open("assets/data.js", "a", encoding="UTF-8")
-    file.write(f"\ndata['{topic}']={{}}\n")
-    try:
-        yield partial(write_js_str, file, topic)
-    finally:
-        file.close()
-        print(f"Topic '{topic}' took {time.strftime('%M:%S', time.gmtime(time.time()-start_time))}")
-
-
-def get_unique_name_to_color_mapping(*name_lists):
-    name_to_color = {}
-    for names in zip(*name_lists):
-        for name in names:
-            if name not in name_to_color:
-                name_to_color[name] = DEFAULT_COLOR_PALETTE[len(name_to_color) % len(DEFAULT_COLOR_PALETTE)]
-
-    return name_to_color
-
-
-def get_rank_infos(data_dir, tag):
-    top_k_dict = load_top_k_list(data_dir, tag)
-    top_k = len(top_k_dict["changesets"])
-    index_to_rank = {
-        "changesets": list_to_dict(top_k_dict["changesets"]),
-        "edits": list_to_dict(top_k_dict["edits"]),
-        "contributors": list_to_dict(top_k_dict["contributors"]),
-    }
-    index_to_tag = load_index_to_tag(data_dir, tag)
-    rank_to_name = {
-        "changesets": [index_to_tag[index] for index in top_k_dict["changesets"]],
-        "edits": [index_to_tag[index] for index in top_k_dict["edits"]],
-        "contributors": [index_to_tag[index] for index in top_k_dict["contributors"]],
-    }
-    return top_k, index_to_rank, rank_to_name
-
-
-def load_name_to_link(file_name):
-    name_to_tags_and_link = load_json(os.path.join("src", file_name))
-    name_to_link = {}
-    for name, name_infos in name_to_tags_and_link.items():
-        if "link" in name_infos:
-            name_to_link[name] = name_infos["link"]
-
-    return name_to_link
-
-
-def cumsum_nunique(series):
-    previous_set = set()
-    indices = []
-    values = []
-    for index, value in series.items():
-        previous_set.update(value)
-        indices.append(index)
-        values.append(len(previous_set))
-    return pd.Series(data=values, index=indices)
+def series_to_series_list(series, level_0_indices):
+    return [series[series.index.get_level_values(0) == i] for i in level_0_indices]
 
 
 def cumsum_new_nunique(series):
@@ -487,9 +80,360 @@ def cumsum_new_nunique(series):
     return pd.Series(data=values, index=indices)
 
 
-def multi_index_series_to_series_list(multi_index_series, level_1_indices):
-    return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
+def safe_div(a, b):
+    a, b = np.array(a, dtype=float), np.array(b, dtype=float)
+    return np.divide(a, b, out=np.zeros_like(a), where=(b != 0), casting="unsafe")
 
 
-def series_to_series_list(series, level_0_indices):
-    return [series[series.index.get_level_values(0) == i] for i in level_0_indices]
+def save_base_statistics(
+    data_dir,
+    progress_bar,
+    ddf,
+    prefix,
+    edit_count_monthly=False,
+    changeset_count_monthly=False,
+    contributors_unique_yearly=False,
+    contributor_count_monthly=False,
+    new_contributor_count_monthly=False,
+    edit_count_map_total=False,
+):
+
+    months, years = get_months_years(data_dir)
+
+    if edit_count_monthly:
+        save_y(
+            progress_bar, f"{prefix}_edit_count_monthly", months, ddf.groupby(["month_index"])["edits"].sum().compute()
+        )
+
+    if changeset_count_monthly:
+        save_y(progress_bar, f"{prefix}_changeset_count_monthly", months, ddf.groupby(["month_index"]).size().compute())
+
+    if contributors_unique_yearly:
+        save_y(
+            progress_bar,
+            f"{prefix}_contributors_unique_yearly",
+            years,
+            ddf.groupby(["year_index"])["user_index"].nunique().compute(),
+        )
+
+    if contributor_count_monthly or new_contributor_count_monthly:
+        contributors_unique_monthly = ddf.groupby(["month_index"])["user_index"].unique().compute()
+        if contributor_count_monthly:
+            save_y(progress_bar, f"{prefix}_contributor_count_monthly", months, contributors_unique_monthly.apply(len))
+        if new_contributor_count_monthly:
+            save_y(
+                progress_bar,
+                f"{prefix}_new_contributor_count_monthly",
+                months,
+                cumsum_new_nunique(contributors_unique_monthly),
+            )
+        contributors_unique_monthly = None
+
+    if edit_count_map_total:
+        save_map(
+            progress_bar,
+            f"{prefix}_edit_count_map_total",
+            ddf[ddf["pos_x"] >= 0].groupby(["pos_x", "pos_y"])["edits"].sum().compute(),
+        )
+
+
+def save_base_statistics_tag(
+    data_dir,
+    progress_bar,
+    ddf,
+    tag,
+    k=100,
+    prefix=None,
+    edit_count_monthly=False,
+    changeset_count_monthly=False,
+    contributors_unique_yearly=False,
+    contributor_count_monthly=False,
+    new_contributor_count_monthly=False,
+    edit_count_map_total=False,
+):
+
+    months, years = get_months_years(data_dir)
+    prefix = "" if prefix is None else f"{prefix}_"
+
+    top_k = get_tag_top_k_and_save_top_k_total(
+        data_dir,
+        progress_bar,
+        ddf,
+        tag,
+        prefix,
+        k=k,
+        contributor_count=(contributors_unique_yearly or contributor_count_monthly or new_contributor_count_monthly),
+        edit_count=edit_count_monthly,
+        changeset_count=changeset_count_monthly,
+    )
+
+    if edit_count_monthly:
+        indices, names = top_k["edit_count"]
+        monthly_list = multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag])["edits"].sum().compute(), indices
+        )
+        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_edit_count_monthly", months, monthly_list, names)
+
+    if changeset_count_monthly:
+        indices, names = top_k["changeset_count"]
+        monthly_list = multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag]).size().compute(), indices
+        )
+        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_changeset_count_monthly", months, monthly_list, names)
+
+    if contributors_unique_yearly:
+        indices, names = top_k["contributor_count"]
+        yearly_list = multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["year_index", tag])["user_index"].nunique().compute(), indices
+        )
+        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_contributor_count_yearly", years, yearly_list, names)
+
+    if contributor_count_monthly or new_contributor_count_monthly:
+        indices, names = top_k["contributor_count"]
+        unique_monthly_list = multi_index_series_to_series_list(
+            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag])["user_index"].unique().compute(), indices
+        )
+        if contributor_count_monthly:
+            save_y_list(
+                progress_bar,
+                f"{prefix}{tag}_top_{k}_contributor_count_monthly",
+                months,
+                [unique_monthly.apply(len) for unique_monthly in unique_monthly_list],
+                names,
+            )
+        if new_contributor_count_monthly:
+            save_y_list(
+                progress_bar,
+                f"{prefix}{tag}_top_{k}_new_contributor_count_monthly",
+                months,
+                [cumsum_new_nunique(unique_monthly) for unique_monthly in unique_monthly_list],
+                names,
+            )
+
+    if edit_count_map_total:
+        indices, names = top_k["edit_count"]
+        indices = indices[:10]
+        names = names[:10]
+        ddf_is_in = ddf[ddf[tag].isin(indices)]
+        tag_map_edits = ddf_is_in[ddf_is_in["pos_x"] >= 0].groupby(["pos_x", "pos_y", tag])["edits"].sum().compute()
+        tag_maps = [tag_map_edits[tag_map_edits.index.get_level_values(tag) == i].droplevel(2) for i in indices]
+        save_maps(progress_bar, f"{prefix}{tag}_top_10_edit_count_maps_total", tag_maps, names)
+
+
+def get_tag_top_k_and_save_top_k_total(
+    data_dir, progress_bar, ddf, tag, prefix, k, contributor_count=False, edit_count=False, changeset_count=False
+):
+    index_to_tag = load_index_to_tag(data_dir, tag)
+
+    if tag in ["created_by", "corporation", "streetcomplete"]:
+        highest_number = np.iinfo(ddf[tag].dtype).max
+        ddf = ddf[ddf[tag] < highest_number]
+
+    units = []
+    if contributor_count:
+        units.append("contributor_count")
+    if edit_count:
+        units.append("edit_count")
+    if changeset_count:
+        units.append("changeset_count")
+
+    unit_to_top_k_indices_and_names = {"tag": tag}
+    for unit in units:
+        if unit == "contributor_count":
+            total = ddf.groupby(tag)["user_index"].nunique().compute()
+        if unit == "edit_count":
+            total = ddf.groupby(tag)["edits"].sum().compute()
+        if unit == "changeset_count":
+            total = ddf.groupby(tag).size().compute()
+
+        indices = total.index[(-total.values.astype(np.int64)).argsort()[:k]]
+        names = [index_to_tag[i] for i in indices]
+        unit_to_top_k_indices_and_names[unit] = (indices, names)
+
+        save_y_list(
+            progress_bar, f"{prefix}{tag}_top_{k}_{unit}_total", None, series_to_series_list(total, indices), names
+        )
+
+    return unit_to_top_k_indices_and_names
+
+
+def save_edit_count_map_yearly(years, progress_bar, ddf, prefix):
+    yearly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"])["edits"].sum().compute()
+    year_maps = [
+        yearly_map_edits[yearly_map_edits.index.get_level_values("year_index") == year_i].droplevel(0)
+        for year_i in range(len(years))
+    ]
+    year_map_names = [f"total edits {year}" for year in years]
+    save_maps(progress_bar, f"{prefix}_edit_count_maps_yearly", year_maps, year_map_names)
+
+
+def save_tag_top_10_contributor_count_first_changeset_monthly(
+    months, progress_bar, ddf, tag, tag_to_index, data_name_for_top_names
+):
+    names = load_json(os.path.join("assets", "data", f"{data_name_for_top_names}.json"))["y_names"][:10]
+    indices = [tag_to_index[tag_name] for tag_name in names]
+
+    contibutor_monthly = ddf[ddf[tag].isin(indices)].groupby(["user_index"])["month_index", tag].first().compute()
+    contibutor_count_monthly = contibutor_monthly.reset_index().groupby(["month_index", tag])["user_index"].count()
+
+    save_y_list(
+        progress_bar,
+        f"{tag}_top_10_contributor_count_first_changeset_monthly",
+        months,
+        multi_index_series_to_series_list(contibutor_count_monthly, indices),
+        names,
+    )
+
+
+def save_data_dict(progress_bar, name, data_dict):
+    save_json(os.path.join("assets", "data", f"{name}.json"), data_dict)
+    print(name)
+    progress_bar.update(1)
+
+
+def load_data_dict(name):
+    load_json(os.path.join("assets", "data", f"{name}.json"))
+
+
+def pd_series_to_y(x, series, cumsum=False):
+    if x == None:
+        if isinstance(series, np.int64):
+            return series
+        return series.values.tolist()[0]
+    else:
+        y = np.zeros(len(x), dtype=series.values.dtype)
+        y[series.index.values] = series.values
+        if cumsum:
+            for i in range(1, len(y)):
+                if y[i] == 0:
+                    y[i] = y[i - 1]
+
+        return y.tolist()
+
+
+def save_y(progress_bar, name, x, pd_series, index_offset=3, cumsum=False):
+    y = pd_series_to_y(x, pd_series, cumsum)
+    if x is None:
+        data_dict = {"y": y[start_index:]}
+    else:
+        start_index = np.max([0, np.nonzero(y)[0][0] - index_offset])
+        data_dict = {"x": x[start_index:], "y": y[start_index:]}
+    save_data_dict(progress_bar, name, data_dict)
+
+
+def save_y_list(progress_bar, name, x, pd_series_list, y_names, index_offset=3, cumsum=False):
+    y_list = [pd_series_to_y(x, pd_series, cumsum) for pd_series in pd_series_list]
+    if x is None:
+        data_dict = {"y_list": y_list, "y_names": y_names}
+    else:
+        start_index = np.min([np.max([0, np.nonzero(y)[0][0] - index_offset]) for y in y_list if np.any(y)])
+        y_list = [y[start_index:] for y in y_list]
+        data_dict = {"x": x[start_index:], "y_list": y_list, "y_names": y_names}
+    save_data_dict(progress_bar, name, data_dict)
+
+
+def histogram_2d_to_xyz(pd_histogram_2d):
+    histogram_2d = np.zeros((360, 180), dtype=np.uint32)
+    for index, value in pd_histogram_2d.items():
+        histogram_2d[index] = value
+    x, y = histogram_2d.nonzero()
+    x, y, z = (x.tolist(), y.tolist(), histogram_2d[x, y].tolist())
+    max_z_value = int(np.max(z))
+    return x, y, z, max_z_value
+
+
+def save_map(progress_bar, name, pd_histogram_2d):
+    x, y, z, max_z_value = histogram_2d_to_xyz(pd_histogram_2d)
+    data_dict = {name: {"x": x, "y": y, "z": z}, "max_z_value": max_z_value}
+    save_data_dict(progress_bar, name, data_dict)
+
+
+def save_maps(progress_bar, name, pd_histogram_2d_list, map_names):
+    data_dict = {
+        name: {},
+    }
+    max_z_values = []
+    for pd_histogram_2d, map_name in zip(pd_histogram_2d_list, map_names):
+        x, y, z, max_z_value = histogram_2d_to_xyz(pd_histogram_2d)
+        max_z_values.append(max_z_value)
+        data_dict[name][map_name] = {"x": x, "y": y, "z": z}
+    data_dict["max_z_value"] = int(np.max(max_z_values))
+    save_data_dict(progress_bar, name, data_dict)
+
+
+def get_name_to_link(replace_rules_file_name):
+    name_to_tags_and_link = load_json(os.path.join("src", replace_rules_file_name))
+    name_to_link = {}
+    for name, name_infos in name_to_tags_and_link.items():
+        if "link" in name_infos:
+            name_to_link[name] = name_infos["link"]
+
+    return name_to_link
+
+
+def save_accumulated(data_name):
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    if "y" in data:
+        data["y"] = np.cumsum(data["y"])
+    if "y_list" in data:
+        data["y_list"] = [np.cumsum(y) for y in data["y_list"]]
+    save_json(os.path.join("assets", "data", f"{data_name}_accumulated.json"), data)
+
+
+def save_top_k(k, data_name):
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    data["y_list"] = data["y_list"][:k]
+    data["y_names"] = data["y_names"][:k]
+    new_data_name = re.sub(r"_top_\d+_", f"_top_{k}_", data_name)
+    save_json(os.path.join("assets", "data", f"{new_data_name}.json"), data)
+
+
+def save_percent(data_name, data_name_divide, divide_y=None):
+    if divide_y is None:
+        data_divide = load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
+        divide_y = data_divide["y"]
+
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    if "y" in data:
+        data["y"] = (safe_div(data["y"], divide_y[-len(data["y"]) :]) * 100).tolist()
+    if "y_list" in data:
+        data["y_list"] = [(safe_div(y, divide_y[-len(y) :]) * 100).tolist() for y in data["y_list"]]
+    save_json(os.path.join("assets", "data", f"{data_name}_percent.json"), data)
+
+
+def save_monthly_to_yearly(data_name):
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    years = sorted(list(set([month[:4] for month in data["x"]])))
+
+    if "y" in data:
+        year_to_value = {year: 0 for year in years}
+        for value, month in zip(data["y"], data["x"]):
+            year_to_value[month[:4]] += value
+        data["y"] = [year_to_value[year] for year in years]
+    if "y_list" in data:
+        new_y_list = []
+        for y in data["y_list"]:
+            year_to_value = {year: 0 for year in years}
+            for value, month in zip(y, data["x"]):
+                year_to_value[month[:4]] += value
+            new_y_list.append([year_to_value[year] for year in years])
+        data["y_list"] = new_y_list
+
+    data["x"] = years
+    save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}.json"), data)
+
+
+def save_sum_of_top_k(data_name):
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    save_data = {"x": data["x"], "y": np.sum(data["y_list"], axis=0)}
+    save_json(os.path.join("assets", "data", f"{data_name}_sum_top_k.json"), save_data)
+
+
+def save_div(save_data_name, data_name, data_name_divide):
+    data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
+    data_divide = load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
+    if "y" in data:
+        data["y"] = (safe_div(data["y"], data_divide["y"][-len(data["y"]) :])).tolist()
+    if "y_list" in data:
+        data["y_list"] = [(safe_div(y, data_divide["y"][-len(y) :])).tolist() for y in data["y_list"]]
+    save_json(os.path.join("assets", "data", f"{save_data_name}.json"), data)
