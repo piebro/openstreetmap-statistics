@@ -143,6 +143,9 @@
     "Mapillary": {
         "aliases": [
             "mapillary"
+        ],
+        "starts_with": [
+            "https://www.mapillary.com/"
         ]
     },
     "Maxar Imagery": {
@@ -174,7 +177,7 @@
         ]
     },
     "Survey": {
-        "aliases": [
+        "starts_with": [
             "survey",
             "surveys",
             "Surveys"
@@ -216,6 +219,51 @@
     "IBGE": {
         "starts_with":[
             "IBGE-"
+        ]
+    },
+    "www.openstreetmap.org/note/": {
+        "starts_with": [
+            "https://www.openstreetmap.org/note/",
+            "OpenStreetMap Notes"
+        ]
+    },
+    "wiki.openstreetmap.org/": {
+        "starts_with": [
+            "https://wiki.openstreetmap.org/"
+        ]
+    },
+    "www.openstreetmap.org/way": {
+        "starts_with": [
+            "https://www.openstreetmap.org/way"
+        ]
+    },
+    "www.openstreetmap.org/changeset/": {
+        "starts_with": [
+            "https://www.openstreetmap.org/changeset/"
+        ]
+    },
+    "wiki.openstreetmap.org": {
+        "starts_with":[
+            "http://wiki.openstreetmap.org"
+        ]
+    },
+    "OSM Note": {
+        "starts_with": [
+            "Note ",
+            "note ",
+            "OSM Note "
+        ]
+    },
+    "youtube": {
+        "starts_with": [
+            "https://youtube.com/",
+            "https://youtu.be/",
+            "https://www.youtube.com/"
+        ]
+    },
+    "UCHWAŁA NR": {
+        "starts_with":[
+            "UCHWAŁA NR "
         ]
     }
 }

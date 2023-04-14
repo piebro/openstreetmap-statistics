@@ -135,14 +135,24 @@ def add_hashtags(tags, index_dicts):
 
 def add_source(tags, index_dicts, replace_rules):
     if "source" in tags and len(tags["source"]) > 0:
-        source_list = [
-            key for key in tags["source"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(key) > 0
-        ]
-        # there are some source tags that are seperated with ",". Maybe split "," if there is no ";" present.
+        source = tags["source"].replace("%20%", " ").replace("%2c%", ",")
+
+        source_list = [source]
+        for seperator in [";", " | ", " + ", "+", " / ", " & ", ", "]:
+            if seperator in source:
+                source_list = [key for key in source.split(seperator) if len(key) > 0]
+                break
+
         for i in range(len(source_list)):
             if source_list[i][0] == " ":
                 source_list[i] = source_list[i][1:]
             source_list[i] = replace_with_rules(source_list[i], replace_rules["source"])
+            
+            if source_list[i][:8] == "https://":
+                source_list[i] = source_list[i].split("/")[2]
+            elif source_list[i][:7] == "http://":
+                source_list[i] = source_list[i].split("/")[2]
+
             source_list[i] = source_list[i][:120]
 
         return index_dicts["source"].add_keys(source_list)
@@ -155,11 +165,13 @@ def add_all_tags(tags, index_dicts):
         [tag_name.split(":")[0] for tag_name in tags.keys() if tag_name != "created_by"]
     )
 
+
 def get_corporation_index(user_name, index_dicts, user_name_to_corporation):
     if user_name in user_name_to_corporation:
         return index_dicts["corporation"].add(user_name_to_corporation[user_name])
     else:
         return 255
+
 
 def load_user_name_to_corporation_dict():
     corporation_contributors = util.load_json(os.path.join("assets", "corporation_contributors.json"))
@@ -168,6 +180,7 @@ def load_user_name_to_corporation_dict():
         for user_name in user_name_list:
             user_name_to_corporation[user_name] = corporation_name
     return user_name_to_corporation
+
 
 def create_replace_rules():
     replace_rules = {}
@@ -227,11 +240,11 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
         "corporation": np.array(data_dict["corporation"], dtype=np.uint8),
         "streetcomplete": np.array(data_dict["streetcomplete"], dtype=np.uint16),
         "bot": np.array(data_dict["bot"], dtype=np.bool_),
-        #"comment": np.array(data_dict["comment"], dtype=np.bool_),
-        #"local": np.array(data_dict["local"], dtype=np.bool_),
-        #"host": np.array(data_dict["host"], dtype=np.bool_),
-        #"changeset_count": np.array(data_dict["changeset_count"], dtype=np.bool_),
-        #"version": np.array(data_dict["changeset_count"], dtype=np.bool_),
+        # "comment": np.array(data_dict["comment"], dtype=np.bool_),
+        # "local": np.array(data_dict["local"], dtype=np.bool_),
+        # "host": np.array(data_dict["host"], dtype=np.bool_),
+        # "changeset_count": np.array(data_dict["changeset_count"], dtype=np.bool_),
+        # "version": np.array(data_dict["changeset_count"], dtype=np.bool_),
     }
     parquet_write(
         os.path.join(parquet_save_dir, f"general_{file_counter}.parquet"),
@@ -307,7 +320,7 @@ def main():
         "hashtag": IndexDict("hashtag"),
         "source": IndexDict("source"),
         "all_tags": IndexDict("all_tags"),
-        "corporation": IndexDict("corporation")
+        "corporation": IndexDict("corporation"),
     }
 
     replace_rules = create_replace_rules()
