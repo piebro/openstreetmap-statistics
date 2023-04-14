@@ -327,7 +327,33 @@ topics = {
                 add_table("bot_created_by_top_100_edit_count_yearly", "yearly edit count per bot", "Bot", "bot_created_by_top_100_edit_count_total", "created_by_name_to_link")
             ]
         }
-    }
+    },
+    "Tags": {
+        "What are the most popular tags for changesets?": {
+            "url_hash": "b370",
+            "content_functions": [
+                add_multi_line_plot("all_tags_top_10_changeset_count_monthly_percent", "percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("all_tags_top_10_changeset_count_monthly", "occurance of tag in changesets per month", "changesets"),
+                add_table("all_tags_top_100_changeset_count_yearly", "yearly occurance of tag in changesets", "Tag", "all_tags_top_100_changeset_count_total")
+            ]
+        },
+        "What are the most popular tags for changesets per selected editing software?": {
+            "url_hash": "2fb7",
+            "content_functions": [
+                add_text(
+                    "In general the changeset tags are set by the editing software. Thats why its interesting to look at" +
+                    " the tag usage per editing software.",
+                ),
+                // TODO: maybe save them all in one .json. This would be a cleaner I think.
+                add_multi_line_plot("created_by_JOSM_all_tags_top_10_changeset_count_monthly_percent", "JOSM: percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("created_by_iD_all_tags_top_10_changeset_count_monthly_percent", "iD: percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("created_by_Potlatch_all_tags_top_10_changeset_count_monthly_percent", "Potlatch: percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("created_by_StreetComplete_all_tags_top_10_changeset_count_monthly_percent", "StreetComplete: percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("created_by_RapiD_all_tags_top_10_changeset_count_monthly_percent", "RapiD: percent of occurance of tag in changesets per month", "%", percent=true),
+                add_multi_line_plot("created_by_Vespucci_all_tags_top_10_changeset_count_monthly_percent", "Vespucci: percent of occurance of tag in changesets per month", "%", percent=true),
+            ]
+        },
+    },
 }
 
 
@@ -403,7 +429,7 @@ function get_line_plot_layout(plot_title, unit, percent){
         "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
     })
     if (percent){
-        layout["yaxis"]["range"] = [0, 100]
+        layout["yaxis"]["range"] = [0, 101]
     }
     return  layout
 }

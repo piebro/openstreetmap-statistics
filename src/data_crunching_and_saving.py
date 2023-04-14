@@ -94,108 +94,6 @@ def get_name_to_link(replace_rules_file_name):
     return name_to_link
 
 
-
-def save_general_maps_old():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
-    monthly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["month_index", "pos_x", "pos_y"])["edits"].sum().compute()
-    edit_count_map_total = monthly_map_edits.groupby(level=[1, 2]).sum()
-    save_map("edit_count_map_total", edit_count_map_total)
-
-    yearly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"])["edits"].sum().compute()
-    year_maps = [yearly_map_edits[yearly_map_edits.index.get_level_values("year_index")==year_i].droplevel(0) for year_i in range(len(YEARS))]
-    year_map_names = [f"total edits {year}" for year in YEARS]
-    save_maps("edit_count_maps_yearly", year_maps, year_map_names)
-
-
-
-def save_tag_top_100_unit_yearly_old(tag, unit, top_100_indices, top_100_names):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
-    if unit == "contributor_count":
-        top_100_yearly = ddf[ddf[tag].isin(top_100_indices)].groupby(["year_index", tag])["user_index"].nunique().compute()
-    elif unit == "edit_count":
-        top_100_yearly = ddf[ddf[tag].isin(top_100_indices)].groupby(["year_index", tag])["edits"].sum().compute()
-    elif unit == "changeset_count":
-        top_100_yearly = ddf[ddf[tag].isin(top_100_indices)].groupby(["year_index", tag]).size().compute()
-    else:
-        raise Exception(f"Unkown unit: {unit}")
-
-    save_y_list(
-        f"{tag}_top_100_{unit}_yearly",
-        YEARS,
-        util.multi_index_series_to_series_list(top_100_yearly, top_100_indices),
-        top_100_names,
-        index_offset=0
-    )
-
-
-    
-def save_unit_monthly_old(unit):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
-    if unit == "contributor_count":
-        monthly_contributors_unique = ddf.groupby(["month_index"])["user_index"].unique().compute()
-        monthly = monthly_contributors_unique.apply(len)
-        save_y(f"{unit}_accumulated_monthly", MONTHS, util.cumsum_nunique(monthly_contributors_unique))
-        save_y(f"new_{unit}_monthly", MONTHS, util.cumsum_new_nunique(monthly_contributors_unique))
-        save_contributor_count_more_the_k_edits_monthly(monthly_contributors_unique)
-        save_contributor_count_no_maps_me_monthly()
-    elif unit == "edit_count":
-        monthly = ddf.groupby(["month_index"])["edits"].sum().compute()
-        save_y(f"{unit}_accumulated_monthly", MONTHS, monthly.cumsum())
-    elif unit == "changeset_count":
-        monthly = ddf.groupby(["month_index"]).size().compute()
-        save_y(f"{unit}_accumulated_monthly", MONTHS, monthly.cumsum())
-    else:
-        raise Exception(f"Unkown unit: {unit}")
-
-    save_y(f"{unit}_monthly", MONTHS, monthly)
-    return monthly
-
-
-
-def save_tag_top_10_unit_monthly_old(tag, unit, top_10_indices, top_10_names, save_percent=None, save_new_contributor_count=False, cum_sum=False):
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
-    if unit == "contributor_count":
-        top_10_monthly = ddf[ddf[tag].isin(top_10_indices)].groupby(["month_index", tag])["user_index"].unique().compute()
-        top_10_monthly_list = util.multi_index_series_to_series_list(top_10_monthly.apply(len), top_10_indices)
-        if save_new_contributor_count:
-            save_y_list(
-                f"{tag}_top_10_new_contributor_count_monthly",
-                MONTHS,
-                [util.cumsum_new_nunique(series) for series in util.multi_index_series_to_series_list(top_10_monthly, top_10_indices)],
-                top_10_names
-            )
-    elif unit == "edit_count":
-        top_10_monthly = ddf[ddf[tag].isin(top_10_indices)].groupby(["month_index", tag])["edits"].sum().compute()
-        top_10_monthly_list = util.multi_index_series_to_series_list(top_10_monthly, top_10_indices)
-    elif unit == "changeset_count":
-        top_10_monthly = ddf[ddf[tag].isin(top_10_indices)].groupby(["month_index", tag]).size().compute()
-        top_10_monthly_list = util.multi_index_series_to_series_list(top_10_monthly, top_10_indices)
-    else:
-        raise Exception(f"Unkown unit: {unit}")
-
-    save_y_list(f"{tag}_top_10_{unit}_monthly", MONTHS, top_10_monthly_list, top_10_names)
-
-    if save_percent is not None:
-        save_y_list(
-            f"{tag}_top_10_{unit}_percent_monthly",
-            MONTHS,
-            [s.divide(save_percent, fill_value=0)*100 for s in top_10_monthly_list],
-            top_10_names
-        )
-
-    if cum_sum:
-        if unit == "contributor_count":
-            top_10_cumsum_monthly_list = [util.cumsum_nunique(series) for series in util.multi_index_series_to_series_list(top_10_monthly, top_10_indices)]
-        else:
-            top_10_cumsum_monthly_list = [series.cumsum() for series in util.multi_index_series_to_series_list(top_10_monthly, top_10_indices)]
-        save_y_list(f"{tag}_top_10_{unit}_accumulated_monthly", MONTHS, top_10_cumsum_monthly_list, top_10_names, cumsum=True)
-    
-
-
 def get_software_editor_type_lists():
     created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
 
@@ -247,8 +145,6 @@ def save_created_by_editor_type_stats(ddf):
     save_percent("created_by_device_type_edit_count_monthly", "general_edit_count_monthly")
     
 
-
-
 def save_base_statistics(
     ddf,
     prefix,
@@ -280,7 +176,6 @@ def save_base_statistics(
 
     if edit_count_map_total:
         save_map(f"{prefix}_edit_count_map_total", ddf[ddf["pos_x"] >= 0].groupby(["pos_x", "pos_y"])["edits"].sum().compute())
-
 
 
 def get_tag_top_k_and_save_top_k_total(ddf, tag, prefix, k, contributor_count=False, edit_count=False, changeset_count=False):
@@ -467,13 +362,16 @@ def save_top_k(k, data_name):
     new_data_name = re.sub(r"_top_\d+_", f"_top_{k}_", data_name)
     util.save_json(os.path.join("assets", "data", f"{new_data_name}.json"), data)
 
-def save_percent(data_name, data_name_divide):
+def save_percent(data_name, data_name_divide, divide_y=None):
+    if divide_y is None:
+        data_divide = util.load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
+        divide_y = data_divide["y"]
+
     data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
-    data_divide = util.load_json(os.path.join("assets", "data", f"{data_name_divide}.json"))
     if "y" in data:
-        data["y"] = (util.save_div(data["y"], data_divide["y"][-len(data["y"]):])*100).tolist()
+        data["y"] = (util.save_div(data["y"], divide_y[-len(data["y"]):])*100).tolist()
     if "y_list" in data:
-        data["y_list"] = [(util.save_div(y, data_divide["y"][-len(y):])*100).tolist() for y in data["y_list"]]
+        data["y_list"] = [(util.save_div(y, divide_y[-len(y):])*100).tolist() for y in data["y_list"]]
     util.save_json(os.path.join("assets", "data", f"{data_name}_percent.json"), data)
 
 def save_monthly_to_yearly(data_name):
@@ -496,8 +394,6 @@ def save_monthly_to_yearly(data_name):
 
     data["x"] = years
     util.save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}.json"), data)
-
-
 
 def save_sum_of_top_k(data_name):
     data = util.load_json(os.path.join("assets", "data", f"{data_name}.json"))
@@ -537,7 +433,6 @@ def main():
     # save_accumulated("general_changeset_count_monthly")
     
     
-    
     # # topic: Editing Software
     #save_base_statistics_tag(ddf, "created_by", edit_count_monthly=True, changeset_count_monthly=True, contributors_unique_yearly=True, contributor_count_monthly=True, new_contributor_count_monthly=True)
 
@@ -571,8 +466,8 @@ def main():
 
 
     # topic: Source, Imagery Service, Hashtags
-    # ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
-    # all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
+    ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
+    all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
 
     # for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
     #     save_base_statistics(ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index[tag_name_in_all_tags]], tag, edit_count_monthly=True)
@@ -620,13 +515,19 @@ def main():
     # save_monthly_to_yearly("bot_created_by_top_100_edit_count_monthly")
 
 
+    # topic: Tags
+    # save_base_statistics_tag(ddf_all_tags, "all_tags", k=100, changeset_count_monthly=True)
+    # save_monthly_to_yearly("all_tags_top_100_changeset_count_monthly")
+    # save_top_k(10, "all_tags_top_100_changeset_count_monthly")
+    # save_percent("all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly")
 
-
-
-
-
-
-    pass
+    selected_editors = ["JOSM", "iD", "Potlatch", "StreetComplete", "RapiD", "Vespucci"]
+    monthly_data = util.load_json(os.path.join("assets", "data", f"created_by_top_100_changeset_count_monthly.json"))
+    editor_name_to_changeset_count_monthly = {name: y for name, y in zip(monthly_data["y_names"], monthly_data["y_list"])}
+    for selected_editor_name in selected_editors:
+        editor_index = created_by_tag_to_index[selected_editor_name]
+        save_base_statistics_tag(ddf_all_tags[ddf_all_tags["created_by"]==editor_index], f"all_tags", prefix=f"created_by_{selected_editor_name}", k=10, changeset_count_monthly=True)
+        save_percent(f"created_by_{selected_editor_name}_all_tags_top_10_changeset_count_monthly", None, editor_name_to_changeset_count_monthly[selected_editor_name])
 
 
 

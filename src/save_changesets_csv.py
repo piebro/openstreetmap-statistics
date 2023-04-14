@@ -346,11 +346,6 @@ def main():
         data_dict["streetcomplete"].append(streetcomplete)
         data_dict["corporation"].append(get_corporation_index(user_name, index_dicts, user_name_to_corporation))
         data_dict["bot"].append("bot" in tags and tags["bot"] == "yes")
-        #data_dict["comment"].append("comment" in tags)
-        #data_dict["local"].append("local" in tags)
-        #data_dict["host"].append("host" in tags)
-        #data_dict["changeset_count"].append("changeset_count" in tags)
-        #data_dict["version"].append("version" in tags)
 
         for index in get_imagery(tags, index_dicts, replace_rules):
             data_dict["imagery_changeset_index"].append(i)
