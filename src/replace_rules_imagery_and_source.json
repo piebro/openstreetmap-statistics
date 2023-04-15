@@ -6,7 +6,15 @@
         "ends_with": [
             ".gpx"
         ],
-        "link": "https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks"
+        "link": "https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks",
+        "starts_with": [
+            "GPX "
+        ]
+    },
+    "{switch:a,b,c,d}.tiles.mapbox.com": {
+        "starts_with": [
+            "https://{switch:a,b,c,d}.tiles.mapbox.com"
+        ]
     },
     "AGIS": {
         "ends_with": [
@@ -37,63 +45,52 @@
     "Bing Aerial Imagery": {
         "aliases": [
             "Bing",
-            "Bing Maps Aerial",
-            "Bing Aerial",
-            "Bing aerial imagery",
             "bing2012",
             "bing",
-            "Bing aerial Imagery",
-            "Bing Imagery",
-            "Bing imagery",
-            "bing aerial imagery",
             "aerial imagery",
             "BING"
         ],
-        "link": "https://wiki.openstreetmap.org/wiki/Bing_Maps"
+        "link": "https://wiki.openstreetmap.org/wiki/Bing_Maps",
+        "starts_width": [
+            "Bing ",
+            "bing "
+        ]
     },
     "Custom": {
         "starts_with": [
             "Custom ("
         ]
     },
-    "{switch:a,b,c,d}.tiles.mapbox.com":{
-        "starts_with":[
-            "https://{switch:a,b,c,d}.tiles.mapbox.com"
-        ]
-    },
     "DigitalGlobe Imagery (now Maxar)": {
         "aliases": [
-            "DigitalGlobe Premium Imagery",
-            "DigitalGlobe Standard Imagery",
-            "DigitalGlobe Standard",
-            "Digital Globe Premium",
             "DG Standard Imagery",
-            "DigitalGlobe Premium",
             "DigitalGlobe",
             "DG Premium",
             "Digital Globe",
-            "digitalglobe",
-            "Digital Globe Premium Imagery"
+            "digitalglobe"
         ],
-        "link": "https://wiki.openstreetmap.org/wiki/Maxar"
+        "link": "https://wiki.openstreetmap.org/wiki/Maxar",
+        "starts_width": [
+            "DigitalGlobe ",
+            "Digital Globe "
+        ]
+    },
+    "DP24 Research": {
+        "starts_with": [
+            "DP24 Research "
+        ]
     },
     "Esri World Imagery": {
         "aliases": [
             "Esri",
             "esri",
-            "Esri world imagery",
             "esri world imagery",
             "ESRI World Imagery",
-            "ESRI",
-            "Esri world Imagery",
-            "Esri World (Clarity)",
-            "Esri Worl (Clarity)",
-            "Esri Clarity Beta",
-            "Esri Clarity"
+            "ESRI"
         ],
         "link": "https://wiki.openstreetmap.org/wiki/Esri",
         "starts_with": [
-            "Esri World Imagery ",
+            "Esri ",
             "EsriWorldImageryClarity",
             "EsriWorldImagery"
         ]
@@ -102,6 +99,11 @@
         "starts_with": [
             "Geoportal 2: ",
             "Geoportal2"
+        ]
+    },
+    "Geoportal Berlin": {
+        "starts_with": [
+            "Geoportal Berlin"
         ]
     },
     "GPS": {
@@ -114,9 +116,19 @@
             "https://tasks.hotosm.org/"
         ]
     },
+    "IBGE": {
+        "starts_with": [
+            "IBGE-"
+        ]
+    },
     "Japan GSI": {
         "starts_with": [
             "Japan GSI "
+        ]
+    },
+    "Kartverket ": {
+        "starts_with": [
+            "Kartverket "
         ]
     },
     "Knowledge": {
@@ -132,43 +144,36 @@
         ]
     },
     "Mapbox Satellite": {
-        "aliases": [
+        "starts_with": [
             "mapbox",
-            "Mapbox Satellite Imagery",
-            "mapbox satellite",
-            "MapBox Satellite",
             "Mapbox"
         ]
     },
     "Mapillary": {
-        "aliases": [
-            "mapillary"
-        ],
         "starts_with": [
+            "mapillary",
+            "Mapillary",
             "https://www.mapillary.com/"
         ]
     },
     "Maxar Imagery": {
         "aliases": [
-            "Maxar Premium Imagery (Beta)",
-            "Maxar Premium Imagery",
-            "Maxar Standard Imagery",
-            "Maxar Standard Imagery (Beta)",
-            "Maxar Premium Aerial",
-            "Facebook's Map With AI - Maxar Imagery",
-            "Maxar-Premium",
-            "Maxar-Standard",
-            "Maxar Premium",
-            "Maxar Standard",
-            "Maxar premium Imagery",
-            "maxar",
-            "Maxar premium imagery",
-            "maxar standard imagery",
-            "maxar standard",
-            "maxar premium",
-            "Maxar"
+            "Facebook's Map With AI - Maxar Imagery"
         ],
-        "link": "https://wiki.openstreetmap.org/wiki/Maxar"
+        "link": "https://wiki.openstreetmap.org/wiki/Maxar",
+        "starts_width": [
+            "Maxar",
+            "maxar"
+        ]
+    },
+    "OSM Note": {
+        "starts_with": [
+            "Note",
+            "note",
+            "OSM Note",
+            "https://www.openstreetmap.org/note/",
+            "OpenStreetMap Notes"
+        ]
     },
     "PDOK aerial imagery": {
         "link": "https://Beeldmateriaal.nl",
@@ -176,9 +181,20 @@
             "PDOK aerial imagery "
         ]
     },
+    "Russian maritime notice": {
+        "starts_with": [
+            "Russian maritime notice"
+        ]
+    },
+    "Russian maritime notification": {
+        "starts_with": [
+            "Russian maritime notification"
+        ]
+    },
     "Survey": {
         "starts_with": [
             "survey",
+            "Survey",
             "surveys",
             "Surveys"
         ]
@@ -201,6 +217,11 @@
             "tms:http://"
         ]
     },
+    "UCHWAŁA NR": {
+        "starts_with": [
+            "UCHWAŁA NR "
+        ]
+    },
     "UMD Landsat": {
         "starts_with": [
             "UMD Landsat "
@@ -211,20 +232,9 @@
             "vectortile:"
         ]
     },
-    "Kartverket ": {
+    "wiki.openstreetmap.org": {
         "starts_with": [
-            "Kartverket "
-        ]
-    },
-    "IBGE": {
-        "starts_with":[
-            "IBGE-"
-        ]
-    },
-    "www.openstreetmap.org/note/": {
-        "starts_with": [
-            "https://www.openstreetmap.org/note/",
-            "OpenStreetMap Notes"
+            "http://wiki.openstreetmap.org"
         ]
     },
     "wiki.openstreetmap.org/": {
@@ -232,26 +242,14 @@
             "https://wiki.openstreetmap.org/"
         ]
     },
-    "www.openstreetmap.org/way": {
-        "starts_with": [
-            "https://www.openstreetmap.org/way"
-        ]
-    },
     "www.openstreetmap.org/changeset/": {
         "starts_with": [
             "https://www.openstreetmap.org/changeset/"
         ]
     },
-    "wiki.openstreetmap.org": {
-        "starts_with":[
-            "http://wiki.openstreetmap.org"
-        ]
-    },
-    "OSM Note": {
+    "www.openstreetmap.org/way": {
         "starts_with": [
-            "Note ",
-            "note ",
-            "OSM Note "
+            "https://www.openstreetmap.org/way"
         ]
     },
     "youtube": {
@@ -259,11 +257,6 @@
             "https://youtube.com/",
             "https://youtu.be/",
             "https://www.youtube.com/"
-        ]
-    },
-    "UCHWAŁA NR": {
-        "starts_with":[
-            "UCHWAŁA NR "
         ]
     }
 }
