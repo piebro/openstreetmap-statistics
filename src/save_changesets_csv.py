@@ -1,8 +1,6 @@
 import re
 import sys
 import os
-import gzip
-import json
 from datetime import datetime
 
 import numpy as np
@@ -147,11 +145,11 @@ def add_source(tags, index_dicts, replace_rules):
             if source_list[i][0] == " ":
                 source_list[i] = source_list[i][1:]
             source_list[i] = replace_with_rules(source_list[i], replace_rules["source"])
-            
+
             if source_list[i][:8] == "https://":
-                source_list[i] = source_list[i].split("/")[2]
+                source_list[i] = "https://" + source_list[i].split("/")[2]
             elif source_list[i][:7] == "http://":
-                source_list[i] = source_list[i].split("/")[2]
+                source_list[i] = "http://" + source_list[i].split("/")[2]
 
             source_list[i] = source_list[i][:120]
 
@@ -240,19 +238,21 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
         "corporation": np.array(data_dict["corporation"], dtype=np.uint8),
         "streetcomplete": np.array(data_dict["streetcomplete"], dtype=np.uint16),
         "bot": np.array(data_dict["bot"], dtype=np.bool_),
-        # "comment": np.array(data_dict["comment"], dtype=np.bool_),
-        # "local": np.array(data_dict["local"], dtype=np.bool_),
-        # "host": np.array(data_dict["host"], dtype=np.bool_),
-        # "changeset_count": np.array(data_dict["changeset_count"], dtype=np.bool_),
-        # "version": np.array(data_dict["changeset_count"], dtype=np.bool_),
     }
+    save_dir = os.path.join(parquet_save_dir, "general")
     parquet_write(
-        os.path.join(parquet_save_dir, f"general_{file_counter}.parquet"),
+        save_dir,
         pd.DataFrame.from_dict(data=general),
         compression="GZIP",
+        file_scheme="hive",
+        partition_on=["month_index"],
+        # write_index=False,
+        append=os.path.isdir(save_dir),
     )
 
     for tag_name in ("imagery", "hashtag", "source", "all_tags"):
+        if len(data_dict[tag_name]) == 0:
+            continue
         changeset_index = np.array(data_dict[f"{tag_name}_changeset_index"], dtype=np.uint32)
         changeset_index_with_offset = changeset_index - (batch_size * file_counter)
         tag_dict = {
@@ -266,10 +266,16 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
             "created_by": general["created_by"][changeset_index_with_offset],
             tag_name: np.array(data_dict[tag_name], dtype=np.uint32),
         }
+
+        save_dir = os.path.join(parquet_save_dir, f"{tag_name}")
         parquet_write(
-            os.path.join(parquet_save_dir, f"{tag_name}_{file_counter}.parquet"),
+            save_dir,
             pd.DataFrame.from_dict(data=tag_dict),
             compression="GZIP",
+            file_scheme="hive",
+            partition_on=["month_index"],
+            # write_index=False,
+            append=os.path.isdir(save_dir),
         )
 
 

@@ -4,6 +4,7 @@ import re
 
 import numpy as np
 import pandas as pd
+import dask.dataframe as dd
 
 
 DEFAULT_PLOT_LAYOUT = {
@@ -57,6 +58,11 @@ def load_tag_to_index(data_dir, data_name):
     return list_to_dict(load_index_to_tag(data_dir, data_name))
 
 
+def load_ddf(data_dir, tag, columns=None, filters=None):
+    ddf = dd.read_parquet(os.path.join(data_dir, "changeset_data", tag), columns=columns, filters=filters)
+    return ddf
+
+
 def multi_index_series_to_series_list(multi_index_series, level_1_indices):
     return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
 
@@ -80,6 +86,15 @@ def cumsum_new_nunique(series):
     return pd.Series(data=values, index=indices)
 
 
+def cumsum_new_nunique_set_list(set_list):
+    previous_set = set()
+    values = []
+    for s in set_list:
+        values.append(len(s - previous_set))
+        previous_set.update(s)
+    return values
+
+
 def safe_div(a, b):
     a, b = np.array(a, dtype=float), np.array(b, dtype=float)
     return np.divide(a, b, out=np.zeros_like(a), where=(b != 0), casting="unsafe")
@@ -88,8 +103,8 @@ def safe_div(a, b):
 def save_base_statistics(
     data_dir,
     progress_bar,
-    ddf,
     prefix,
+    ddf,
     edit_count_monthly=False,
     changeset_count_monthly=False,
     contributors_unique_yearly=False,
@@ -101,14 +116,17 @@ def save_base_statistics(
     months, years = get_months_years(data_dir)
 
     if edit_count_monthly:
+        # ddf = load_ddf(data_dir, "general", columns=["month_index", "edits"])
         save_y(
             progress_bar, f"{prefix}_edit_count_monthly", months, ddf.groupby(["month_index"])["edits"].sum().compute()
         )
 
     if changeset_count_monthly:
+        # ddf = load_ddf(data_dir, "general", columns=["month_index"])
         save_y(progress_bar, f"{prefix}_changeset_count_monthly", months, ddf.groupby(["month_index"]).size().compute())
 
     if contributors_unique_yearly:
+        # ddf = load_ddf(data_dir, "general", columns=["year_index", "user_index"])
         save_y(
             progress_bar,
             f"{prefix}_contributors_unique_yearly",
@@ -117,6 +135,7 @@ def save_base_statistics(
         )
 
     if contributor_count_monthly or new_contributor_count_monthly:
+        # ddf = load_ddf(data_dir, "general", columns=["month_index", "user_index"])
         contributors_unique_monthly = ddf.groupby(["month_index"])["user_index"].unique().compute()
         if contributor_count_monthly:
             save_y(progress_bar, f"{prefix}_contributor_count_monthly", months, contributors_unique_monthly.apply(len))
@@ -130,6 +149,7 @@ def save_base_statistics(
         contributors_unique_monthly = None
 
     if edit_count_map_total:
+        # ddf = load_ddf(data_dir, "general", columns=["edits", "pos_x", "pos_y"])
         save_map(
             progress_bar,
             f"{prefix}_edit_count_map_total",
@@ -140,8 +160,9 @@ def save_base_statistics(
 def save_base_statistics_tag(
     data_dir,
     progress_bar,
-    ddf,
     tag,
+    ddf,
+    contributor_count_ddf_name=None,
     k=100,
     prefix=None,
     edit_count_monthly=False,
@@ -154,12 +175,11 @@ def save_base_statistics_tag(
 
     months, years = get_months_years(data_dir)
     prefix = "" if prefix is None else f"{prefix}_"
-
     top_k = get_tag_top_k_and_save_top_k_total(
         data_dir,
         progress_bar,
-        ddf,
         tag,
+        ddf,
         prefix,
         k=k,
         contributor_count=(contributors_unique_yearly or contributor_count_monthly or new_contributor_count_monthly),
@@ -190,24 +210,36 @@ def save_base_statistics_tag(
 
     if contributor_count_monthly or new_contributor_count_monthly:
         indices, names = top_k["contributor_count"]
-        unique_monthly_list = multi_index_series_to_series_list(
-            ddf[ddf[tag].isin(indices)].groupby(["month_index", tag])["user_index"].unique().compute(), indices
-        )
+        unique_monthly_list = [[set() for _ in range(len(months))] for _ in range(len(indices))]
+        for month_i in range(len(months)):
+            filters = [("month_index", "==", month_i)]
+            temp_ddf = load_ddf(data_dir, contributor_count_ddf_name, ("user_index", tag), filters)
+            contributor_unique_month = (
+                temp_ddf[temp_ddf[tag].isin(indices)].groupby([tag])["user_index"].unique().compute()
+            )
+            for i, tag_index in enumerate(indices):
+                value = contributor_unique_month[contributor_unique_month.index == tag_index].values
+                if len(value) > 0:
+                    unique_monthly_list[i][month_i] = set(value[0].tolist())
+
         if contributor_count_monthly:
             save_y_list(
                 progress_bar,
                 f"{prefix}{tag}_top_{k}_contributor_count_monthly",
                 months,
-                [unique_monthly.apply(len) for unique_monthly in unique_monthly_list],
+                None,
                 names,
+                y_list=[[len(unique_set) for unique_set in month_list] for month_list in unique_monthly_list],
             )
+
         if new_contributor_count_monthly:
             save_y_list(
                 progress_bar,
                 f"{prefix}{tag}_top_{k}_new_contributor_count_monthly",
                 months,
-                [cumsum_new_nunique(unique_monthly) for unique_monthly in unique_monthly_list],
+                None,
                 names,
+                y_list=[cumsum_new_nunique_set_list(month_list) for month_list in unique_monthly_list],
             )
 
     if edit_count_map_total:
@@ -221,7 +253,7 @@ def save_base_statistics_tag(
 
 
 def get_tag_top_k_and_save_top_k_total(
-    data_dir, progress_bar, ddf, tag, prefix, k, contributor_count=False, edit_count=False, changeset_count=False
+    data_dir, progress_bar, tag, ddf, prefix, k, contributor_count=False, edit_count=False, changeset_count=False
 ):
     index_to_tag = load_index_to_tag(data_dir, tag)
 
@@ -230,16 +262,20 @@ def get_tag_top_k_and_save_top_k_total(
         ddf = ddf[ddf[tag] < highest_number]
 
     units = []
-    if contributor_count:
-        units.append("contributor_count")
     if edit_count:
         units.append("edit_count")
     if changeset_count:
         units.append("changeset_count")
+    if contributor_count:
+        units.append("contributor_count")
 
     unit_to_top_k_indices_and_names = {"tag": tag}
     for unit in units:
         if unit == "contributor_count":
+            # TODO: this is by far the slowest part in gathering all statistics. Are the ways for speeding it up?
+            # Maybe use https://docs.dask.org/en/stable/generated/dask.dataframe.Series.nunique_approx.html
+            # as a fist approximation and then get the right statistics on a subset of all tags
+            # or reducing the number of different tags (e.g. less distinct sources)
             total = ddf.groupby(tag)["user_index"].nunique().compute()
         if unit == "edit_count":
             total = ddf.groupby(tag)["edits"].sum().compute()
@@ -257,7 +293,7 @@ def get_tag_top_k_and_save_top_k_total(
     return unit_to_top_k_indices_and_names
 
 
-def save_edit_count_map_yearly(years, progress_bar, ddf, prefix):
+def save_edit_count_map_yearly(years, progress_bar, prefix, ddf):
     yearly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"])["edits"].sum().compute()
     year_maps = [
         yearly_map_edits[yearly_map_edits.index.get_level_values("year_index") == year_i].droplevel(0)
@@ -268,7 +304,7 @@ def save_edit_count_map_yearly(years, progress_bar, ddf, prefix):
 
 
 def save_tag_top_10_contributor_count_first_changeset_monthly(
-    months, progress_bar, ddf, tag, tag_to_index, data_name_for_top_names
+    months, progress_bar, tag, ddf, tag_to_index, data_name_for_top_names
 ):
     names = load_json(os.path.join("assets", "data", f"{data_name_for_top_names}.json"))["y_names"][:10]
     indices = [tag_to_index[tag_name] for tag_name in names]
@@ -311,8 +347,9 @@ def pd_series_to_y(x, series, cumsum=False):
         return y.tolist()
 
 
-def save_y(progress_bar, name, x, pd_series, index_offset=3, cumsum=False):
-    y = pd_series_to_y(x, pd_series, cumsum)
+def save_y(progress_bar, name, x, pd_series, index_offset=3, cumsum=False, y=None):
+    if y is None:
+        y = pd_series_to_y(x, pd_series, cumsum)
     if x is None:
         data_dict = {"y": y[start_index:]}
     else:
@@ -321,8 +358,9 @@ def save_y(progress_bar, name, x, pd_series, index_offset=3, cumsum=False):
     save_data_dict(progress_bar, name, data_dict)
 
 
-def save_y_list(progress_bar, name, x, pd_series_list, y_names, index_offset=3, cumsum=False):
-    y_list = [pd_series_to_y(x, pd_series, cumsum) for pd_series in pd_series_list]
+def save_y_list(progress_bar, name, x, pd_series_list, y_names, index_offset=3, cumsum=False, y_list=None):
+    if y_list is None:
+        y_list = [pd_series_to_y(x, pd_series, cumsum) for pd_series in pd_series_list]
     if x is None:
         data_dict = {"y_list": y_list, "y_names": y_names}
     else:

@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 
 import numpy as np
 import dask.dataframe as dd
@@ -10,15 +9,13 @@ from tqdm import tqdm
 
 
 DATA_DIR = sys.argv[1]
-PARQUET_DIR = os.path.join(DATA_DIR, "changeset_data")
 MONTHS, YEARS = util.get_months_years(DATA_DIR)
-
-TOTAL_DATA_DICTS = 87
-progress_bar = tqdm(total=TOTAL_DATA_DICTS)
+progress_bar = tqdm(total=87)
 
 
 def save_topic_general():
-    def save_general_contributor_count_more_the_k_edits_monthly(ddf):
+    def save_general_contributor_count_more_the_k_edits_monthly():
+        ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "user_index"))
         total_edits_of_contributors = ddf.groupby(["user_index"])["edits"].sum().compute()
         contributors_unique_monthly_set = ddf.groupby(["month_index"])["user_index"].unique().compute().apply(set)
 
@@ -41,36 +38,35 @@ def save_topic_general():
             min_edit_count,
         )
 
-    def save_general_edit_count_per_contributor_median_monthly(ddf):
-        contributor_edits_monthly = ddf.groupby(["month_index", "user_index"])["edits"].sum().compute()
-        edit_count_per_contributor_median_monthly = contributor_edits_monthly.groupby(["month_index"]).median()
-
-        edit_count_per_contributor_median_monthly_since_2010 = edit_count_per_contributor_median_monthly[
-            edit_count_per_contributor_median_monthly.index >= 57
-        ]
-        edit_count_per_contributor_median_monthly_since_2010.index -= 57
+    def save_general_edit_count_per_contributor_median_monthly():
+        edit_count_per_contributor_median_monthly = []
+        for i in range(len(MONTHS)):
+            filters = [("month_index", "==", i)]
+            ddf = util.load_ddf(DATA_DIR, "general", ("edits", "user_index"), filters)
+            contributor_edits_month = ddf.groupby(["user_index"])["edits"].sum().compute()
+            edit_count_per_contributor_median_monthly.append(contributor_edits_month.median())
 
         util.save_y(
             progress_bar,
             "general_edit_count_per_contributor_median_monthly",
             MONTHS,
-            edit_count_per_contributor_median_monthly,
+            None,
+            y=edit_count_per_contributor_median_monthly,
         )
         util.save_y(
             progress_bar,
             "general_edit_count_per_contributor_median_monthly_since_2010",
             MONTHS[57:],
-            edit_count_per_contributor_median_monthly_since_2010,
+            None,
+            y=edit_count_per_contributor_median_monthly[57:],
         )
 
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
-
+    ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "year_index", "edits", "user_index", "pos_x", "pos_y"))
     util.save_base_statistics(
         DATA_DIR,
         progress_bar,
-        ddf,
         "general",
+        ddf,
         edit_count_monthly=True,
         changeset_count_monthly=True,
         contributors_unique_yearly=True,
@@ -78,17 +74,20 @@ def save_topic_general():
         new_contributor_count_monthly=True,
         edit_count_map_total=True,
     )
-    save_general_contributor_count_more_the_k_edits_monthly(ddf)
-    util.save_edit_count_map_yearly(YEARS, progress_bar, ddf, "general")
-    save_general_edit_count_per_contributor_median_monthly(ddf)
+    save_general_contributor_count_more_the_k_edits_monthly()
+    util.save_edit_count_map_yearly(
+        YEARS, progress_bar, "general", util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "pos_x", "pos_y"))
+    )
+    save_general_edit_count_per_contributor_median_monthly()
 
+    ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "user_index", "created_by"))
+    created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
     map_me_indices = np.array([created_by_tag_to_index["MAPS.ME android"], created_by_tag_to_index["MAPS.ME ios"]])
-    util.save_base_statistics(
-        DATA_DIR,
+    util.save_y(
         progress_bar,
-        ddf[~ddf["created_by"].isin(map_me_indices)],
-        "general_no_maps_me",
-        contributor_count_monthly=True,
+        "general_no_maps_me_contributor_count_monthly",
+        MONTHS,
+        ddf[~ddf["created_by"].isin(map_me_indices)].groupby(["month_index"])["user_index"].nunique().compute(),
     )
 
     util.save_accumulated("general_new_contributor_count_monthly")
@@ -97,31 +96,6 @@ def save_topic_general():
 
 
 def save_topic_editing_software():
-    def save_created_by_editor_type_stats(ddf):
-        editor_type_lists = get_software_editor_type_lists()
-
-        util.save_y_list(
-            progress_bar,
-            "created_by_device_type_contributor_count_monthly",
-            MONTHS,
-            [
-                ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["user_index"].nunique().compute()
-                for l in editor_type_lists.values()
-            ],
-            list(editor_type_lists.keys()),
-        )
-        util.save_y_list(
-            progress_bar,
-            "created_by_device_type_edit_count_monthly",
-            MONTHS,
-            [
-                ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["edits"].sum().compute()
-                for l in editor_type_lists.values()
-            ],
-            list(editor_type_lists.keys()),
-        )
-        util.save_percent("created_by_device_type_edit_count_monthly", "general_edit_count_monthly")
-
     def get_software_editor_type_lists():
         created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
 
@@ -156,14 +130,40 @@ def save_topic_editing_software():
         )
         return device_type
 
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
+    def save_created_by_editor_type_stats():
+        editor_type_lists = get_software_editor_type_lists()
+
+        ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "user_index", "created_by"))
+        util.save_y_list(
+            progress_bar,
+            "created_by_device_type_contributor_count_monthly",
+            MONTHS,
+            [
+                ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["user_index"].nunique().compute()
+                for l in editor_type_lists.values()
+            ],
+            list(editor_type_lists.keys()),
+        )
+
+        ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "created_by"))
+        util.save_y_list(
+            progress_bar,
+            "created_by_device_type_edit_count_monthly",
+            MONTHS,
+            [
+                ddf[ddf["created_by"].isin(l)].groupby(["month_index"])["edits"].sum().compute()
+                for l in editor_type_lists.values()
+            ],
+            list(editor_type_lists.keys()),
+        )
+        util.save_percent("created_by_device_type_edit_count_monthly", "general_edit_count_monthly")
 
     util.save_base_statistics_tag(
         DATA_DIR,
         progress_bar,
-        ddf,
         "created_by",
+        util.load_ddf(DATA_DIR, "general", ("month_index", "year_index", "edits", "user_index", "created_by")),
+        contributor_count_ddf_name="general",
         edit_count_monthly=True,
         changeset_count_monthly=True,
         contributors_unique_yearly=True,
@@ -177,8 +177,14 @@ def save_topic_editing_software():
     util.save_top_k(10, "created_by_top_100_changeset_count_monthly")
 
     util.save_percent("created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly")
+    # TODO: this takes quiet long. Maybe speed it up somehow
     util.save_tag_top_10_contributor_count_first_changeset_monthly(
-        MONTHS, progress_bar, ddf, "created_by", created_by_tag_to_index, "created_by_top_10_contributor_count_monthly"
+        MONTHS,
+        progress_bar,
+        "created_by",
+        util.load_ddf(DATA_DIR, "general", ("month_index", "user_index", "created_by")),
+        util.load_tag_to_index(DATA_DIR, "created_by"),
+        "created_by_top_10_contributor_count_monthly",
     )
     util.save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
     util.save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly")
@@ -186,17 +192,16 @@ def save_topic_editing_software():
     util.save_accumulated("created_by_top_10_new_contributor_count_monthly")
     util.save_accumulated("created_by_top_10_edit_count_monthly")
     util.save_accumulated("created_by_top_100_changeset_count_monthly")
-    save_created_by_editor_type_stats(ddf)
+    save_created_by_editor_type_stats()
 
 
 def save_topic_corporation():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-
     util.save_base_statistics_tag(
         DATA_DIR,
         progress_bar,
-        ddf,
         "corporation",
+        util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "user_index", "pos_x", "pos_y", "corporation")),
+        contributor_count_ddf_name="general",
         edit_count_monthly=True,
         changeset_count_monthly=True,
         new_contributor_count_monthly=True,
@@ -214,33 +219,33 @@ def save_topic_corporation():
 
 
 def save_topic_source_imagery_hashtag():
-    ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
+
     all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
 
-    # for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
-    for tag, tag_name_in_all_tags in [("hashtag", "hashtag")]:
+    for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
+        # for tag, tag_name_in_all_tags in [("hashtag", "hashtags")]:
+        ddf_all_tags = util.load_ddf(DATA_DIR, "all_tags", ["month_index", "edits", "all_tags"])
         util.save_base_statistics(
             DATA_DIR,
             progress_bar,
-            ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index[tag_name_in_all_tags]],
             tag,
+            ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index[tag_name_in_all_tags]],
             edit_count_monthly=True,
         )
         util.save_percent(f"{tag}_edit_count_monthly", "general_edit_count_monthly")
 
-        ddf_tag = dd.read_parquet(os.path.join(PARQUET_DIR, f"{tag}_*.parquet"))
-        edit_count_map_total = True if tag == "hashtag" else False
         util.save_base_statistics_tag(
             DATA_DIR,
             progress_bar,
-            ddf_tag,
             tag,
+            util.load_ddf(DATA_DIR, tag, None),
+            contributor_count_ddf_name=tag,
             edit_count_monthly=True,
             changeset_count_monthly=True,
             contributors_unique_yearly=True,
             contributor_count_monthly=True,
             new_contributor_count_monthly=True,
-            edit_count_map_total=edit_count_map_total,
+            edit_count_map_total=(tag == "hashtag"),
         )
         util.save_top_k(10, f"{tag}_top_100_contributor_count_monthly")
         util.save_top_k(10, f"{tag}_top_100_new_contributor_count_monthly")
@@ -254,15 +259,18 @@ def save_topic_source_imagery_hashtag():
 
 
 def save_topic_streetcomplete():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
-    all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
 
+    # ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
+    # ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
+    ddf_all_tags = util.load_ddf(
+        DATA_DIR, "all_tags", ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags")
+    )
+    all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
     util.save_base_statistics(
         DATA_DIR,
         progress_bar,
-        ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index["StreetComplete"]],
         "streetcomplete",
+        ddf_all_tags[ddf_all_tags["all_tags"] == all_tags_tag_to_index["StreetComplete"]],
         edit_count_monthly=True,
         contributor_count_monthly=True,
         edit_count_map_total=True,
@@ -273,8 +281,9 @@ def save_topic_streetcomplete():
     util.save_base_statistics_tag(
         DATA_DIR,
         progress_bar,
-        ddf,
         "streetcomplete",
+        util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "user_index", "streetcomplete")),
+        contributor_count_ddf_name="general",
         k=300,
         edit_count_monthly=True,
         changeset_count_monthly=True,
@@ -290,12 +299,14 @@ def save_topic_streetcomplete():
 
 
 def save_topic_bot():
-    ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
+    ddf = util.load_ddf(
+        DATA_DIR, "general", ("month_index", "edits", "user_index", "pos_x", "pos_y", "bot", "created_by")
+    )
     util.save_base_statistics(
         DATA_DIR,
         progress_bar,
-        ddf[ddf["bot"] == True],
         "bot",
+        ddf[ddf["bot"] == True],
         edit_count_monthly=True,
         changeset_count_monthly=True,
         contributor_count_monthly=True,
@@ -309,16 +320,14 @@ def save_topic_bot():
     util.save_div("bot_avg_edit_count_per_changeset_monthly", "bot_edit_count_monthly", "bot_changeset_count_monthly")
 
     util.save_base_statistics_tag(
-        DATA_DIR, progress_bar, ddf[ddf["bot"] == True], "created_by", k=100, prefix="bot", edit_count_monthly=True
+        DATA_DIR, progress_bar, "created_by", ddf[ddf["bot"] == True], k=100, prefix="bot", edit_count_monthly=True
     )
     util.save_monthly_to_yearly("bot_created_by_top_100_edit_count_monthly")
 
 
 def save_topic_tags():
-    ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
-    created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
-
-    util.save_base_statistics_tag(DATA_DIR, progress_bar, ddf_all_tags, "all_tags", k=100, changeset_count_monthly=True)
+    ddf_all_tags = util.load_ddf(DATA_DIR, "all_tags", ("month_index", "all_tags", "created_by"))
+    util.save_base_statistics_tag(DATA_DIR, progress_bar, "all_tags", ddf_all_tags, k=100, changeset_count_monthly=True)
     util.save_monthly_to_yearly("all_tags_top_100_changeset_count_monthly")
     util.save_top_k(10, "all_tags_top_100_changeset_count_monthly")
     util.save_percent("all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly")
@@ -328,13 +337,14 @@ def save_topic_tags():
     editor_name_to_changeset_count_monthly = {
         name: y for name, y in zip(monthly_data["y_names"], monthly_data["y_list"])
     }
+    created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
     for selected_editor_name in selected_editors:
         editor_index = created_by_tag_to_index[selected_editor_name]
         util.save_base_statistics_tag(
             DATA_DIR,
             progress_bar,
+            "all_tags",
             ddf_all_tags[ddf_all_tags["created_by"] == editor_index],
-            f"all_tags",
             prefix=f"created_by_{selected_editor_name}",
             k=10,
             changeset_count_monthly=True,
@@ -365,13 +375,13 @@ def save_name_to_link():
 def main():
     save_name_to_link()
 
-    # save_topic_general()
-    # save_topic_editing_software()
-    # save_topic_corporation()
+    save_topic_general()
+    save_topic_editing_software()
+    save_topic_corporation()
     save_topic_source_imagery_hashtag()
-    # save_topic_streetcomplete()
-    # save_topic_bot()
-    # save_topic_tags()
+    save_topic_streetcomplete()
+    save_topic_bot()
+    save_topic_tags()
 
 
 if __name__ == "__main__":

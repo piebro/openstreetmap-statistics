@@ -62,7 +62,7 @@ wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torren
 aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 ```
 
-Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time.
+Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:10h).
 ```bash
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | python3 src/save_changesets_csv.py temp
 ```
@@ -72,7 +72,7 @@ If you want to add new topics, plots or tables and iterate faster with a subset 
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
 ```
 
-Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script.
+Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script. On my laptop this takes also about 1:10h and it runs with less then 8GB of RAM.
 ```bash
 python3 src/data_crunching_and_saving.py temp
 ```
