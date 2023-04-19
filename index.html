@@ -114,7 +114,7 @@ topics = {
             "content_functions": [
                 add_multi_line_plot("created_by_device_type_contributor_count_monthly", "monthly contributor count per device", "contributors"),
                 add_multi_line_plot("created_by_device_type_edit_count_monthly", "monthly edit count per device", "edits"),
-                add_multi_line_plot("created_by_device_type_edit_count_percent_monthly", "market share of edit per device", "%", percent=true),
+                add_multi_line_plot("created_by_device_type_edit_count_monthly_percent", "market share of edit per device", "%", percent=true),
             ]
         }
     },
@@ -472,7 +472,7 @@ function add_single_line_plot(data_name, plot_title, unit, percent=false){
         traces = [{"x": data["x"], "y": data["y"], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
         Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
     }
-    return {"show": show_content}
+    return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
 function add_multi_line_plot(data_name, plot_title, unit, percent=false){
@@ -485,7 +485,7 @@ function add_multi_line_plot(data_name, plot_title, unit, percent=false){
         }
         Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
     }
-    return {"show": show_content}
+    return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
 function get_map_plot_traces(x, y, z, max_z_value){
@@ -512,7 +512,7 @@ function add_map_plot(data_name, plot_title){
         traces = get_map_plot_traces(data[data_name]["x"], data[data_name]["y"], data[data_name]["z"], data["max_z_value"])
         Plotly.newPlot(div, traces, get_map_plot_layout(plot_title, data["max_z_value"]), get_plot_config())
     }
-    return {"show": show_content}
+    return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
 function add_multiple_map_plots(data_name){
@@ -525,7 +525,13 @@ function add_multiple_map_plots(data_name){
             Plotly.newPlot(child_div, traces, get_map_plot_layout(map_name, data["max_z_value"]), get_plot_config())
         }
     }
-    return {"show": show_content}
+    save_map_plots = async function(div_id){
+        data = await load_data(data_name)
+        for (const map_name of Object.keys(data[data_name])){
+            save_plot(data_name + "_" + map_name.replaceAll(" ", "_"), map_name)
+        }
+    }
+    return {"show": show_content, "save_plot": save_map_plots, "save_data": async function(){save_data(data_name)}}
 }
 
 function add_table(data_name, title, y_names_category, data_name_total, data_name_name_to_link=undefined){
@@ -538,13 +544,12 @@ function add_table(data_name, title, y_names_category, data_name_total, data_nam
             name_to_link = {}
         }
         
-        
         div = add_div(div_id, "dataDiv")
         div.style.width = "100%"
         div.style.aspectRatio = "auto"
         div.innerHTML = get_table_html(title, data, data_total, y_names_category, name_to_link)
     }
-    return {"show": show_content}
+    return {"show": show_content, "save_data": async function(){save_data(data_name, data_name_total)}}
 }
 
 function get_table_html(title, data, data_total, y_names_category, name_to_link){
@@ -571,6 +576,38 @@ function get_table_html(title, data, data_total, y_names_category, name_to_link)
         body += "<td>" + data_total["y_list"][row_index].toLocaleString() + "</td></tr>"
     }
     return "<h3>" + title + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
+}
+
+
+function download(data_str, title, file_ending){
+    const downloadLink = document.createElement('a');
+    downloadLink.download = title + "." + file_ending;
+    if (file_ending == "csv"){
+        data_str = window.URL.createObjectURL(new Blob([data_str], { type: 'text/csv' }))
+    } else if (file_ending == "json"){
+        data_str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data_str))
+    }
+    downloadLink.href = data_str
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+async function save_plot(data_name, div_id){
+    await Plotly.toImage(document.getElementById(div_id), {format:'png',height:500,width:1000}).then(function(png_str){
+        download(png_str, data_name, "png")
+    })
+}
+
+
+async function save_data(data_name, data_name_2=null){
+    data = await load_data(data_name)
+    download(data, data_name, "json")
+    if (data_name_2 !== null){
+        data_2 = await load_data(data_name_2)
+        download(data_2, data_name_2, "json")
+    }
 }
 
 
@@ -626,8 +663,20 @@ async function update_content(){
         await content_functions["show"](index)
     }
 
-    // document.getElementById('save_plot_btn').onclick = data[topic][question]["save_plot"]
-    // document.getElementById('save_data_btn').onclick = data[topic][question]["save_data"]
+    document.getElementById('save_plot_btn').onclick = async function(){
+        for (const [index, content_functions] of topics[topic][question]["content_functions"].entries()){
+            if ("save_plot" in content_functions){
+                content_functions["save_plot"](index)
+            }
+        }
+    }
+    document.getElementById('save_data_btn').onclick = async function(){
+        for (const [index, content_functions] of topics[topic][question]["content_functions"].entries()){
+            if ("save_data" in content_functions){
+                content_functions["save_data"](index)
+            }
+        }
+    }
     history.replaceState(null, "", "#" + topics[topic][question]["url_hash"])
 }
 
