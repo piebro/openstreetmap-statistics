@@ -112,7 +112,6 @@ Adding a new plot also needs adding a new `url_hash`. A new unique one can be pr
 You can use `black -l 120 .` in the project root diretory to run the python code formatter [Black](https://pypi.org/project/black/) befor committing code.
 
 
-
 ```bash
 python3 -m venv /path/to/new/virtual/environment
 source venv/bin/activate

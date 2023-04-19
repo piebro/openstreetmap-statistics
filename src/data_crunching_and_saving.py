@@ -191,7 +191,7 @@ def save_topic_editing_software():
 
     util.save_accumulated("created_by_top_10_new_contributor_count_monthly")
     util.save_accumulated("created_by_top_10_edit_count_monthly")
-    util.save_accumulated("created_by_top_100_changeset_count_monthly")
+    util.save_accumulated("created_by_top_10_changeset_count_monthly")
     save_created_by_editor_type_stats()
 
 
@@ -223,7 +223,6 @@ def save_topic_source_imagery_hashtag():
     all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
 
     for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
-        # for tag, tag_name_in_all_tags in [("hashtag", "hashtags")]:
         ddf_all_tags = util.load_ddf(DATA_DIR, "all_tags", ["month_index", "edits", "all_tags"])
         util.save_base_statistics(
             DATA_DIR,

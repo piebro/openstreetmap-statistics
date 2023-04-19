@@ -98,7 +98,7 @@ topics = {
         "What's the market share of edits per month?": {
             "url_hash": "a008",
             "content_functions": [
-                add_multi_line_plot("created_by_top_10_edit_count_monthly_percent", "percent of edits that use each editing software per month", "%", percent=true),
+                add_multi_line_plot("created_by_top_10_edit_count_monthly_percent", "percent of edits that use each editing software per month", "%", percent=true, on_top_of_each_other=true),
             ]
         },
         "What's the total amount of contributors, edits and changesets of editing software over time?": {
@@ -114,7 +114,7 @@ topics = {
             "content_functions": [
                 add_multi_line_plot("created_by_device_type_contributor_count_monthly", "monthly contributor count per device", "contributors"),
                 add_multi_line_plot("created_by_device_type_edit_count_monthly", "monthly edit count per device", "edits"),
-                add_multi_line_plot("created_by_device_type_edit_count_monthly_percent", "market share of edit per device", "%", percent=true),
+                add_multi_line_plot("created_by_device_type_edit_count_monthly_percent", "market share of edit per device", "%", percent=true, on_top_of_each_other=true),
             ]
         }
     },
@@ -158,7 +158,7 @@ topics = {
             "url_hash": "6c08",
             "content_functions": [
                 add_multi_line_plot("source_top_10_contributor_count_monthly", "monthly contributor count per source", "contributors"),
-                add_table("source_top_100_contributor_count_yearly", "yearly contributor count per source", "Corporation", "source_top_100_edit_count_total", "imagery_and_source_name_to_link"),
+                add_table("source_top_100_contributor_count_yearly", "yearly contributor count per source", "Corporation", "source_top_100_contributor_count_total", "imagery_and_source_name_to_link"),
             ]
         },
         "How many edits does each source have per month?": {
@@ -384,8 +384,21 @@ function options_to_selection(select, keys){
     }
 }
 
+data_cache = {}
+data_cache_list = []
+max_cache_size = 30
 async function load_data(data_name){
-    return await fetch("assets/data/" + data_name + ".json").then(response => {return response.json()})
+    if (data_name in data_cache){
+        return data_cache[data_name]
+    } else {
+        data_cache[data_name] = await fetch("assets/data/" + data_name + ".json").then(response => {return response.json()})
+        data_cache_list.push(data_name)
+        if (data_cache_list.length > max_cache_size){
+            delete data_cache[data_cache_list.shift()]
+        }
+        return data_cache[data_name]
+    }
+    
 }
 
 function add_div(id, class_str, parent_div=null){
@@ -475,13 +488,18 @@ function add_single_line_plot(data_name, plot_title, unit, percent=false){
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
-function add_multi_line_plot(data_name, plot_title, unit, percent=false){
+function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
         traces = []
         for (i in data["y_names"]){
             traces.push({"x": data["x"], "y": data["y_list"][i], "mode": "lines", "name": data["y_names"][i], "hovertemplate": "%{x}<br>%{y:,} " + unit})
+        }
+        if (on_top_of_each_other){
+            for (trace of traces){
+                trace["stackgroup"] = "one"
+            }
         }
         Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
     }
@@ -518,11 +536,10 @@ function add_map_plot(data_name, plot_title){
 function add_multiple_map_plots(data_name){
     show_content = async function(div_id){
         data = await load_data(data_name)
-        div = add_div(div_id, "dataDiv")
         for (const map_name of Object.keys(data[data_name])) {
-            child_div = add_div(map_name, "dataDiv", div)
+            div = add_div(map_name, "dataDiv")
             traces = get_map_plot_traces(data[data_name][map_name]["x"], data[data_name][map_name]["y"], data[data_name][map_name]["z"], data["max_z_value"])
-            Plotly.newPlot(child_div, traces, get_map_plot_layout(map_name, data["max_z_value"]), get_plot_config())
+            Plotly.newPlot(div, traces, get_map_plot_layout(map_name, data["max_z_value"]), get_plot_config())
         }
     }
     save_map_plots = async function(div_id){

@@ -51,7 +51,7 @@
             "BING"
         ],
         "link": "https://wiki.openstreetmap.org/wiki/Bing_Maps",
-        "starts_width": [
+        "starts_with": [
             "Bing ",
             "bing "
         ]
@@ -70,7 +70,7 @@
             "digitalglobe"
         ],
         "link": "https://wiki.openstreetmap.org/wiki/Maxar",
-        "starts_width": [
+        "starts_with": [
             "DigitalGlobe ",
             "Digital Globe "
         ]
@@ -161,7 +161,7 @@
             "Facebook's Map With AI - Maxar Imagery"
         ],
         "link": "https://wiki.openstreetmap.org/wiki/Maxar",
-        "starts_width": [
+        "starts_with": [
             "Maxar",
             "maxar"
         ]

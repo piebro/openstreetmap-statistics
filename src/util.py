@@ -442,7 +442,8 @@ def save_percent(data_name, data_name_divide, divide_y=None):
 def save_monthly_to_yearly(data_name):
     data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
     years = sorted(list(set([month[:4] for month in data["x"]])))
-
+    
+    
     if "y" in data:
         year_to_value = {year: 0 for year in years}
         for value, month in zip(data["y"], data["x"]):
@@ -455,8 +456,12 @@ def save_monthly_to_yearly(data_name):
             for value, month in zip(y, data["x"]):
                 year_to_value[month[:4]] += value
             new_y_list.append([year_to_value[year] for year in years])
-        data["y_list"] = new_y_list
+        
+        if np.sum([new_y[0] for new_y in new_y_list]) == 0:
+            new_y_list = [new_y[1:] for new_y in new_y_list]
+            years = years[1:]
 
+        data["y_list"] = new_y_list
     data["x"] = years
     save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}.json"), data)
 
