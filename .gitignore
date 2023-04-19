@@ -2,5 +2,6 @@
 *.osm.bz2
 *.csv.gz
 __pycache__
-temp
-temp_dev
+temp*
+venv
+changesets-latest.osm.bz2.torrent

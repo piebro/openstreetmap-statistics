@@ -16,8 +16,7 @@ jobs:
       - name: setup
         run: |
           sudo apt install aria2 osmium-tool pv
-          pip3 install numpy
-          mkdir temp
+          pip3 install dask pandas numpy
 
       - name: download latest changeset
         run: |
@@ -27,8 +26,8 @@ jobs:
       - name: save compressed changeset csv
         run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp
       
-      - name: save plots and tables
-        run: bash generate_plots.sh temp
+      - name: save data
+        run: python3 src/data_crunching_and_saving.py temp
         
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4

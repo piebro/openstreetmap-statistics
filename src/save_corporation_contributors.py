@@ -64,7 +64,7 @@ corporation_to_users = {
     "DigitalEgypt": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/DigitalEgypt"),
     "Expedia": get_all_users_from_links("https://github.com/osmlab/expedia/wiki/Data-Team"),
     "Gojek": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Gojek"),
-    "Grab": get_all_users_from_grab_link("https://github.com/GRABOSM/Grab-Data/blob/master/Grab Data Team.md"),
+    "Grab": get_all_users_from_grab_link("https://github.com/GRABOSM/Grab-Data/blob/master/Grab%20Data%20Team.md"),
     "Graphmasters": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Graphmasters"),
     "Kaart": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kaart"),
     "Kontur": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kontur"),

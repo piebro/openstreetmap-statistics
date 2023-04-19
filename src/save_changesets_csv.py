@@ -1,21 +1,17 @@
 import re
 import sys
 import os
-import gzip
-import json
 from datetime import datetime
 
 import numpy as np
+import pandas as pd
+from fastparquet import write as parquet_write
 
 import util
 
-# created_by_regex = re.compile(r"(?: *\(.*|(?: v\. |/| |-|_| \(| v)\d+\.?\d*.*)")
-created_by_regex = re.compile(r"(?: \d+(?:\.\d+)+$)")
-
-
 # change some streetcomplete quest type tags that changed their name over the time to the newest name
 # https://github.com/streetcomplete/StreetComplete/issues/1749#issuecomment-593450124
-sc_quest_type_tag_changes = {
+streetcomplete_tag_changes = {
     "AddAccessibleForPedestrians": "AddProhibitedForPedestrians",
     "AddWheelChairAccessPublicTransport": "AddWheelchairAccessPublicTransport",
     "AddWheelChairAccessToilets": "AddWheelchairAccessPublicTransport",
@@ -38,73 +34,50 @@ def debug_regex(regex, text):
 
 
 class IndexDict:
-    def __init__(self, name, top_k):
+    def __init__(self, name):
         self.counter = -1
         self.dict = {}
-        self.top_k_counter_changesets = []
-        self.top_k_counter_edits = []
-        self.top_k_counter_contributors = []
         self.name = name
-        self.top_k = top_k
 
-    def add_no_top_k_int(self, key):
+    def add(self, key):
         if key not in self.dict:
             self.counter += 1
             self.dict[key] = self.counter
-        return self.dict[key]
-
-    def add(self, key, edits, user_index):
-        if key not in self.dict:
-            self.counter += 1
-            self.dict[key] = self.counter
-            self.top_k_counter_changesets.append(0)
-            self.top_k_counter_edits.append(0)
-            self.top_k_counter_contributors.append(set())
         index = self.dict[key]
-        self.top_k_counter_changesets[index] += 1
-        self.top_k_counter_edits[index] += edits
-        self.top_k_counter_contributors[index].add(user_index)
-        return str(index)
+        return index
 
-    def add_keys(self, keys, edits, user_index):
-        return ";".join([self.add(key, edits, user_index) for key in keys])
+    def add_keys(self, keys):
+        if len(keys) == 0:
+            return ()
+        else:
+            return list(self.add(key) for key in keys)
 
     def save(self, save_dir):
         revesed_dict = {value: key for key, value in self.dict.items()}
         filepath = os.path.join(save_dir, f"index_to_tag_{self.name}.txt")
         with open(filepath, "w", encoding="UTF-8") as f:
+            # f.write(f"\n")
             for line in [revesed_dict[key] for key in sorted(revesed_dict.keys())]:
                 f.write(f"{line}\n")
 
-        top_k_counter_contributors = np.array(
-            [len(contributor_set) for contributor_set in self.top_k_counter_contributors], dtype=np.int64
-        )
-        top_k_dict = {
-            "changesets": np.argsort(-np.array(self.top_k_counter_changesets, dtype=np.int64))[: self.top_k].tolist(),
-            "edits": np.argsort(-np.array(self.top_k_counter_edits, dtype=np.int64))[: self.top_k].tolist(),
-            "contributors": np.argsort(-top_k_counter_contributors)[: self.top_k].tolist(),
-        }
 
-        with open(os.path.join(save_dir, f"top_k_{self.name}.json"), "w", encoding="UTF-8") as f:
-            f.write(json.dumps(top_k_dict, separators=(",", ":")))
-
-
-def get_month_and_month_to_index():
+def get_year_and_month_to_index():
     first_year = 2005
     first_month = 4
     now = datetime.now()
     last_year = now.year
     last_month = now.month - 1
     years = [str(year) for year in range(first_year, last_year + 1)]
+    year_to_index = {year: i for i, year in enumerate(years)}
     months = []
     for year in years:
         months.extend(f"{year}-{month:02d}" for month in range(1, 13))
     months = months[first_month - 1 : -12 + last_month]
-    month_to_index = {month: str(i) for i, month in enumerate(months)}
-    return months, month_to_index
+    month_to_index = {month: i for i, month in enumerate(months)}
+    return years, year_to_index, months, month_to_index
 
 
-def add_pos(data):
+def get_pos(data):
     if len(data[7][1:]) > 0:
         min_x = float(data[7][1:])
         max_x = float(data[9][1:])
@@ -113,30 +86,30 @@ def add_pos(data):
         min_y = float(data[8][1:])
         max_y = float(data[10][1:])
         pos_y = round(((min_y + max_y) / 2) + 90) % 180
-        return str(pos_x), str(pos_y)
+        return pos_x, pos_y
     else:
-        return "", ""
+        return -1, -1
 
 
-def add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index, replace_rules):
+def get_created_by_and_streetcomplete(tags, index_dicts, replace_rules):
     if "created_by" in tags and len(tags["created_by"]) > 0:
         created_by = tags["created_by"].replace("%20%", " ").replace("%2c%", ",")
         created_by = replace_with_rules(created_by, replace_rules["created_by"])
 
-        created_by_index = index_dicts["created_by"].add(created_by, edits, user_index)
+        created_by_index = index_dicts["created_by"].add(created_by)
 
         if created_by == "StreetComplete" and "StreetComplete:quest_type" in tags:
-            sc_quest_type_tag = tags["StreetComplete:quest_type"]
-            sc_quest_type_tag = sc_quest_type_tag_changes.get(sc_quest_type_tag, sc_quest_type_tag)
-            sc_quest_type_index = index_dicts["streetcomplete_quest_type"].add(sc_quest_type_tag, edits, user_index)
-            return created_by_index, sc_quest_type_index
+            streetcomplete_tag = tags["StreetComplete:quest_type"]
+            streetcomplete_tag = streetcomplete_tag_changes.get(streetcomplete_tag, streetcomplete_tag)
+            streetcomplete_index = index_dicts["streetcomplete"].add(streetcomplete_tag)
+            return created_by_index, streetcomplete_index
         else:
-            return created_by_index, ""
+            return created_by_index, 65535
     else:
-        return "", ""
+        return 4_294_967_295, 65535
 
 
-def add_imagery(tags, index_dicts, edits, user_index, replace_rules):
+def get_imagery(tags, index_dicts, replace_rules):
     if "imagery_used" in tags and len(tags["imagery_used"]) > 0:
         imagery_list = [
             key for key in tags["imagery_used"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(key) > 0
@@ -146,76 +119,65 @@ def add_imagery(tags, index_dicts, edits, user_index, replace_rules):
                 imagery_list[i] = imagery_list[i][1:]
             imagery_list[i] = replace_with_rules(imagery_list[i], replace_rules["imagery"])
 
-        return index_dicts["imagery"].add_keys(imagery_list, edits, user_index)
+        return index_dicts["imagery"].add_keys(imagery_list)
     else:
-        return ""
+        return ()
 
 
-def add_hashtags(tags, index_dicts, edits, user_index):
+def add_hashtags(tags, index_dicts):
     if "hashtags" in tags:
-        return index_dicts["hashtag"].add_keys(tags["hashtags"].lower().split(";"), edits, user_index)
+        return index_dicts["hashtag"].add_keys(tags["hashtags"].lower().split(";"))
     else:
-        return ""
+        return ()
 
 
-def add_source(tags, index_dicts, edits, user_index, replace_rules):
+def add_source(tags, index_dicts, replace_rules):
     if "source" in tags and len(tags["source"]) > 0:
-        source_list = [
-            key for key in tags["source"].replace("%20%", " ").replace("%2c%", ",").split(";") if len(key) > 0
-        ]
-        # there are some source tags that are seperated with ",". Maybe split "," if there is no ";" present.
+        source = tags["source"].replace("%20%", " ").replace("%2c%", ",")
+
+        source_list = [source]
+        for seperator in [";", " | ", " + ", "+", " / ", " & ", ", "]:
+            if seperator in source:
+                source_list = [key for key in source.split(seperator) if len(key) > 0]
+                break
+
         for i in range(len(source_list)):
             if source_list[i][0] == " ":
                 source_list[i] = source_list[i][1:]
             source_list[i] = replace_with_rules(source_list[i], replace_rules["source"])
+
+            if source_list[i][:8] == "https://":
+                source_list[i] = "https://" + source_list[i].split("/")[2]
+            elif source_list[i][:7] == "http://":
+                source_list[i] = "http://" + source_list[i].split("/")[2]
+
             source_list[i] = source_list[i][:120]
 
-        return index_dicts["source"].add_keys(source_list, edits, user_index)
+        return index_dicts["source"].add_keys(source_list)
     else:
-        return ""
+        return ()
 
 
-def add_all_tags(tags, index_dicts, edits, user_index):
-    return index_dicts["all_tags"].add_keys([tag_name.split(":")[0] for tag_name in tags.keys()], edits, user_index)
+def add_all_tags(tags, index_dicts):
+    return index_dicts["all_tags"].add_keys(
+        [tag_name.split(":")[0] for tag_name in tags.keys() if tag_name != "created_by"]
+    )
 
 
-def add_bot_usage(tags):
-    if "bot" in tags and tags["bot"] == "yes":
-        return "1"
+def get_corporation_index(user_name, index_dicts, user_name_to_corporation):
+    if user_name in user_name_to_corporation:
+        return index_dicts["corporation"].add(user_name_to_corporation[user_name])
     else:
-        return ""
+        return 255
 
 
-def osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter, replace_rules):
-    data = osmium_line.split(" ")
-    if data[2][1:8] not in month_to_index:  # if its the current month
-        return None
-
-    month_index = int(month_to_index[data[2][1:8]])
-    edits = int(data[1][1:])
-    user_index = int(index_dicts["user_name"].add_no_top_k_int(data[6][1:]))
-
-    counter["total_changesets"] += 1
-    counter["monthly_changsets"][month_index] += 1
-    counter["total_edits"] += edits
-    counter["monthly_edits"][month_index] += edits
-    counter["monthly_contributors"][month_index].add(user_index)
-
-    csv_str_array = []
-    csv_str_array.append(str(month_index))
-    csv_str_array.append(str(edits))
-    csv_str_array.append(str(user_index))
-    csv_str_array.extend(add_pos(data))
-
-    tags = get_tags(data[11][1:-1])
-    csv_str_array.extend(add_created_by_and_sc_quest_type(tags, index_dicts, edits, user_index, replace_rules))
-    csv_str_array.append(add_imagery(tags, index_dicts, edits, user_index, replace_rules))
-    csv_str_array.append(add_hashtags(tags, index_dicts, edits, user_index))
-    csv_str_array.append(add_source(tags, index_dicts, edits, user_index, replace_rules))
-    csv_str_array.append(add_all_tags(tags, index_dicts, edits, user_index))
-    csv_str_array.append(add_bot_usage(tags))
-
-    return ",".join(csv_str_array)
+def load_user_name_to_corporation_dict():
+    corporation_contributors = util.load_json(os.path.join("assets", "corporation_contributors.json"))
+    user_name_to_corporation = {}
+    for corporation_name, (_, user_name_list) in corporation_contributors.items():
+        for user_name in user_name_list:
+            user_name_to_corporation[user_name] = corporation_name
+    return user_name_to_corporation
 
 
 def create_replace_rules():
@@ -263,49 +225,164 @@ def replace_with_rules(tag, replace_rules):
     return tag
 
 
+def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
+    general = {
+        "changeset_index": np.array(data_dict["changeset_index"], dtype=np.uint32),
+        "year_index": np.array(data_dict["year_index"], dtype=np.uint8),
+        "month_index": np.array(data_dict["month_index"], dtype=np.uint16),
+        "edits": np.array(data_dict["edits"], dtype=np.uint32),
+        "user_index": np.array(data_dict["user_index"], dtype=np.uint32),
+        "pos_x": np.array(data_dict["pos_x"], dtype=np.int16),
+        "pos_y": np.array(data_dict["pos_y"], dtype=np.int16),
+        "created_by": np.array(data_dict["created_by"], dtype=np.uint32),
+        "corporation": np.array(data_dict["corporation"], dtype=np.uint8),
+        "streetcomplete": np.array(data_dict["streetcomplete"], dtype=np.uint16),
+        "bot": np.array(data_dict["bot"], dtype=np.bool_),
+    }
+    save_dir = os.path.join(parquet_save_dir, "general")
+    parquet_write(
+        save_dir,
+        pd.DataFrame.from_dict(data=general),
+        compression="GZIP",
+        file_scheme="hive",
+        partition_on=["month_index"],
+        # write_index=False,
+        append=os.path.isdir(save_dir),
+    )
+
+    for tag_name in ("imagery", "hashtag", "source", "all_tags"):
+        if len(data_dict[tag_name]) == 0:
+            continue
+        changeset_index = np.array(data_dict[f"{tag_name}_changeset_index"], dtype=np.uint32)
+        changeset_index_with_offset = changeset_index - (batch_size * file_counter)
+        tag_dict = {
+            "changeset_index": changeset_index_with_offset,
+            "year_index": general["year_index"][changeset_index_with_offset],
+            "month_index": general["month_index"][changeset_index_with_offset],
+            "edits": general["edits"][changeset_index_with_offset],
+            "user_index": general["user_index"][changeset_index_with_offset],
+            "pos_x": general["pos_x"][changeset_index_with_offset],
+            "pos_y": general["pos_y"][changeset_index_with_offset],
+            "created_by": general["created_by"][changeset_index_with_offset],
+            tag_name: np.array(data_dict[tag_name], dtype=np.uint32),
+        }
+
+        save_dir = os.path.join(parquet_save_dir, f"{tag_name}")
+        parquet_write(
+            save_dir,
+            pd.DataFrame.from_dict(data=tag_dict),
+            compression="GZIP",
+            file_scheme="hive",
+            partition_on=["month_index"],
+            # write_index=False,
+            append=os.path.isdir(save_dir),
+        )
+
+
+def init_data_dict():
+    # TODO: do this more efficiant with numpy arrays or directly as a pandas df
+    data_dict = {
+        "changeset_index": [],
+        "year_index": [],
+        "month_index": [],
+        "edits": [],
+        "user_index": [],
+        "pos_x": [],
+        "pos_y": [],
+        "created_by": [],
+        "corporation": [],
+        "streetcomplete": [],
+        "bot": [],
+        "comment": [],
+        "local": [],
+        "host": [],
+        "changeset_count": [],
+        "version": [],
+    }
+    for tag_name in ("imagery", "hashtag", "source", "all_tags"):
+        data_dict[f"{tag_name}_changeset_index"] = []
+        data_dict[tag_name] = []
+    return data_dict
+
+
 def main():
     save_dir = sys.argv[1]
     os.makedirs(save_dir, exist_ok=True)
-    months, month_to_index = get_month_and_month_to_index()
+    years, year_to_index, months, month_to_index = get_year_and_month_to_index()
 
     with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
 
-    index_dicts = {
-        "user_name": IndexDict("user_name", 100),
-        "created_by": IndexDict("created_by", 100),
-        "streetcomplete_quest_type": IndexDict("streetcomplete_quest_type", 300),
-        "imagery": IndexDict("imagery", 100),
-        "hashtag": IndexDict("hashtag", 100),
-        "source": IndexDict("source", 100),
-        "all_tags": IndexDict("all_tags", 100),
-    }
+    with open(os.path.join(save_dir, "years.txt"), "w", encoding="UTF-8") as f:
+        f.writelines("\n".join(years))
+        f.writelines("\n")
 
-    counter = {
-        "total_changesets": 0,
-        "total_edits": 0,
-        "monthly_changsets": np.zeros((len(months)), dtype=np.int64),
-        "monthly_edits": np.zeros((len(months)), dtype=np.int64),
-        "monthly_contributors": [set() for _ in range(len(months))],
+    index_dicts = {
+        "user_name": IndexDict("user_name"),
+        "created_by": IndexDict("created_by"),
+        "streetcomplete": IndexDict("streetcomplete"),
+        "imagery": IndexDict("imagery"),
+        "hashtag": IndexDict("hashtag"),
+        "source": IndexDict("source"),
+        "all_tags": IndexDict("all_tags"),
+        "corporation": IndexDict("corporation"),
     }
 
     replace_rules = create_replace_rules()
+    user_name_to_corporation = load_user_name_to_corporation_dict()
 
-    with gzip.open(os.path.join(save_dir, "changesets.csv.gz"), "w") as f:
-        for osmium_line in sys.stdin:
-            csv_str = osmium_line_to_csv_str(osmium_line, month_to_index, index_dicts, counter, replace_rules)
-            if csv_str is None:
-                continue
+    parquet_save_dir = os.path.join(save_dir, "changeset_data")
+    os.makedirs(parquet_save_dir, exist_ok=True)
 
-            f.write(f"{csv_str}\n".encode())
+    batch_size = 5_000_000
+    file_counter = 0
+    for i, osmium_line in enumerate(sys.stdin):
+        if i % batch_size == 0:
+            if i > 0:
+                save_data(parquet_save_dir, file_counter, batch_size, data_dict)
+                file_counter += 1
+            data_dict = init_data_dict()
 
-    counter["total_contributor"] = len(index_dicts["user_name"].dict)
-    counter["monthly_changsets"] = counter["monthly_changsets"].tolist()
-    counter["monthly_edits"] = counter["monthly_edits"].tolist()
-    counter["monthly_contributors"] = [len(s) for s in counter["monthly_contributors"]]
+        data = osmium_line.split(" ")
+        if data[2][1:8] not in month_to_index:
+            continue
 
-    util.save_json(os.path.join(save_dir, "infos.json"), counter)
+        data_dict["changeset_index"].append(i)
+        data_dict["year_index"].append(year_to_index[data[2][1:5]])
+        data_dict["month_index"].append(month_to_index[data[2][1:8]])
+        data_dict["edits"].append(int(data[1][1:]))
+        user_name = data[6][1:]
+        data_dict["user_index"].append(int(index_dicts["user_name"].add(user_name)))
+
+        pos_x, pos_y = get_pos(data)
+        data_dict["pos_x"].append(pos_x)
+        data_dict["pos_y"].append(pos_y)
+
+        tags = get_tags(data[11][1:-1])
+        created_by, streetcomplete = get_created_by_and_streetcomplete(tags, index_dicts, replace_rules)
+        data_dict["created_by"].append(created_by)
+        data_dict["streetcomplete"].append(streetcomplete)
+        data_dict["corporation"].append(get_corporation_index(user_name, index_dicts, user_name_to_corporation))
+        data_dict["bot"].append("bot" in tags and tags["bot"] == "yes")
+
+        for index in get_imagery(tags, index_dicts, replace_rules):
+            data_dict["imagery_changeset_index"].append(i)
+            data_dict["imagery"].append(index)
+
+        for index in add_hashtags(tags, index_dicts):
+            data_dict["hashtag_changeset_index"].append(i)
+            data_dict["hashtag"].append(index)
+
+        for index in add_source(tags, index_dicts, replace_rules):
+            data_dict["source_changeset_index"].append(i)
+            data_dict["source"].append(index)
+
+        for index in add_all_tags(tags, index_dicts):
+            data_dict["all_tags_changeset_index"].append(i)
+            data_dict["all_tags"].append(index)
+
+    save_data(parquet_save_dir, file_counter, batch_size, data_dict)
 
     for index_dict in index_dicts.values():
         index_dict.save(save_dir)
