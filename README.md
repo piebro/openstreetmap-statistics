@@ -54,7 +54,7 @@ Incorrect and out-of-date user lists could be a source of error in the data.
 The code is tested on Ubuntu but should work on every Linux distro. I'm not sure about Windows or Mac.
 
 Install dependencies for downloading and handling the latest changeset and showing a progress bar `sudo apt install aria2 osmium-tool pv`.
-Furthermore, install python 3.8 or higher `sudo apt install python3.8` with Numpy `pip3 install numpy`. 
+Furthermore, install python 3.8 or higher `sudo apt install python3.8` and install the used python packages with `pip install -r requirements.txt`.
 
 Run the following commands to get the latest OSM changeset file.
 ```bash
