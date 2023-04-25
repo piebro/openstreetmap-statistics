@@ -1,6 +1,4 @@
-*.txt
 *.osm.bz2
-*.csv.gz
 __pycache__
 temp*
 venv
