@@ -8,7 +8,8 @@
   <title>OpenStreetMap Statistics</title>
   <script src="assets/plotly-custom.min.js"></script>
   <link rel="stylesheet" type="text/css" href="index.css">
-  <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/plausible.js"></script>
+  <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/script.js"></script>
+  
 </head>
 
 <script>
@@ -368,6 +369,8 @@ for (const [topic, topic_obj] of Object.entries(topics)) {
     }
 }
 
+window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }
+
 function options_to_selection(select, keys){
     prev_value = select.value
     while (select.firstChild) {
@@ -642,8 +645,8 @@ function init(){
             }
         }
     }
-    update_content()
-    window.addEventListener('resize', function(event) {update_content()}, true);
+    update_content(true)
+    window.addEventListener('resize', function(event) {update_content(false)}, true);
 }
 
 function update_select_0(){
@@ -658,23 +661,26 @@ function update_select_1(){
 
 function on_change_select_0(){
     update_select_1()
-    update_content()
+    update_content(true)
 }
 
 function on_change_select_1(){
-    update_content()
+    update_content(true)
 }
 
 function get_current_select(){
     return [document.getElementById('select_0').value, document.getElementById('select_1').value]
 }
 
-async function update_content(){
+async function update_content(log_update){
     document.getElementById("data").innerHTML = ""  
     topic_question = get_current_select()
     topic = topic_question[0]
     question = topic_question[1]
     console.log(topic, question)
+    if (log_update){
+        plausible("Selected Plot(s)", {props: {"Topic Question": topic + ": " + question}})
+    }
 
     for (const [index, content_functions] of topics[topic][question]["content_functions"].entries()){
         await content_functions["show"](index)
@@ -686,6 +692,7 @@ async function update_content(){
                 content_functions["save_plot"](index)
             }
         }
+        plausible("Download Plot(s)", {props: {"Topic Question": topic + ": " + question}})
     }
     document.getElementById('save_data_btn').onclick = async function(){
         for (const [index, content_functions] of topics[topic][question]["content_functions"].entries()){
@@ -693,6 +700,7 @@ async function update_content(){
                 content_functions["save_data"](index)
             }
         }
+        plausible("Download Data", {props: {"Topic Question": topic + ": " + question}})
     }
     history.replaceState(null, "", "#" + topics[topic][question]["url_hash"])
 }
