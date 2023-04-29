@@ -119,7 +119,7 @@ source venv/bin/activate
 
 ## Website Statistics
 
-There is lightweight tracking with [Plausible](https://plausible.io/about) for the [website](https://piebro.github.io/openstreetmap-statistics/) to get infos about how many people are visiting. Everyone who is interested can look at these stats here: https://plausible.io/piebro.github.io%2Fopenstreetmap-statistics?period=30d. As far as I know only users without an AddBlocker are counted, so these statistics are under estimating the actual count of visitors. I would guess that quite a few people visiting the site have an enabled AddBlocker.
+There is lightweight tracking with [Plausible](https://plausible.io/about) for the [website](https://piebro.github.io/openstreetmap-statistics/) to get infos about how many people are visiting. Everyone who is interested can look at these stats here: https://plausible.io/piebro.github.io%2Fopenstreetmap-statistics?period=30d. Only users without an AddBlocker are counted, so these statistics are under estimating the actual count of visitors. I would guess that quite a few people (including me) visiting the site have an AddBlocker.
 
 ## License
 
