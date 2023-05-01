@@ -153,6 +153,7 @@
         ]
     },
     "Mapbox Satellite": {
+        "link": "https://www.mapbox.com/imagery",
         "starts_with": [
             "mapbox",
             "Mapbox"

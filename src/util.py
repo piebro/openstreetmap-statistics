@@ -327,7 +327,7 @@ def load_data_dict(name):
 
 
 def pd_series_to_y(x, series, cumsum=False):
-    if x == None:
+    if x is None:
         if isinstance(series, np.int64):
             return series
         return series.values.tolist()[0]

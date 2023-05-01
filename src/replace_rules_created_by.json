@@ -38,6 +38,13 @@
     "Brick": {
         "link": "https://github.com/OSMBuildings/Brick"
     },
+    "BTC Map Android": {
+        "link": "https://github.com/teambtcmap/btcmap-android",
+        "starts_with": [
+            "BTC Map Android "
+        ],
+        "type": "mobile_editor"
+    },
     "bulk_upload_sax.py": {
         "link": "https://wiki.openstreetmap.org/wiki/Bulk_upload_sax.py",
         "type": "tool"
@@ -80,6 +87,13 @@
             "CityZen Android app "
         ]
     },
+    "Climb The World": {
+        "link": "https://wiki.openstreetmap.org/wiki/Climb_The_World",
+        "starts_with": [
+            "Climb The World "
+        ],
+        "type": "mobile_editor"
+    },
     "CODAP": {
         "starts_with": [
             "CODAP "
@@ -107,22 +121,20 @@
         "type": "desktop_editor"
     },
     "Every Door Android": {
+        "link": "https://every-door.app/",
         "starts_with": [
-            "Every Door Android ",
-            "Every Door android "
-        ],
-        "type": "mobile_editor"
-    },
-    "Every Door ios": {
-        "starts_with": [
-            "Every Door ios "
+            "Every Door Android",
+            "Every Door android"
         ],
         "type": "mobile_editor"
     },
     "Every Door iOS": {
+        "link": "https://every-door.app/",
         "starts_with": [
-            "Every Door iOS "
-        ]
+            "Every Door iOS",
+            "Every Door ios"
+        ],
+        "type": "mobile_editor"
     },
     "finde.cash": {
         "starts_with": [
@@ -162,6 +174,7 @@
         ]
     },
     "gnome-maps": {
+        "link": "https://wiki.gnome.org/Apps/Maps",
         "starts_with": [
             "gnome-maps "
         ],
@@ -292,18 +305,21 @@
         ]
     },
     "MapComplete": {
+        "link": "https://mapcomplete.osm.be",
         "starts_with": [
             "MapComplete "
         ],
         "type": "desktop_editor"
     },
     "MapContrib": {
+        "link": "https://wiki.openstreetmap.org/wiki/MapContrib",
         "starts_with": [
             "MapContrib "
         ],
         "type": "desktop_editor"
     },
     "MapRoulette": {
+        "link": "https://wiki.openstreetmap.org/wiki/MapRoulette",
         "type": "desktop_editor"
     },
     "MAPS.ME android": {
@@ -330,6 +346,7 @@
             "Mapzen Alpha 1",
             "Mapzen Beta"
         ],
+        "link": "https://wiki.openstreetmap.org/wiki/Mapzen",
         "type": "mobile_editor"
     },
     "Mapzen POI Collector": {
@@ -371,19 +388,21 @@
         ]
     },
     "OMaps android": {
+        "link": "https://wiki.openstreetmap.org/wiki/OMaps",
         "starts_with": [
             "OMaps android "
         ],
         "type": "mobile_editor"
     },
     "OMaps ios": {
+        "link": "https://wiki.openstreetmap.org/wiki/OMaps",
         "starts_with": [
             "OMaps ios "
         ],
         "type": "mobile_editor"
     },
     "openaedmap.org": {
-        "aliases":[
+        "aliases": [
             "https://openaedmap.org"
         ],
         "link": "https://openaedmap.org",
@@ -456,12 +475,14 @@
         ]
     },
     "OSM Contributor": {
+        "link": "https://wiki.openstreetmap.org/wiki/OSM_Contributor",
         "starts_with": [
             "OSM Contributor "
         ],
         "type": "mobile_editor"
     },
     "Osm Go!": {
+        "link": "https://wiki.openstreetmap.org/wiki/Osm_Go!",
         "starts_with": [
             "Osm Go! "
         ],
@@ -644,6 +665,7 @@
         ]
     },
     "Pic4Review": {
+        "link": "https://wiki.openstreetmap.org/wiki/Pic4Review",
         "starts_with": [
             "Pic4Review "
         ],
@@ -665,6 +687,7 @@
         ]
     },
     "POI+": {
+        "link": "https://wiki.openstreetmap.org/wiki/POI+",
         "starts_with": [
             "POI+ "
         ],
@@ -708,6 +731,12 @@
             "QGIS OSM "
         ],
         "type": "desktop_editor"
+    },
+    "rahino Android": {
+        "link": "http://rahinoapp.ir/",
+        "starts_with": [
+            "rahino("
+        ]
     },
     "Rapid": {
         "link": "https://github.com/facebook/RapiD",
@@ -849,12 +878,19 @@
             "w3GIS "
         ]
     },
+    "Wemapp iOS": {
+        "starts_with": [
+            "Wemapp("
+        ],
+        "type": "mobile_editor"
+    },
     "Wemapp Social": {
         "starts_with": [
             "Wemapp Social("
         ]
     },
     "wheelmap.org": {
+        "link": "https://wheelmap.org/",
         "type": "desktop_editor"
     },
     "YAPIS": {
