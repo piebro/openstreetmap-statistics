@@ -2,7 +2,9 @@
 
 Monthly updated statistics of OpenStreetMap. There is a [website](https://piebro.github.io/openstreetmap-statistics) to browse the generated plots and tables.
 
-The plots and tables are organized in topics and questions I asked myself about OpenStreetMap. My Motivation for this project was that I couldn't find some statistics I was interested in or that the data was outdated. That's why I created these statistics, which are easily updatable with a simple script run locally or with GitHub actions. 
+The plots and tables are organized in topics and questions I asked myself about OpenStreetMap. My Motivation for this project was that I couldn't find some statistics I was interested in or that the data was outdated. That's why I created these statistics, which are easily updatable with a simple script run locally or with GitHub actions.
+
+There is also a notebook to create [custom plots](https://piebro.github.io/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
 
 
 ## Methodology
@@ -49,12 +51,21 @@ Incorrect and out-of-date user lists could be a source of error in the data.
 
 ## Usage
 
-### Create plots and tables locally
+### Update data
 
-The code is tested on Ubuntu but should work on every Linux distro. I'm not sure about Windows or Mac.
+The code is tested on Ubuntu 20.04 but should work on every Linux distro. I'm not sure about Windows or Mac.
 
-Install dependencies for downloading and handling the latest changeset and showing a progress bar `sudo apt install aria2 osmium-tool pv`.
-Furthermore, install python 3.8 or higher `sudo apt install python3.8` and install the used python packages with `pip install -r requirements.txt`.
+```bash
+# Install dependencies for downloading and handling the latest changeset and showing a progress bar
+sudo apt install aria2 osmium-tool pv
+
+# create a vitual enviroment
+python3 -m venv /path/to/new/virtual/environment
+source venv/bin/activate
+
+# install python dependencies
+pip3 install -r requirements.txt
+```
 
 Run the following commands to get the latest OSM changeset file.
 ```bash
@@ -84,6 +95,12 @@ You can update the list of cooperation with their osm user names in assets/corpo
 python3 src/save_corporation_contributors.py
 ```
 
+### Update Jupyter Lite Notebook
+
+```bash
+jupyter lite build --contents src/custom_plots_browser.ipynb --output-dir jupyter_lite
+```
+
 ### Update background map
 
 You can update the background map in assets/background_map.png with the following command after installing two additional python dependencies like this `pip3 install geopandas pillow` and with a shapefile from https://www.naturalearthdata.com/downloads/110m-physical-vectors/.
@@ -99,6 +116,7 @@ npm run custom-bundle -- --traces scatter,histogram2d --transforms none
 ```
 This has the advantage of having a smaller plotly file while still being able to generate all needed plots.
 
+
 ## Contributing
 
 If there are other topics and questions about OpenStreetMap you think are interesting and that can be abstracted from the changeset, feel free to open an issue or create a pull request.
@@ -107,19 +125,13 @@ Also, if you see any typos or other mistakes, feel free to correct them and crea
 Another valuable way to contribute is to add editing software or imagery sources to [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
 This can make the statistics more accurate.
 
-Adding a new plot also needs adding a new `url_hash`. A new unique one can be printed with running `python3 src/create_new_unique_url_hash.py`.
-
 You can use `black -l 120 .` in the project root diretory to run the python code formatter [Black](https://pypi.org/project/black/) befor committing code.
 
-
-```bash
-python3 -m venv /path/to/new/virtual/environment
-source venv/bin/activate
-```
 
 ## Website Statistics
 
 There is lightweight tracking with [Plausible](https://plausible.io/about) for the [website](https://piebro.github.io/openstreetmap-statistics/) to get infos about how many people are visiting. Everyone who is interested can look at these stats here: https://plausible.io/piebro.github.io%2Fopenstreetmap-statistics?period=30d. As far as I know only users without an AddBlocker are counted, so these statistics are under estimating the actual count of visitors. I would guess that quite a few people visiting the site have an enabled AddBlocker.
+
 
 ## License
 

@@ -258,9 +258,6 @@ def save_topic_source_imagery_hashtag():
 
 
 def save_topic_streetcomplete():
-
-    # ddf = dd.read_parquet(os.path.join(PARQUET_DIR, "general_*.parquet"))
-    # ddf_all_tags = dd.read_parquet(os.path.join(PARQUET_DIR, "all_tags_*.parquet"))
     ddf_all_tags = util.load_ddf(
         DATA_DIR, "all_tags", ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags")
     )

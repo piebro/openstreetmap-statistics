@@ -42,7 +42,7 @@ def get_months_years(data_dir):
     with open(os.path.join(data_dir, "months.txt"), "r", encoding="UTF-8") as f:
         months = [line[:-1] for line in f.readlines()]
     years = sorted(list(set([m[:4] for m in months])))
-    return months, years
+    return np.array(months), np.array(years)
 
 
 def list_to_dict(l):
@@ -116,17 +116,14 @@ def save_base_statistics(
     months, years = get_months_years(data_dir)
 
     if edit_count_monthly:
-        # ddf = load_ddf(data_dir, "general", columns=["month_index", "edits"])
         save_y(
             progress_bar, f"{prefix}_edit_count_monthly", months, ddf.groupby(["month_index"])["edits"].sum().compute()
         )
 
     if changeset_count_monthly:
-        # ddf = load_ddf(data_dir, "general", columns=["month_index"])
         save_y(progress_bar, f"{prefix}_changeset_count_monthly", months, ddf.groupby(["month_index"]).size().compute())
 
     if contributors_unique_yearly:
-        # ddf = load_ddf(data_dir, "general", columns=["year_index", "user_index"])
         save_y(
             progress_bar,
             f"{prefix}_contributors_unique_yearly",
@@ -135,7 +132,6 @@ def save_base_statistics(
         )
 
     if contributor_count_monthly or new_contributor_count_monthly:
-        # ddf = load_ddf(data_dir, "general", columns=["month_index", "user_index"])
         contributors_unique_monthly = ddf.groupby(["month_index"])["user_index"].unique().compute()
         if contributor_count_monthly:
             save_y(progress_bar, f"{prefix}_contributor_count_monthly", months, contributors_unique_monthly.apply(len))
@@ -149,7 +145,6 @@ def save_base_statistics(
         contributors_unique_monthly = None
 
     if edit_count_map_total:
-        # ddf = load_ddf(data_dir, "general", columns=["edits", "pos_x", "pos_y"])
         save_map(
             progress_bar,
             f"{prefix}_edit_count_map_total",
