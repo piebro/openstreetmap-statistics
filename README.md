@@ -4,7 +4,7 @@ Monthly updated statistics of OpenStreetMap. There is a [website](https://piebro
 
 The plots and tables are organized in topics and questions I asked myself about OpenStreetMap. My Motivation for this project was that I couldn't find some statistics I was interested in or that the data was outdated. That's why I created these statistics, which are easily updatable with a simple script run locally or with GitHub actions.
 
-There is also a notebook to create [custom plots](https://piebro.github.io/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
+There is also a notebook to create [custom plots](https://piebro.github.io/openstreetmap-statistics/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
 
 
 ## Methodology
