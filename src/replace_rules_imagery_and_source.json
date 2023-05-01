@@ -191,6 +191,12 @@
             "Russian maritime notification"
         ]
     },
+    "Strava": {
+        "starts_with": [
+            "Strava",
+            "strava"
+        ]
+    },
     "Survey": {
         "starts_with": [
             "survey",
