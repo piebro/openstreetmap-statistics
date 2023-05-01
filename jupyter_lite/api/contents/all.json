@@ -1,0 +1,25 @@
+{
+  "content": [
+    {
+      "content": null,
+      "created": "2023-05-01T08:56:14.684728Z",
+      "format": null,
+      "last_modified": "2023-05-01T08:55:16.448388Z",
+      "mimetype": null,
+      "name": "custom_plots_browser.ipynb",
+      "path": "custom_plots_browser.ipynb",
+      "size": 3281,
+      "type": "notebook",
+      "writable": true
+    }
+  ],
+  "created": "2023-05-01T08:56:14.680728Z",
+  "format": "json",
+  "last_modified": "2023-05-01T08:56:14.680728Z",
+  "mimetype": null,
+  "name": "",
+  "path": "",
+  "size": null,
+  "type": "directory",
+  "writable": true
+}
