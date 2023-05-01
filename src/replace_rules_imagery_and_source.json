@@ -95,6 +95,15 @@
             "EsriWorldImagery"
         ]
     },
+    "Every Door Android": {
+        "link": "https://every-door.app/"
+    },
+    "Every Door iOS": {
+        "aliases":[
+            "Every Door ios"
+        ],
+        "link": "https://every-door.app/"
+    },
     "Geoportal 2: Orthophotomap": {
         "starts_with": [
             "Geoportal 2: ",
@@ -149,6 +158,9 @@
             "Mapbox"
         ]
     },
+    "MapComplete": {
+        "link": "https://mapcomplete.osm.be"
+    }, 
     "Mapillary": {
         "starts_with": [
             "mapillary",
