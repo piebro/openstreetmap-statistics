@@ -591,9 +591,9 @@ function get_table_html(title, data, data_total, y_names_category, name_to_link)
         }
         body += "<tr><td>" + String(parseInt(row_index) + 1) + "</td><td>" + name + "</td>"
         for (y_value of data["y_list"][row_index]){
-            body += "<td>" + y_value.toLocaleString() + "</td>"
+            body += "<td>" + y_value.toLocaleString("en-US") + "</td>"
         }
-        body += "<td>" + data_total["y_list"][row_index].toLocaleString() + "</td></tr>"
+        body += "<td>" + data_total["y_list"][row_index].toLocaleString("en-US") + "</td></tr>"
     }
     return "<h3>" + title + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
 }
