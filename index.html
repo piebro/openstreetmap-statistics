@@ -37,8 +37,9 @@ topics = {
         "How many edits are from users from which year?": {
             "url_hash": "d993",
             "content_functions": [
-                add_multi_line_plot("general_contributor_count_attrition_rate_yearly", "edit count of users depending in which year their first edit was", "edits", percent=false, on_top_of_each_other=true, bar_chart=true),
-                add_multi_line_plot("general_contributor_count_attrition_rate_yearly_percent", "percent of edits of users depending in which year their first edit was", "%", percent=true, on_top_of_each_other=true, bar_chart=true)
+                add_multi_line_plot("general_contributor_count_attrition_rate_yearly", "edit count of users depending in which year their first edit was", "edits", percent=false, on_top_of_each_other=true, bar_chart=true, reverse_y_names=true),
+                add_multi_line_plot("general_contributor_count_attrition_rate_yearly_percent", "percent of edits of users depending in which year their first edit was", "%", percent=true, on_top_of_each_other=true, bar_chart=true, reverse_y_names=true),
+                add_multi_line_plot("general_contributor_count_attrition_rate_yearly", "edits of users depending in which year their first edit was", "edits", percent=false, on_top_of_each_other=false, bar_chart=false, reverse_y_names=false)
                 
             ]
         },
@@ -503,12 +504,15 @@ function add_single_line_plot(data_name, plot_title, unit, percent=false){
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
-function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false, bar_chart=false){
+function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false, bar_chart=false, reverse_y_names=false){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
         traces = []
         for (i in data["y_names"]){
+            if (reverse_y_names){
+                i = data["y_names"].length - 1 - i    
+            }
             trace = {
                 "x": data["x"],
                 "y": data["y_list"][i],
