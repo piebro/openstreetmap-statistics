@@ -369,7 +369,7 @@ def save_topic_tags():
     util.save_top_k(10, "all_tags_top_100_changeset_count_monthly")
     util.save_percent("all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly")
 
-    selected_editors = ["JOSM", "iD", "Potlatch", "StreetComplete", "RapiD", "Vespucci"]
+    selected_editors = ["JOSM", "iD", "Potlatch", "StreetComplete", "Rapid", "Vespucci"]
     monthly_data = util.load_json(os.path.join("assets", "data", f"created_by_top_100_changeset_count_monthly.json"))
     editor_name_to_changeset_count_monthly = {
         name: y for name, y in zip(monthly_data["y_names"], monthly_data["y_list"])
