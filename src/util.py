@@ -63,8 +63,11 @@ def load_ddf(data_dir, tag, columns=None, filters=None):
     return ddf
 
 
-def multi_index_series_to_series_list(multi_index_series, level_1_indices):
-    return [multi_index_series[multi_index_series.index.get_level_values(1) == i].droplevel(1) for i in level_1_indices]
+def multi_index_series_to_series_list(multi_index_series, level_indices, drop_level=1):
+    return [
+        multi_index_series[multi_index_series.index.get_level_values(drop_level) == i].droplevel(drop_level)
+        for i in level_indices
+    ]
 
 
 def series_to_series_list(series, level_0_indices):
@@ -318,8 +321,9 @@ def save_tag_top_10_contributor_count_first_changeset_monthly(
 
 def save_data_dict(progress_bar, name, data_dict):
     save_json(os.path.join("assets", "data", f"{name}.json"), data_dict)
-    print(name)
-    progress_bar.update(1)
+    if progress_bar is not None:
+        print(name)
+        progress_bar.update(1)
 
 
 def load_data_dict(name):
@@ -327,7 +331,7 @@ def load_data_dict(name):
 
 
 def pd_series_to_y(x, series, cumsum=False):
-    if x == None:
+    if x is None:
         if isinstance(series, np.int64):
             return series
         return series.values.tolist()[0]
@@ -434,11 +438,11 @@ def save_percent(data_name, data_name_divide, divide_y=None):
     save_json(os.path.join("assets", "data", f"{data_name}_percent.json"), data)
 
 
-def save_monthly_to_yearly(data_name):
+def save_monthly_to_yearly(data_name, only_full_years=False):
     data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
-    years = sorted(list(set([month[:4] for month in data["x"]])))
-    
-    
+    months = data["x"]
+    years = sorted(list(set([month[:4] for month in months])))
+
     if "y" in data:
         year_to_value = {year: 0 for year in years}
         for value, month in zip(data["y"], data["x"]):
@@ -451,14 +455,24 @@ def save_monthly_to_yearly(data_name):
             for value, month in zip(y, data["x"]):
                 year_to_value[month[:4]] += value
             new_y_list.append([year_to_value[year] for year in years])
-        
+
         if np.sum([new_y[0] for new_y in new_y_list]) == 0:
             new_y_list = [new_y[1:] for new_y in new_y_list]
             years = years[1:]
 
         data["y_list"] = new_y_list
     data["x"] = years
-    save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}.json"), data)
+
+    if only_full_years and months[-1] != f"{years[-1]}-12":
+        data["x"] = data["x"][:-1]
+        if "y" in data:
+            data["y"] = data["y"][:-1]
+        if "y_list" in data:
+            data["y_list"] = [y[:-1] for y in data["y_list"]]
+
+    suffix = "_only_full_years" if only_full_years else ""
+
+    save_json(os.path.join("assets", "data", f"{data_name.replace('_monthly', '_yearly')}{suffix}.json"), data)
 
 
 def save_sum_of_top_k(data_name):

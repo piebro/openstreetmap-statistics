@@ -34,10 +34,19 @@ topics = {
                 add_single_line_plot("general_no_maps_me_contributor_count_monthly", "contributors per month without maps.me contributors", "contributors")
             ]
         },
-        "How many edits are added each month?": {
+        "How many edits are from useres from which year?": {
+            "url_hash": "d993",
+            "content_functions": [
+                add_multi_line_plot("general_contributor_count_attrition_rate_yearly", "edit count of users depending in which year their first edit was", "edits", percent=false, on_top_of_each_other=true, bar_chart=true),
+                add_multi_line_plot("general_contributor_count_attrition_rate_yearly_percent", "percent of edits of users depending in which year their first edit was", "%", percent=true, on_top_of_each_other=true, bar_chart=true)
+                
+            ]
+        },
+        "How many edits are added each month/year?": {
             "url_hash": "fe79",
             "content_functions":[
-                add_single_line_plot("general_edit_count_monthly", "edits per month", "edits")
+                add_single_line_plot("general_edit_count_monthly", "edits per month", "edits"),
+                add_single_line_plot("general_edit_count_yearly", "edits per year", "edits")
             ]
         },
         "What's the total amount of contributors, edits and changesets over time?": {
@@ -437,7 +446,7 @@ function get_plot_layout(){
     }
 }
 
-function get_line_plot_layout(plot_title, unit, percent){
+function get_line_plot_layout(plot_title, unit, percent, bar_chart_on_top_of_each_other){
     layout = Object.assign({}, get_plot_layout(), {
         "margin": {"l": 55, "r": 55, "b": 55, "t": 55},
         "title": {"text": plot_title},
@@ -446,6 +455,9 @@ function get_line_plot_layout(plot_title, unit, percent){
     })
     if (percent){
         layout["yaxis"]["range"] = [0, 101]
+    }
+    if (bar_chart_on_top_of_each_other){
+        layout["barmode"] = "stack"
     }
     return  layout
 }
@@ -491,20 +503,30 @@ function add_single_line_plot(data_name, plot_title, unit, percent=false){
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
-function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false){
+function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false, bar_chart=false){
     show_content = async function(div_id){
         data = await load_data(data_name)
         div = add_div(div_id, "dataDiv")
         traces = []
         for (i in data["y_names"]){
-            traces.push({"x": data["x"], "y": data["y_list"][i], "mode": "lines", "name": data["y_names"][i], "hovertemplate": "%{x}<br>%{y:,} " + unit})
-        }
-        if (on_top_of_each_other){
-            for (trace of traces){
+            trace = {
+                "x": data["x"],
+                "y": data["y_list"][i],
+                "mode": "lines",
+                "name": data["y_names"][i],
+                "hovertemplate": "%{x}<br>%{y:,} " + unit
+            }
+            if (on_top_of_each_other){
                 trace["stackgroup"] = "one"
             }
+            if (bar_chart){
+                trace["type"] = "bar"
+            }
+            traces.push(trace)
         }
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
+        
+        bar_chart_on_top_of_each_other = bar_chart && on_top_of_each_other
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent, bar_chart_on_top_of_each_other), get_plot_config())
     }
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }

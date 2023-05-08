@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 DATA_DIR = sys.argv[1]
 MONTHS, YEARS = util.get_months_years(DATA_DIR)
-progress_bar = tqdm(total=87)
+progress_bar = tqdm(total=88)
 
 
 def save_topic_general():
@@ -61,6 +61,42 @@ def save_topic_general():
             y=edit_count_per_contributor_median_monthly[57:],
         )
 
+    def save_general_contributor_attrition_rate():
+        ddf = util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "user_index"))
+        ddf_user_first_edit_year = ddf.groupby(["user_index"])["year_index"].min().compute()
+        ddf_user_first_edit_year.name = "first_edit_year_index"
+        ddf_year_user_edits = (
+            ddf.groupby(["year_index", "user_index"])["edits"].sum().compute().reset_index("year_index")
+        )
+        merge = dd.merge(ddf_year_user_edits, ddf_user_first_edit_year, on="user_index")
+        merge_edit_sum = merge.groupby(["year_index", "first_edit_year_index"])["edits"].sum()
+
+        year_indices = list(range(len(YEARS)))
+        merge_edit_sum_series_list = util.multi_index_series_to_series_list(
+            merge_edit_sum, list(range(len(YEARS))), drop_level=0
+        )
+        y_list = np.array(
+            [util.pd_series_to_y(year_indices, pd_series, False) for pd_series in merge_edit_sum_series_list]
+        ).T
+        two_year_y_list = []
+        two_year = []
+        for i, (y, year) in enumerate(zip(y_list, YEARS)):
+            if i % 2 == 0:
+                two_year_y_list.append(y)
+                two_year.append(year)
+            else:
+                two_year_y_list[-1] += y
+                two_year[-1] += "-" + year
+
+        util.save_y_list(
+            progress_bar,
+            "general_contributor_count_attrition_rate_yearly",
+            YEARS,
+            None,
+            y_names=list(reversed(two_year)),
+            y_list=list(reversed(two_year_y_list)),
+        )
+
     ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "year_index", "edits", "user_index", "pos_x", "pos_y"))
     util.save_base_statistics(
         DATA_DIR,
@@ -93,6 +129,11 @@ def save_topic_general():
     util.save_accumulated("general_new_contributor_count_monthly")
     util.save_accumulated("general_edit_count_monthly")
     util.save_accumulated("general_changeset_count_monthly")
+    util.save_monthly_to_yearly("general_edit_count_monthly", only_full_years=True)
+    util.save_monthly_to_yearly("general_edit_count_monthly")
+
+    save_general_contributor_attrition_rate()
+    util.save_percent("general_contributor_count_attrition_rate_yearly", "general_edit_count_yearly")
 
 
 def save_topic_editing_software():
