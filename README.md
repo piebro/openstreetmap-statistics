@@ -112,7 +112,7 @@ python3 save_background_map.py <path-to-ne-110m-land-shape-file.shp>
 
 Plotly custom is generated with these instructions https://github.com/plotly/plotly.js/blob/master/CUSTOM_BUNDLE.md using the following command.
 ```bash
-npm run custom-bundle -- --traces scatter,histogram2d --transforms none
+npm run custom-bundle -- --traces scatter,bar,histogram2d --transforms none
 ```
 This has the advantage of having a smaller plotly file while still being able to generate all needed plots.
 
