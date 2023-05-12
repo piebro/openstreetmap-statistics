@@ -213,11 +213,7 @@ def save_topic_editing_software():
     )
 
     util.save_top_k(10, "created_by_top_100_contributor_count_monthly")
-    util.save_top_k(10, "created_by_top_100_new_contributor_count_monthly")
-    util.save_top_k(10, "created_by_top_100_edit_count_monthly")
-    util.save_top_k(10, "created_by_top_100_changeset_count_monthly")
 
-    util.save_percent("created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly")
     # TODO: this takes quiet long. Maybe speed it up somehow
     util.save_tag_top_10_contributor_count_first_changeset_monthly(
         MONTHS,
@@ -227,13 +223,21 @@ def save_topic_editing_software():
         util.load_tag_to_index(DATA_DIR, "created_by"),
         "created_by_top_10_contributor_count_monthly",
     )
+
+    save_created_by_editor_type_stats()
+
+    util.save_top_k(10, "created_by_top_100_new_contributor_count_monthly")
+    util.save_top_k(10, "created_by_top_100_edit_count_monthly")
+    util.save_top_k(10, "created_by_top_100_changeset_count_monthly")
+
     util.save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
+    util.save_monthly_to_yearly("created_by_top_100_contributor_count_monthly")
     util.save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly")
+    util.save_percent("created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly")
 
     util.save_accumulated("created_by_top_10_new_contributor_count_monthly")
     util.save_accumulated("created_by_top_10_edit_count_monthly")
     util.save_accumulated("created_by_top_10_changeset_count_monthly")
-    save_created_by_editor_type_stats()
 
 
 def save_topic_corporation():
