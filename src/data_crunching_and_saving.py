@@ -105,7 +105,7 @@ def save_topic_general():
         ddf,
         edit_count_monthly=True,
         changeset_count_monthly=True,
-        contributors_unique_yearly=True,
+        contributor_count_yearly=True,
         contributor_count_monthly=True,
         new_contributor_count_monthly=True,
         edit_count_map_total=True,
@@ -207,7 +207,7 @@ def save_topic_editing_software():
         contributor_count_ddf_name="general",
         edit_count_monthly=True,
         changeset_count_monthly=True,
-        contributors_unique_yearly=True,
+        contributor_count_yearly=True,
         contributor_count_monthly=True,
         new_contributor_count_monthly=True,
     )
@@ -231,7 +231,6 @@ def save_topic_editing_software():
     util.save_top_k(10, "created_by_top_100_changeset_count_monthly")
 
     util.save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
-    util.save_monthly_to_yearly("created_by_top_100_contributor_count_monthly")
     util.save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly")
     util.save_percent("created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly")
 
@@ -286,7 +285,7 @@ def save_topic_source_imagery_hashtag():
             contributor_count_ddf_name=tag,
             edit_count_monthly=True,
             changeset_count_monthly=True,
-            contributors_unique_yearly=True,
+            contributor_count_yearly=True,
             contributor_count_monthly=True,
             new_contributor_count_monthly=True,
             edit_count_map_total=(tag == "hashtag"),
@@ -295,7 +294,6 @@ def save_topic_source_imagery_hashtag():
         util.save_top_k(10, f"{tag}_top_100_new_contributor_count_monthly")
         util.save_top_k(10, f"{tag}_top_100_edit_count_monthly")
         util.save_top_k(10, f"{tag}_top_100_changeset_count_monthly")
-        util.save_monthly_to_yearly(f"{tag}_top_100_contributor_count_monthly")
         util.save_monthly_to_yearly(f"{tag}_top_100_edit_count_monthly")
         util.save_accumulated(f"{tag}_top_10_new_contributor_count_monthly")
         util.save_accumulated(f"{tag}_top_10_edit_count_monthly")

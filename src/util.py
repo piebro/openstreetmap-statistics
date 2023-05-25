@@ -70,8 +70,8 @@ def multi_index_series_to_series_list(multi_index_series, level_indices, drop_le
     ]
 
 
-def series_to_series_list(series, level_0_indices):
-    return [series[series.index.get_level_values(0) == i] for i in level_0_indices]
+def series_to_series_list(series, level_indices):
+    return [series[series.index == i] for i in level_indices]
 
 
 def cumsum_new_nunique(series):
@@ -110,7 +110,7 @@ def save_base_statistics(
     ddf,
     edit_count_monthly=False,
     changeset_count_monthly=False,
-    contributors_unique_yearly=False,
+    contributor_count_yearly=False,
     contributor_count_monthly=False,
     new_contributor_count_monthly=False,
     edit_count_map_total=False,
@@ -126,7 +126,7 @@ def save_base_statistics(
     if changeset_count_monthly:
         save_y(progress_bar, f"{prefix}_changeset_count_monthly", months, ddf.groupby(["month_index"]).size().compute())
 
-    if contributors_unique_yearly:
+    if contributor_count_yearly:
         save_y(
             progress_bar,
             f"{prefix}_contributors_unique_yearly",
@@ -165,7 +165,7 @@ def save_base_statistics_tag(
     prefix=None,
     edit_count_monthly=False,
     changeset_count_monthly=False,
-    contributors_unique_yearly=False,
+    contributor_count_yearly=False,
     contributor_count_monthly=False,
     new_contributor_count_monthly=False,
     edit_count_map_total=False,
@@ -180,7 +180,7 @@ def save_base_statistics_tag(
         ddf,
         prefix,
         k=k,
-        contributor_count=(contributors_unique_yearly or contributor_count_monthly or new_contributor_count_monthly),
+        contributor_count=(contributor_count_yearly or contributor_count_monthly or new_contributor_count_monthly),
         edit_count=edit_count_monthly,
         changeset_count=changeset_count_monthly,
     )
@@ -199,12 +199,12 @@ def save_base_statistics_tag(
         )
         save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_changeset_count_monthly", months, monthly_list, names)
 
-    if contributors_unique_yearly:
+    if contributor_count_yearly:
         indices, names = top_k["contributor_count"]
         yearly_list = multi_index_series_to_series_list(
             ddf[ddf[tag].isin(indices)].groupby(["year_index", tag])["user_index"].nunique().compute(), indices
         )
-        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_contributor_count_yearly", years, yearly_list, names)
+        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_contributor_count_yearly", years, yearly_list, names, index_offset=0)
 
     if contributor_count_monthly or new_contributor_count_monthly:
         indices, names = top_k["contributor_count"]
@@ -270,7 +270,8 @@ def get_tag_top_k_and_save_top_k_total(
     unit_to_top_k_indices_and_names = {"tag": tag}
     for unit in units:
         if unit == "contributor_count":
-            # TODO: this is by far the slowest part in gathering all statistics. Are the ways for speeding it up?
+            # TODO: this is by far the slowest part in gathering all statistics (for tags with many tagnames).
+            # Are there ways for speeding it up?
             # Maybe use https://docs.dask.org/en/stable/generated/dask.dataframe.Series.nunique_approx.html
             # as a fist approximation and then get the right statistics on a subset of all tags
             # or reducing the number of different tags (e.g. less distinct sources)
@@ -439,6 +440,7 @@ def save_percent(data_name, data_name_divide, divide_y=None):
 
 
 def save_monthly_to_yearly(data_name, only_full_years=False):
+    assert "contributor" not in data_name # this does not work for contributors
     data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
     months = data["x"]
     years = sorted(list(set([month[:4] for month in months])))
