@@ -105,4 +105,4 @@ for name in corporation_to_users.keys():
         corporation_to_users[name][1][i] = user_name
 
 with open(os.path.join("assets", "corporation_contributors.json"), "w") as f:
-    json.dump(corporation_to_users, f)
+    json.dump(corporation_to_users, f, sort_keys=True, indent=4)
