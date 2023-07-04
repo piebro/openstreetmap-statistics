@@ -382,8 +382,8 @@ async function sort_table(e){
     } else {
         e.srcElement.classList.remove('sorting_asc');
         e.srcElement.classList.add('sorting');
-        var th = e.srcElement.parentElement.firstChild
-        var ascending = true
+        var th = e.srcElement.parentElement.lastChild
+        var ascending = false
     }
     
     const getCellValue = (tr, idx) => tr.children[idx].innerText.replaceAll(",", "") || tr.children[idx].textContent.replaceAll(",", "");
