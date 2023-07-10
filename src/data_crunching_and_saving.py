@@ -249,7 +249,8 @@ def save_topic_corporation():
         edit_count_monthly=True,
         changeset_count_monthly=True,
         new_contributor_count_monthly=True,
-        edit_count_map_total=True,
+        top_10_edit_count_map_total=True,
+        top_50_edit_count_map_total=True,
     )
     util.save_sum_of_top_k("corporation_top_100_edit_count_monthly")
     util.save_percent("corporation_top_100_edit_count_monthly_sum_top_k", "general_edit_count_monthly")
@@ -288,7 +289,7 @@ def save_topic_source_imagery_hashtag():
             contributor_count_yearly=True,
             contributor_count_monthly=True,
             new_contributor_count_monthly=True,
-            edit_count_map_total=(tag == "hashtag"),
+            top_10_edit_count_map_total=(tag == "hashtag"),
         )
         util.save_top_k(10, f"{tag}_top_100_contributor_count_monthly")
         util.save_top_k(10, f"{tag}_top_100_new_contributor_count_monthly")
