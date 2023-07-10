@@ -24,13 +24,7 @@ def get_all_users_from_links(url, soup=None):
     return [url, user_names]
 
 
-def get_all_users_from_mapbox_link(url):
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, "html.parser")
-    return [url, get_all_users_from_links(None, soup.find_all("table")[0])[1]]
-
-
-def get_all_users_from_grab_link(url):
+def get_username_from_tables(url, column_index):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, "html.parser")
     users = []
@@ -38,8 +32,16 @@ def get_all_users_from_grab_link(url):
         tds = tr.find_all("td")
         if len(tds) == 0:
             continue
-        users.append(str(tds[1])[4:-5])
+        user = str(tds[column_index]).replace("<td>", "").replace("</td>", "").replace("\n", "")
+        if user != "User Name":
+            users.append(user)
     return [url, users]
+
+
+def get_all_users_from_mapbox_link(url):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, "html.parser")
+    return [url, get_all_users_from_links(None, soup.find_all("table")[0])[1]]
 
 
 def get_all_users_from_microsoft_link(url):
@@ -64,7 +66,7 @@ corporation_to_users = {
     "DigitalEgypt": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/DigitalEgypt"),
     "Expedia": get_all_users_from_links("https://github.com/osmlab/expedia/wiki/Data-Team"),
     "Gojek": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Gojek"),
-    "Grab": get_all_users_from_grab_link("https://github.com/GRABOSM/Grab-Data/blob/master/Grab%20Data%20Team.md"),
+    "Grab": get_username_from_tables("https://github.com/GRABOSM/Grab-Data/blob/master/Grab%20Data%20Team.md", 1),
     "Graphmasters": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Graphmasters"),
     "Kaart": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kaart"),
     "Kontur": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kontur"),
@@ -79,10 +81,12 @@ corporation_to_users = {
     ),
     "Neshan": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Neshan"),
     "NextBillion.AI": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/NextBillion.AI-OSM"),
+    "Ola": get_username_from_tables("https://wiki.openstreetmap.org/wiki/Ola", 2),
     "Rocketdata.io": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Rocketdata.io"),
     "Snap": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Snap"),
     "Snapp": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Fa:Snapp"),
     "Stackbox": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Stackbox"),
+    "Swiggy": get_username_from_tables("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Swiggy", 1),
     "Telenav": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Telenav"),
     "TfNSW": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/TfNSW"),
     "TIDBO": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TIDBO"),

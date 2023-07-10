@@ -168,7 +168,8 @@ def save_base_statistics_tag(
     contributor_count_yearly=False,
     contributor_count_monthly=False,
     new_contributor_count_monthly=False,
-    edit_count_map_total=False,
+    top_10_edit_count_map_total=False,
+    top_50_edit_count_map_total=False,
 ):
 
     months, years = get_months_years(data_dir)
@@ -204,7 +205,9 @@ def save_base_statistics_tag(
         yearly_list = multi_index_series_to_series_list(
             ddf[ddf[tag].isin(indices)].groupby(["year_index", tag])["user_index"].nunique().compute(), indices
         )
-        save_y_list(progress_bar, f"{prefix}{tag}_top_{k}_contributor_count_yearly", years, yearly_list, names, index_offset=0)
+        save_y_list(
+            progress_bar, f"{prefix}{tag}_top_{k}_contributor_count_yearly", years, yearly_list, names, index_offset=0
+        )
 
     if contributor_count_monthly or new_contributor_count_monthly:
         indices, names = top_k["contributor_count"]
@@ -240,14 +243,29 @@ def save_base_statistics_tag(
                 y_list=[cumsum_new_nunique_set_list(month_list) for month_list in unique_monthly_list],
             )
 
-    if edit_count_map_total:
-        indices, names = top_k["edit_count"]
-        indices = indices[:10]
-        names = names[:10]
-        ddf_is_in = ddf[ddf[tag].isin(indices)]
+    max_map_index = 0
+    if top_10_edit_count_map_total:
+        max_map_index = 10
+    if top_50_edit_count_map_total:
+        max_map_index = 50
+
+    indices, names = top_k["edit_count"]
+    for i in range(0, max_map_index, 10):
+
+        top_indices = indices[i : i + 10]
+        top_names = names[i : i + 10]
+        if len(top_names) == 0:
+            break
+
+        ddf_is_in = ddf[ddf[tag].isin(top_indices)]
         tag_map_edits = ddf_is_in[ddf_is_in["pos_x"] >= 0].groupby(["pos_x", "pos_y", tag])["edits"].sum().compute()
-        tag_maps = [tag_map_edits[tag_map_edits.index.get_level_values(tag) == i].droplevel(2) for i in indices]
-        save_maps(progress_bar, f"{prefix}{tag}_top_10_edit_count_maps_total", tag_maps, names)
+        tag_maps = [tag_map_edits[tag_map_edits.index.get_level_values(tag) == i].droplevel(2) for i in top_indices]
+
+        if i == 0:
+            save_name = f"{prefix}{tag}_top_10_edit_count_maps_total"
+        else:
+            save_name = f"{prefix}{tag}_top_{i}_to_{i+10}_edit_count_maps_total"
+        save_maps(progress_bar, save_name, tag_maps, top_names)
 
 
 def get_tag_top_k_and_save_top_k_total(
@@ -440,7 +458,7 @@ def save_percent(data_name, data_name_divide, divide_y=None):
 
 
 def save_monthly_to_yearly(data_name, only_full_years=False):
-    assert "contributor" not in data_name # this does not work for contributors
+    assert "contributor" not in data_name  # this does not work for contributors
     data = load_json(os.path.join("assets", "data", f"{data_name}.json"))
     months = data["x"]
     years = sorted(list(set([month[:4] for month in months])))
