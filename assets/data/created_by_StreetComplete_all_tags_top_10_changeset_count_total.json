@@ -1,1 +1,22 @@
-{"y_list":[7860461,7860455,7860380,6978755,84,2,1],"y_names":["source","comment","StreetComplete","locale","StreetComplete%20%Mod","StreetComplete%20%DL","hashtags"]}
+{
+ "columns":[
+  "source",
+  "comment",
+  "StreetComplete",
+  "locale",
+  "StreetComplete%20%Mod",
+  "StreetComplete%20%DL",
+  "hashtags"
+ ],
+ "data":[
+  [
+   7860461,
+   7860455,
+   7860380,
+   6978755,
+   84,
+   2,
+   1
+  ]
+ ]
+}

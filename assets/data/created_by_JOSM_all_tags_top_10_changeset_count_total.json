@@ -1,1 +1,28 @@
-{"y_list":[49403817,37777542,7800722,402207,401828,70092,58459,38144,18962,14298],"y_names":["comment","source","hashtags","mapwithai","review_requested","import","url","type","license","imagery_used"]}
+{
+ "columns":[
+  "comment",
+  "source",
+  "hashtags",
+  "mapwithai",
+  "review_requested",
+  "import",
+  "url",
+  "type",
+  "license",
+  "imagery_used"
+ ],
+ "data":[
+  [
+   49403817,
+   37777542,
+   7800722,
+   402207,
+   401828,
+   70092,
+   58459,
+   38144,
+   18962,
+   14298
+  ]
+ ]
+}
