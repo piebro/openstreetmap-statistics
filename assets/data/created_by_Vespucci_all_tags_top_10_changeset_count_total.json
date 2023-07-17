@@ -1,1 +1,20 @@
-{"y_list":[886355,771803,768219,720697,7312,1],"y_names":["comment","imagery_used","locale","source","review_requested","hashtags"]}
+{
+ "columns":[
+  "comment",
+  "imagery_used",
+  "locale",
+  "source",
+  "review_requested",
+  "hashtags"
+ ],
+ "data":[
+  [
+   886355,
+   771803,
+   768219,
+   720697,
+   7312,
+   1
+  ]
+ ]
+}

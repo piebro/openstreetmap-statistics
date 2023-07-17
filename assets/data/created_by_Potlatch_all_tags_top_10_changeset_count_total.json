@@ -1,1 +1,28 @@
-{"y_list":[6387919,6386215,4247886,51091,12955,818,324,309,98,95],"y_names":["version","build","comment","os","source","(new%20%key)","is_in","build%20%","","Source"]}
+{
+ "columns":[
+  "version",
+  "build",
+  "comment",
+  "os",
+  "source",
+  "(new%20%key)",
+  "is_in",
+  "build%20%",
+  "",
+  "Source"
+ ],
+ "data":[
+  [
+   6387919,
+   6386215,
+   4247886,
+   51091,
+   12955,
+   818,
+   324,
+   309,
+   98,
+   95
+  ]
+ ]
+}

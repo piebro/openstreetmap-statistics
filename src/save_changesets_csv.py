@@ -307,7 +307,7 @@ def init_data_dict():
 
 def main():
     save_dir = sys.argv[1]
-    os.makedirs(save_dir, exist_ok=True)
+    os.mkdir(save_dir)
     years, year_to_index, months, month_to_index = get_year_and_month_to_index()
 
     with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:

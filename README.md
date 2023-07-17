@@ -60,7 +60,7 @@ The code is tested on Ubuntu 20.04 but should work on every Linux distro. I'm no
 sudo apt install aria2 osmium-tool pv
 
 # create a vitual enviroment
-python3 -m venv /path/to/new/virtual/environment
+python3 -m venv venv
 source venv/bin/activate
 
 # install python dependencies
@@ -75,12 +75,13 @@ aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 
 Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:10h).
 ```bash
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | python3 src/save_changesets_csv.py temp
+rm -r -d temp
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | python3 src/save_changesets_csv.py temp
 ```
 
 If you want to add new topics, plots or tables and iterate faster with a subset of all data, you can use every 500th changeset like this.
 ```bash
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 130M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
 ```
 
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script. On my laptop this takes also about 1:10h and it runs with less then 8GB of RAM.

@@ -1,1 +1,28 @@
-{"y_list":[1662658,1662624,1662624,1645278,1644280,1278014,582162,512261,204994,77939],"y_names":["comment","imagery_used","locale","host","changesets_count","hashtags","source","warnings","resolved","review_requested"]}
+{
+ "columns":[
+  "comment",
+  "imagery_used",
+  "locale",
+  "host",
+  "changesets_count",
+  "hashtags",
+  "source",
+  "warnings",
+  "resolved",
+  "review_requested"
+ ],
+ "data":[
+  [
+   1662658,
+   1662624,
+   1662624,
+   1645278,
+   1644280,
+   1278014,
+   582162,
+   512261,
+   204994,
+   77939
+  ]
+ ]
+}
