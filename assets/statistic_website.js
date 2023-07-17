@@ -2,6 +2,14 @@ data_cache = {}
 data_cache_list = []
 max_cache_size = 30
 
+function array_to_dict(array) {
+    const dict = {};
+    for (let i = 0; i < array.length; i++) {
+        dict[array[i]] = i;
+    }
+    return dict;
+}
+
 function options_to_selection(select, keys){
     prev_value = select.value
     while (select.firstChild) {
@@ -64,12 +72,12 @@ function get_plot_layout(){
     }
 }
 
-function get_line_plot_layout(plot_title, unit, percent, bar_chart_on_top_of_each_other){
+function get_line_plot_layout(plot_title, x_unit, y_unit, percent, bar_chart_on_top_of_each_other){
     layout = Object.assign({}, get_plot_layout(), {
         "margin": {"l": 55, "r": 55, "b": 55, "t": 55},
         "title": {"text": plot_title},
-        "xaxis": {"title": {"text": "time"}},
-        "yaxis": {"title": {"text": unit}, "rangemode": "tozero"},
+        "xaxis": {"title": {"text": x_unit}},
+        "yaxis": {"title": {"text": y_unit}, "rangemode": "tozero"},
     })
     if (percent){
         layout["yaxis"]["range"] = [0, 101]
@@ -111,43 +119,77 @@ function get_map_plot_layout(plot_title, max_z_value){
     return layout
 }
 
-function add_single_line_plot(data_name, plot_title, unit, percent=false){
+function add_single_line_plot(plot_title, data_name, options={}){
+    const default_options = {
+        x_column_name: undefined,
+        y_column_name: undefined,
+        percent: false,
+    };
+    const opt = Object.assign({}, default_options, options);
     show_content = async function(div_id){
         data = await load_data(data_name)
+        if (opt.x_column_name == undefined){opt.x_column_name = data["columns"][0]}
+        if (opt.y_column_name == undefined){opt.y_column_name = data["columns"][1]}
+
+        if (opt.percent) {
+            y_unit = "%"
+        } else {
+            y_unit = opt.y_column_name
+        }
+
         div = add_div(div_id, "dataDiv")
-        traces = [{"x": data["x"], "y": data["y"], "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + unit}]
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent), get_plot_config())
+        const x = data["data"].map(tuple => tuple[data["columns"].indexOf(opt.x_column_name)]);
+        const y = data["data"].map(tuple => tuple[data["columns"].indexOf(opt.y_column_name)]);
+        traces = [{"x": x, "y": y, "mode": "lines", "name": "", "hovertemplate": "%{x}<br>%{y:,} " + y_unit}]
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, opt.x_column_name, y_unit, opt.percent), get_plot_config())
     }
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
 
-function add_multi_line_plot(data_name, plot_title, unit, percent=false, on_top_of_each_other=false, bar_chart=false, reverse_y_names=false){
+function add_multi_line_plot(plot_title, data_name, y_unit, options={}){
+    const default_options = {
+        x_column_name: undefined,
+        y_column_names: undefined,
+        percent: false,
+        on_top_of_each_other: false,
+        bar_chart: false,
+        reverse_y_names: false,
+    };
+    const opt = Object.assign({}, default_options, options);
+
     show_content = async function(div_id){
         data = await load_data(data_name)
+        if (opt.x_column_name == undefined){opt.x_column_name = data["columns"][0]}
+        if (opt.y_column_names == undefined){opt.y_column_names = data["columns"].slice(1)}
+
+        const x = data["data"].map(tuple => tuple[data["columns"].indexOf(opt.x_column_name)]);
         div = add_div(div_id, "dataDiv")
         traces = []
-        for (i in data["y_names"]){
-            if (reverse_y_names){
-                i = data["y_names"].length - 1 - i    
-            }
+        for (y_column_name of opt.y_column_names){
+            const y = data["data"].map(tuple => tuple[data["columns"].indexOf(y_column_name)]);
             trace = {
-                "x": data["x"],
-                "y": data["y_list"][i],
+                "x": x,
+                "y": y,
                 "mode": "lines",
-                "name": data["y_names"][i],
-                "hovertemplate": "%{x}<br>%{y:,} " + unit
+                "name": y_column_name,
+                "hovertemplate": "%{x}<br>%{y:,} " + y_unit
             }
-            if (on_top_of_each_other){
+            if (opt.on_top_of_each_other){
                 trace["stackgroup"] = "one"
             }
-            if (bar_chart){
+            if (opt.bar_chart){
                 trace["type"] = "bar"
             }
-            traces.push(trace)
+            if (opt.reverse_y_names){
+                traces.unshift(trace)
+            } else {
+                traces.push(trace)
+            }
+            
         }
         
-        bar_chart_on_top_of_each_other = bar_chart && on_top_of_each_other
-        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, unit, percent, bar_chart_on_top_of_each_other), get_plot_config())
+        const bar_chart_on_top_of_each_other = opt.bar_chart && opt.on_top_of_each_other
+        Plotly.newPlot(div, traces, get_line_plot_layout(plot_title, opt.x_column_name, y_unit, opt.percent, bar_chart_on_top_of_each_other), get_plot_config())
     }
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
@@ -169,12 +211,15 @@ function get_map_plot_traces(x, y, z, max_z_value){
     return traces
 }
 
-function add_map_plot(data_name, plot_title){
+function add_map_plot(plot_title, data_name){
     show_content = async function(div_id){
         data = await load_data(data_name)
+        const data_indices = array_to_dict(data["columns"])
+        d = data["data"][0]
+        traces = get_map_plot_traces(d[data_indices["x"]], d[data_indices["y"]], d[data_indices["z"]], d[data_indices["max_z_value"]])
+
         div = add_div(div_id, "dataDiv")
-        traces = get_map_plot_traces(data[data_name]["x"], data[data_name]["y"], data[data_name]["z"], data["max_z_value"])
-        Plotly.newPlot(div, traces, get_map_plot_layout(plot_title, data["max_z_value"]), get_plot_config())
+        Plotly.newPlot(div, traces, get_map_plot_layout(plot_title, d[data_indices["max_z_value"]]), get_plot_config())
     }
     return {"show": show_content, "save_plot": async function(div_id){save_plot(data_name, div_id)}, "save_data": async function(){save_data(data_name)}}
 }
@@ -182,25 +227,26 @@ function add_map_plot(data_name, plot_title){
 function add_multiple_map_plots(data_name){
     show_content = async function(div_id){
         data = await load_data(data_name)
-        for (const map_name of Object.keys(data[data_name])) {
-            div = add_div(map_name, "dataDiv")
-            traces = get_map_plot_traces(data[data_name][map_name]["x"], data[data_name][map_name]["y"], data[data_name][map_name]["z"], data["max_z_value"])
-            Plotly.newPlot(div, traces, get_map_plot_layout(map_name, data["max_z_value"]), get_plot_config())
+        const data_indices = array_to_dict(data["columns"])
+        for (const d of data["data"]){
+            div = add_div(d[data_indices["map_name"]], "dataDiv")
+            traces = get_map_plot_traces(d[data_indices["x"]], d[data_indices["y"]], d[data_indices["z"]], d[data_indices["max_z_value"]])
+            Plotly.newPlot(div, traces, get_map_plot_layout(d[data_indices["map_name"]], d[data_indices["max_z_value"]]), get_plot_config())
         }
     }
     save_map_plots = async function(div_id){
         data = await load_data(data_name)
-        for (const map_name of Object.keys(data[data_name])){
+        for (const d of data["data"]){
+            map_name = d[data["columns"].indexOf("map_name")]
             save_plot(data_name + "_" + map_name.replaceAll(" ", "_"), map_name)
         }
     }
     return {"show": show_content, "save_plot": save_map_plots, "save_data": async function(){save_data(data_name)}}
 }
 
-function add_table(data_name, title, y_names_category, data_name_total, data_name_name_to_link=undefined){
+function add_table(title, data_name, x_column_name, y_column_name, data_name_name_to_link=undefined){
     show_content = async function(div_id){
         data = await load_data(data_name)
-        data_total = await load_data(data_name_total)
         if (data_name_name_to_link !== undefined){
             name_to_link = await load_data(data_name_name_to_link)
         } else {
@@ -210,13 +256,14 @@ function add_table(data_name, title, y_names_category, data_name_total, data_nam
         div = add_div(div_id, "dataDiv")
         div.style.width = "100%"
         div.style.aspectRatio = "auto"
-        div.innerHTML = get_table_html(title, data, data_total, y_names_category, name_to_link)
+        div.innerHTML = get_table_html(title, data, x_column_name, y_column_name, name_to_link)
     }
-    return {"show": show_content, "save_data": async function(){save_data(data_name, data_name_total)}}
+    return {"show": show_content, "save_data": async function(){save_data(data_name)}}
 }
 
-function get_table_html(title, data, data_total, y_names_category, name_to_link){
-    let head_entries = ["Rank", y_names_category].concat(data["x"]).concat(["total"])
+function get_table_html(title, data, x_column_name, y_column_name, name_to_link){
+    const x_column_index = data.columns.indexOf(x_column_name)
+    const head_entries = ["Rank", y_column_name].concat(data.data.map(list => list[x_column_index]))
     let head = "<tr>"
     for (var i in head_entries){
         if (i == 0){
@@ -227,16 +274,23 @@ function get_table_html(title, data, data_total, y_names_category, name_to_link)
     }
     head += "</tr>"
     let body = ""
-    for (row_index in data["y_names"]){
-        let name = data["y_names"][row_index]
+    let rank = 1
+    for (let column_index in data.columns){
+        if (column_index == x_column_index){
+            continue
+        }
+
+        let name = data.columns[column_index]
         if (name in name_to_link){
             name = "<a href=" + name_to_link[name] + ">" + name + "</a>"
         }
-        body += "<tr><td>" + String(parseInt(row_index) + 1) + "</td><td>" + name + "</td>"
-        for (y_value of data["y_list"][row_index]){
+        
+        body += "<tr><td>" + String(rank) + "</td><td>" + name + "</td>"
+        rank += 1
+
+        for (y_value of data.data.map(list => list[column_index])){
             body += "<td>" + y_value.toLocaleString("en-US") + "</td>"
         }
-        body += "<td>" + data_total["y_list"][row_index].toLocaleString("en-US") + "</td></tr>"
     }
     return "<h3>" + title + "</h3><table style='margin: 0 auto;'>" + head + body + "</table>"
 }
@@ -264,13 +318,9 @@ async function save_plot(data_name, div_id){
 }
 
 
-async function save_data(data_name, data_name_2=null){
+async function save_data(data_name){
     data = await load_data(data_name)
     download(data, data_name, "json")
-    if (data_name_2 !== null){
-        data_2 = await load_data(data_name_2)
-        download(data_2, data_name_2, "json")
-    }
 }
 
 
