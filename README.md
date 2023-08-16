@@ -69,6 +69,7 @@ pip3 install -r requirements.txt
 
 Run the following commands to get the latest OSM changeset file.
 ```bash
+rm $(ls *.osm.bz2)
 wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torrent
 aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 ```
@@ -84,7 +85,7 @@ If you want to add new topics, plots or tables and iterate faster with a subset 
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
 ```
 
-Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. If you create a new topic, you can add it to the `generate_plots.sh` script. On my laptop this takes also about 1:10h and it runs with less then 8GB of RAM.
+Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 1:10h and it runs with less then 8GB of RAM.
 ```bash
 python3 src/data_crunching_and_saving.py temp
 ```

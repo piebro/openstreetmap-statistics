@@ -319,9 +319,9 @@ def save_topic_source_imagery_hashtag():
         util.save_accumulated(f"{tag}_top_10_edit_count_monthly")
         util.save_accumulated(f"{tag}_top_10_changeset_count_monthly")
         util.save_merged_yearly_total_data(
-            "{tag}_top_100_contributor_count_yearly", "{tag}_top_100_contributor_count_total"
+            f"{tag}_top_100_contributor_count_yearly", f"{tag}_top_100_contributor_count_total"
         )
-        util.save_merged_yearly_total_data("{tag}_top_100_edit_count_yearly", "{tag}_top_100_edit_count_total")
+        util.save_merged_yearly_total_data(f"{tag}_top_100_edit_count_yearly", f"{tag}_top_100_edit_count_total")
 
 
 def save_topic_streetcomplete():
