@@ -1,6 +1,9 @@
 name: update data
 
 on:
+  schedule:
+    # At 08:00 on every Monday
+    - cron: '0 8 * * 1'
   workflow_dispatch:
 
 jobs:
@@ -8,28 +11,49 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Check if it's the second Monday of the month or manual trigger
+        id: check_second_monday
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] || \
+             ([[ $(date +'%d') -gt 7 && $(date +'%d') -lt 15 ]] && [[ $(date +'%u') -eq 1 ]]); then
+            echo "Running jobs."
+            echo "::set-output name=run_jobs::true"
+          else
+            echo "Skipping jobs."
+            echo "::set-output name=run_jobs::false"
+          fi
+        shell: bash
+
       - uses: actions/checkout@v3
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        
       - uses: actions/setup-python@v4
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         with:
           python-version: '3.8'
       
       - name: setup
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         run: |
           sudo apt install aria2 osmium-tool pv
           pip install -r requirements.txt 
 
       - name: download latest changeset
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         run: |
           wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torrent
           aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 
       - name: save compressed changeset csv
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp
       
       - name: save data
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         run: python3 src/data_crunching_and_saving.py temp
         
       - name: Create Pull Request
+        if: steps.check_second_monday.outputs.run_jobs == 'true'
         uses: peter-evans/create-pull-request@v4
         with:
           add-paths: assets/*
