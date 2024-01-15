@@ -60,8 +60,8 @@ The code is tested on Ubuntu 20.04 but should work on every Linux distro. I'm no
 sudo apt install aria2 osmium-tool pv
 
 # create a vitual enviroment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 
 # install python dependencies
 pip3 install -r requirements.txt

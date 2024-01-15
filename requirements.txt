@@ -1,7 +1,6 @@
-tqdm==4.65.0
-fastparquet==2023.2.0
 dask
 pandas
+fastparquet
 numpy
 plotly
-nbformat
+tqdm
