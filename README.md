@@ -100,6 +100,7 @@ python3 src/save_corporation_contributors.py
 ### Update Jupyter Lite Notebook
 
 ```bash
+pip install jupyterlite-core==0.1.0 jupyterlab~=3.5.1 jupyterlite-pyodide-kernel==0.0.6
 jupyter lite build --contents src/custom_plots_browser.ipynb --output-dir jupyter_lite
 ```
 
