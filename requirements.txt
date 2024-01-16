@@ -1,8 +1,7 @@
-dask
-pandas
-fastparquet
-pyarrow
-numpy
+dask==2024.1.0
+pandas==2.1.4
+numpy==1.26.3
+fastparquet==2023.10.1
 plotly
 tqdm
 ruff

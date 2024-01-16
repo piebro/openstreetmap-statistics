@@ -451,9 +451,9 @@ def save_name_to_link():
 
 
 def main():
-    # save_name_to_link()
+    save_name_to_link()
 
-    # save_topic_general()
+    save_topic_general()
     save_topic_editing_software()
     save_topic_corporation()
     save_topic_source_imagery_hashtag()
