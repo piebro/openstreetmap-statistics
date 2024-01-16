@@ -1,13 +1,11 @@
-import os
 import sys
+from pathlib import Path
 
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-import dask.dataframe as dd
-
 import util
 from tqdm import tqdm
-
 
 DATA_DIR = sys.argv[1]
 MONTHS, YEARS = util.get_months_years(DATA_DIR)
@@ -18,19 +16,19 @@ progress_bar = tqdm(total=91)
 def save_topic_general():
     def save_general_contributor_count_more_the_k_edits_monthly():
         ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "user_index"))
-        total_edits_of_contributors = ddf.groupby(["user_index"])["edits"].sum().compute()
-        contributors_unique_monthly_set = ddf.groupby(["month_index"])["user_index"].unique().compute().apply(set)
+        total_edits_of_contributors = ddf.groupby(["user_index"], observed=False)["edits"].sum().compute()
+        contributors_unique_monthly_set = ddf.groupby(["month_index"], observed=False)["user_index"].unique().compute().apply(set)
 
         min_edit_count = [10, 100, 1_000, 10_000, 100_000]
         contributor_count_more_the_k_edits_monthly = []
         for k in min_edit_count:
             contributors_with_more_than_k_edits = set(
-                total_edits_of_contributors[total_edits_of_contributors > k].index.to_numpy()
+                total_edits_of_contributors[total_edits_of_contributors > k].index.to_numpy(),
             )
             contributor_count_more_the_k_edits_monthly.append(
                 contributors_unique_monthly_set.apply(
-                    lambda x: len(x.intersection(contributors_with_more_than_k_edits))
-                ).rename(f"more then {k} edits")
+                    lambda x: len(x.intersection(contributors_with_more_than_k_edits)),
+                ).rename(f"more then {k} edits"),
             )
         df = pd.concat(contributor_count_more_the_k_edits_monthly, axis=1)
         util.save_data(
@@ -38,7 +36,7 @@ def save_topic_general():
             progress_bar,
             "general_contributor_count_more_the_k_edits_monthly",
             df,
-            ("months", *df.columns.values),
+            ("months", *df.columns.to_numpy()),
         )
 
     def save_general_edit_count_per_contributor_median_monthly():
@@ -46,7 +44,7 @@ def save_topic_general():
         for i in range(len(MONTHS)):
             filters = [("month_index", "==", i)]
             ddf = util.load_ddf(DATA_DIR, "general", ("edits", "user_index"), filters)
-            contributor_edits_month = ddf.groupby(["user_index"])["edits"].sum().compute()
+            contributor_edits_month = ddf.groupby(["user_index"], observed=False)["edits"].sum().compute()
             edit_count_per_contributor_median_monthly.append(contributor_edits_month.median())
         df = pd.DataFrame({"median number of edits per contributor": edit_count_per_contributor_median_monthly})
         df.index.name = "month_index"
@@ -69,16 +67,16 @@ def save_topic_general():
     def save_general_contributor_attrition_rate():
         ddf = util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "user_index"))
 
-        ddf_user_first_edit_year = ddf.groupby(["user_index"])["year_index"].min().compute()
+        ddf_user_first_edit_year = ddf.groupby(["user_index"], observed=False)["year_index"].min().compute()
         ddf_user_first_edit_year.name = "first_edit_year_index"
         ddf_year_user_edits = (
-            ddf.groupby(["year_index", "user_index"])["edits"].sum().compute().reset_index("year_index")
+            ddf.groupby(["year_index", "user_index"], observed=False)["edits"].sum().compute().reset_index("year_index")
         )
         merge = dd.merge(ddf_year_user_edits, ddf_user_first_edit_year, on="user_index")
         merge["first edit"] = merge["first_edit_year_index"].apply(
-            lambda i: f"{YEARS[i-1]}-{YEARS[i]}" if i % 2 else f"{YEARS[i]}-{int(YEARS[i])+1}"
+            lambda i: f"{YEARS[i-1]}-{YEARS[i]}" if i % 2 else f"{YEARS[i]}-{int(YEARS[i])+1}",
         )
-        merge_edit_sum = merge.groupby(["year_index", "first edit"])["edits"].sum().reset_index()
+        merge_edit_sum = merge.groupby(["year_index", "first edit"], observed=False)["edits"].sum().reset_index()
         df = pd.pivot_table(merge_edit_sum, values="edits", index="year_index", columns="first edit")
 
         util.save_data(
@@ -86,7 +84,7 @@ def save_topic_general():
             progress_bar,
             "general_contributor_count_attrition_rate_yearly",
             df,
-            ("years", *df.columns.values),
+            ("years", *df.columns.to_numpy()),
         )
 
     ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "year_index", "edits", "user_index", "pos_x", "pos_y"))
@@ -105,7 +103,7 @@ def save_topic_general():
 
     save_general_contributor_count_more_the_k_edits_monthly()
     util.save_edit_count_map_yearly(
-        YEARS, progress_bar, "general", util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "pos_x", "pos_y"))
+        YEARS, progress_bar, "general", util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "pos_x", "pos_y")),
     )
 
     save_general_edit_count_per_contributor_median_monthly()
@@ -118,7 +116,7 @@ def save_topic_general():
         progress_bar,
         "general_no_maps_me_contributor_count_monthly",
         ddf[~ddf["created_by"].isin(map_me_indices)]
-        .groupby(["month_index"])["user_index"]
+        .groupby(["month_index"], observed=False)["user_index"]
         .nunique()
         .compute()
         .rename("contributors without maps.me"),
@@ -139,7 +137,7 @@ def save_topic_editing_software():
     def get_software_editor_type_lists():
         created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
 
-        name_to_info = util.load_json(os.path.join("src", "replace_rules_created_by.json"))
+        name_to_info = util.load_json(Path("src") / "replace_rules_created_by.json")
         device_type = {
             "desktop_editors": [],
             "mobile_editors": [],
@@ -161,15 +159,15 @@ def save_topic_editing_software():
                     print(f"unknown type: {name['type']} at name {name}")
         if len(name_not_in_tag_to_index_list) > 0:
             print(
-                f"{name_not_in_tag_to_index_list} in 'replace_rules_created_by.json' but not in 'tag_to_index' (this is expected when working"
-                " with a part of all changesets)"
+                f"{name_not_in_tag_to_index_list} in 'replace_rules_created_by.json' but not in 'tag_to_index'"
+                " (this is expected when working with a part of all changesets)",
             )
 
         device_type["desktop_editors"] = np.array(device_type["desktop_editors"], dtype=np.int64)
         device_type["mobile_editors"] = np.array(device_type["mobile_editors"], dtype=np.int64)
         device_type["tools"] = np.array(device_type["tools"], dtype=np.int64)
         device_type["other/unspecified"] = np.array(
-            list(set(created_by_tag_to_index.values()) - set(np.concatenate(list(device_type.values()))))
+            list(set(created_by_tag_to_index.values()) - set(np.concatenate(list(device_type.values())))),
         )
         return device_type
 
@@ -180,7 +178,7 @@ def save_topic_editing_software():
             ddf = util.load_ddf(DATA_DIR, "general", ("month_index", tag, "created_by"))
             df = pd.concat(
                 [
-                    ddf[ddf["created_by"].isin(v)].groupby(["month_index"])[tag].nunique().compute().rename(k)
+                    ddf[ddf["created_by"].isin(v)].groupby(["month_index"], observed=False)[tag].nunique().compute().rename(k)
                     for k, v in editor_type_lists.items()
                 ],
                 axis=1,
@@ -190,13 +188,13 @@ def save_topic_editing_software():
                 progress_bar,
                 f"created_by_device_type_{tag_name}_count_monthly",
                 df,
-                ("months", *df.columns.values),
+                ("months", *df.columns.to_numpy()),
             )
 
         ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "created_by"))
         df = pd.concat(
             [
-                ddf[ddf["created_by"].isin(v)].groupby(["month_index"])["edits"].sum().compute().rename(k)
+                ddf[ddf["created_by"].isin(v)].groupby(["month_index"], observed=False)["edits"].sum().compute().rename(k)
                 for k, v in editor_type_lists.items()
             ],
             axis=1,
@@ -206,7 +204,7 @@ def save_topic_editing_software():
             progress_bar,
             "created_by_device_type_edit_count_monthly",
             df,
-            ("months", *df.columns.values),
+            ("months", *df.columns.to_numpy()),
         )
         util.save_percent("created_by_device_type_edit_count_monthly", "general_edit_count_monthly", "months", "edits")
 
@@ -243,12 +241,12 @@ def save_topic_editing_software():
 
     util.save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
     util.save_merged_yearly_total_data(
-        "created_by_top_100_contributor_count_yearly", "created_by_top_100_contributor_count_total"
+        "created_by_top_100_contributor_count_yearly", "created_by_top_100_contributor_count_total",
     )
     util.save_merged_yearly_total_data("created_by_top_100_edit_count_yearly", "created_by_top_100_edit_count_total")
     util.save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly", "months", "edits")
     util.save_percent(
-        "created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors"
+        "created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors",
     )
     util.save_accumulated("created_by_top_10_new_contributor_count_monthly")
     util.save_accumulated("created_by_top_10_edit_count_monthly")
@@ -270,7 +268,7 @@ def save_topic_corporation():
     )
     util.save_sum_of_top_k("corporation_top_100_edit_count_monthly")
     util.save_percent(
-        "corporation_top_100_edit_count_monthly_sum_top_k", "general_edit_count_monthly", "months", "edits"
+        "corporation_top_100_edit_count_monthly_sum_top_k", "general_edit_count_monthly", "months", "edits",
     )
     util.save_top_k(10, "corporation_top_100_new_contributor_count_monthly")
     util.save_top_k(10, "corporation_top_100_edit_count_monthly")
@@ -319,14 +317,14 @@ def save_topic_source_imagery_hashtag():
         util.save_accumulated(f"{tag}_top_10_edit_count_monthly")
         util.save_accumulated(f"{tag}_top_10_changeset_count_monthly")
         util.save_merged_yearly_total_data(
-            f"{tag}_top_100_contributor_count_yearly", f"{tag}_top_100_contributor_count_total"
+            f"{tag}_top_100_contributor_count_yearly", f"{tag}_top_100_contributor_count_total",
         )
         util.save_merged_yearly_total_data(f"{tag}_top_100_edit_count_yearly", f"{tag}_top_100_edit_count_total")
 
 
 def save_topic_streetcomplete():
     ddf_all_tags = util.load_ddf(
-        DATA_DIR, "all_tags", ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags")
+        DATA_DIR, "all_tags", ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags"),
     )
     all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
     util.save_base_statistics(
@@ -339,7 +337,7 @@ def save_topic_streetcomplete():
         edit_count_map_total=True,
     )
     util.save_percent(
-        "streetcomplete_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors"
+        "streetcomplete_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors",
     )
     util.save_percent("streetcomplete_edit_count_monthly", "general_edit_count_monthly", "months", "edits")
 
@@ -362,19 +360,19 @@ def save_topic_streetcomplete():
     util.save_accumulated("streetcomplete_top_10_edit_count_monthly")
     util.save_accumulated("streetcomplete_top_10_changeset_count_monthly")
     util.save_merged_yearly_total_data(
-        "streetcomplete_top_300_edit_count_yearly", "streetcomplete_top_300_edit_count_total"
+        "streetcomplete_top_300_edit_count_yearly", "streetcomplete_top_300_edit_count_total",
     )
 
 
 def save_topic_bot():
     ddf = util.load_ddf(
-        DATA_DIR, "general", ("month_index", "edits", "user_index", "pos_x", "pos_y", "bot", "created_by")
+        DATA_DIR, "general", ("month_index", "edits", "user_index", "pos_x", "pos_y", "bot", "created_by"),
     )
     util.save_base_statistics(
         DATA_DIR,
         progress_bar,
         "bot",
-        ddf[ddf["bot"] == True],
+        ddf[ddf["bot"]],
         edit_count_monthly=True,
         changeset_count_monthly=True,
         contributor_count_monthly=True,
@@ -394,11 +392,11 @@ def save_topic_bot():
     )
 
     util.save_base_statistics_tag(
-        DATA_DIR, progress_bar, "created_by", ddf[ddf["bot"] == True], k=100, prefix="bot", edit_count_monthly=True
+        DATA_DIR, progress_bar, "created_by", ddf[ddf["bot"]], k=100, prefix="bot", edit_count_monthly=True,
     )
     util.save_monthly_to_yearly("bot_created_by_top_100_edit_count_monthly")
     util.save_merged_yearly_total_data(
-        "bot_created_by_top_100_edit_count_yearly", "bot_created_by_top_100_edit_count_total"
+        "bot_created_by_top_100_edit_count_yearly", "bot_created_by_top_100_edit_count_total",
     )
 
 
@@ -408,10 +406,10 @@ def save_topic_tags():
     util.save_monthly_to_yearly("all_tags_top_100_changeset_count_monthly")
     util.save_top_k(10, "all_tags_top_100_changeset_count_monthly")
     util.save_percent(
-        "all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly", "months", "changesets"
+        "all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly", "months", "changesets",
     )
     util.save_merged_yearly_total_data(
-        "all_tags_top_100_changeset_count_yearly", "all_tags_top_100_changeset_count_total"
+        "all_tags_top_100_changeset_count_yearly", "all_tags_top_100_changeset_count_total",
     )
 
     selected_editors = ["JOSM", "iD", "Potlatch", "StreetComplete", "Rapid", "Vespucci"]
@@ -438,24 +436,24 @@ def save_topic_tags():
 
 def save_name_to_link():
     util.save_json(
-        os.path.join("assets", "data", "created_by_name_to_link.json"),
+        Path("assets") / "data" / "created_by_name_to_link.json",
         util.get_name_to_link("replace_rules_created_by.json"),
     )
     util.save_json(
-        os.path.join("assets", "data", "imagery_and_source_name_to_link.json"),
+        Path("assets") / "data" / "imagery_and_source_name_to_link.json",
         util.get_name_to_link("replace_rules_imagery_and_source.json"),
     )
     corporation_name_to_link = {
         name: link
-        for name, (link, _) in util.load_json(os.path.join("assets", "corporation_contributors.json")).items()
+        for name, (link, _) in util.load_json(Path("assets") / "corporation_contributors.json").items()
     }
-    util.save_json(os.path.join("assets", "data", "corporation_name_to_link.json"), corporation_name_to_link)
+    util.save_json(Path("assets") / "data" / "corporation_name_to_link.json", corporation_name_to_link)
 
 
 def main():
-    save_name_to_link()
+    # save_name_to_link()
 
-    save_topic_general()
+    # save_topic_general()
     save_topic_editing_software()
     save_topic_corporation()
     save_topic_source_imagery_hashtag()

@@ -1,0 +1,51 @@
+[tool.ruff]
+select = ["ALL"]
+ignore = [
+    "D100",     # Missing docstring in public module
+    "D101",     # Missing docstring in public class
+    "D102",     # Missing docstring in public methodRuff
+    "D103",     # Missing docstring in public function
+    "D104",     # Missing docstring in public package
+    "D107",     # Missing docstring in `__init__`
+    "D211",     # `no-blank-line-before-class`
+    "D213",     # `multi-line-summary-second-line`
+
+    "ANN001",   # Missing type annotation
+    "ANN101",   # Missing type annotation for `self` in method
+    "ANN201",   # Missing return type annotation
+    "ANN202",   # Missing return type annotation for private function
+    "ANN204",   # Missing return type annotation for special method `__init__`
+    
+
+    "T201",     # `print` found
+    "TD002",    # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
+    "TD003",    # Missing issue link on the line following this TODO
+    "FIX002",   # Line contains TODO, consider resolving the issue
+    "RET505",   # Unnecessary `else` after `return` statement
+    "TRY003",   # Avoid specifying long messages outside the exception class
+    "EM101",    # Exception must not use a string literal, assign to variable first
+    "ERA001",   # Found commented-out code
+
+    # fix later
+    "FBT002",   # Boolean default positional argument in function definition
+    "PLR0913",  # Too many arguments in function definition
+    "PLR0915",  # Too many statements
+    "PLR0912",  # To many branches
+    "C901",     # X is too complex
+    "PD901",    # Avoid using the generic variable name `df` for DataFrames
+    "F821",     # Undefined name `data_dict`
+    "B023",     # Function definition does not bind loop variable
+    
+    
+
+]
+fixable = ["ALL"]
+unfixable = []
+exclude = [
+    ".git",
+    ".github",
+    ".ruff_cache",
+    ".venv",
+    "assets",
+]
+line-length = 120
