@@ -137,7 +137,8 @@ def save_maps(progress_bar, name, pd_histogram_2d_list, map_names):
         x_list.append(x)
         y_list.append(y)
         z_list.append(z)
-        max_z_value_list.append(int(np.max(z)))
+        max_z_value = int(np.max(z)) if len(z) > 0 else 0
+        max_z_value_list.append(max_z_value)
 
     xyz_df = pd.DataFrame(
         {

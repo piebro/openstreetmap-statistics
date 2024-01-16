@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v4
         if: steps.check_second_monday.outputs.run_jobs == 'true'
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       
       - name: setup
         if: steps.check_second_monday.outputs.run_jobs == 'true'
