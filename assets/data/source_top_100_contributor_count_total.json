@@ -38,8 +38,8 @@
   "Website",
   "osmose",
   "https:\/\/www.facebook.com",
-  ".gpx data file",
   "MapWithAI",
+  ".gpx data file",
   "GPX",
   "OSM",
   "Validator",
@@ -56,8 +56,8 @@
   "local survey",
   "North Rhine-Westphalia aerial photograph",
   "PDOK aerial imagery",
-  "youtube",
   "Ortskenntnis",
+  "youtube",
   "http:\/\/hiu-maps.net",
   "GPS track",
   "https:\/\/de.wikipedia.org",
@@ -75,8 +75,8 @@
   "vor Ort",
   "{switch:a,b,c,d}.tiles.mapbox.com",
   "Ortho HR",
-  "personal knowledge",
   "web",
+  "personal knowledge",
   "OpenStreetMap (Mapnik)",
   "observation",
   "wiki.openstreetmap.org",
@@ -99,7 +99,7 @@
   "1.49)",
   "2.99)",
   "Norway Orthophoto",
-  "OpenTopoMap"
+  "swisstopo SWISSIMAGE"
  ],
  "data":[
   [
@@ -141,8 +141,8 @@
    917,
    896,
    885,
-   869,
    838,
+   817,
    761,
    756,
    753,
