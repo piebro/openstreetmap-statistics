@@ -1,5 +1,6 @@
-from setuptools import setup
 from pathlib import Path
+
+from setuptools import setup
 
 parent_dir = Path(__file__).resolve().parent
 

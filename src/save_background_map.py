@@ -1,9 +1,8 @@
 import sys
-import os
 
-from PIL import Image, ImageDraw
-import numpy as np
 import geopandas as gpd
+import numpy as np
+from PIL import Image, ImageDraw
 
 
 def save_map(geometry, scale, save_path, background_color, fill_color):

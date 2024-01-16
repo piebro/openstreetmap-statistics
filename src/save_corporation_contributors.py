@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -72,12 +73,12 @@ corporation_to_users = {
     "Kontur": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kontur"),
     "Lightcyphers": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Lightcyphers"),
     "Lyft": get_all_users_from_links(
-        "https://github.com/OSM-DCT-Lyft/US/wiki/OSM-Team-Members#lyft-mapping-team-osm-ids"
+        "https://github.com/OSM-DCT-Lyft/US/wiki/OSM-Team-Members#lyft-mapping-team-osm-ids",
     ),
     "Mapbox": get_all_users_from_mapbox_link("https://wiki.openstreetmap.org/wiki/Mapbox#Mapbox_Data_Team"),
     "Meta": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Facebook"),
     "Microsoft": get_all_users_from_microsoft_link(
-        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Microsoft"
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Microsoft",
     ),
     "Neshan": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Neshan"),
     "NextBillion.AI": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/NextBillion.AI-OSM"),
@@ -93,7 +94,7 @@ corporation_to_users = {
     "TomTom": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TomTom"),
     "Uber": get_all_users_from_links("https://github.com/Uber-OSM/DataTeam"),
     "WIGeoGIS": get_all_users_from_links(
-        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Updating_assets_of_OMV_group"
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Updating_assets_of_OMV_group",
     ),
     "Wonder": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Wonder"),
     "Zartico": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Zartico"),

@@ -1,13 +1,12 @@
+import datetime
 import re
 import sys
-import os
-from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from fastparquet import write as parquet_write
-
 import util
+from fastparquet import write as parquet_write
 
 # change some streetcomplete quest type tags that changed their name over the time to the newest name
 # https://github.com/streetcomplete/StreetComplete/issues/1749#issuecomment-593450124
@@ -43,20 +42,17 @@ class IndexDict:
         if key not in self.dict:
             self.counter += 1
             self.dict[key] = self.counter
-        index = self.dict[key]
-        return index
+        return self.dict[key]
 
     def add_keys(self, keys):
         if len(keys) == 0:
             return ()
-        else:
-            return list(self.add(key) for key in keys)
+        return [self.add(key) for key in keys]
 
     def save(self, save_dir):
         revesed_dict = {value: key for key, value in self.dict.items()}
-        filepath = os.path.join(save_dir, f"index_to_tag_{self.name}.txt")
-        with open(filepath, "w", encoding="UTF-8") as f:
-            # f.write(f"\n")
+        filepath = Path(save_dir) / f"index_to_tag_{self.name}.txt"
+        with filepath.open("w", encoding="UTF-8") as f:
             for line in [revesed_dict[key] for key in sorted(revesed_dict.keys())]:
                 f.write(f"{line}\n")
 
@@ -64,7 +60,7 @@ class IndexDict:
 def get_year_and_month_to_index():
     first_year = 2005
     first_month = 4
-    now = datetime.now()
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
     last_year = now.year
     last_month = now.month - 1
     years = [str(year) for year in range(first_year, last_year + 1)]
@@ -160,7 +156,7 @@ def add_source(tags, index_dicts, replace_rules):
 
 def add_all_tags(tags, index_dicts):
     return index_dicts["all_tags"].add_keys(
-        [tag_name.split(":")[0] for tag_name in tags.keys() if tag_name != "created_by"]
+        [tag_name.split(":")[0] for tag_name in tags if tag_name != "created_by"],
     )
 
 
@@ -172,7 +168,7 @@ def get_corporation_index(user_name, index_dicts, user_name_to_corporation):
 
 
 def load_user_name_to_corporation_dict():
-    corporation_contributors = util.load_json(os.path.join("assets", "corporation_contributors.json"))
+    corporation_contributors = util.load_json(Path("assets") / "corporation_contributors.json")
     user_name_to_corporation = {}
     for corporation_name, (_, user_name_list) in corporation_contributors.items():
         for user_name in user_name_list:
@@ -187,7 +183,7 @@ def create_replace_rules():
         ("imagery", "replace_rules_imagery_and_source.json"),
         ("source", "replace_rules_imagery_and_source.json"),
     ]:
-        name_to_tags_and_link = util.load_json(os.path.join("src", file_name))
+        name_to_tags_and_link = util.load_json(Path("src") / file_name)
         tag_to_name = {}
         starts_with_list = []
         ends_with_list = []
@@ -196,11 +192,13 @@ def create_replace_rules():
                 for alias in name_infos["aliases"]:
                     tag_to_name[alias] = name
             if "starts_with" in name_infos:
-                for starts_with in name_infos["starts_with"]:
-                    starts_with_list.append((len(starts_with), starts_with, name))
+                starts_with_list.extend(
+                    [(len(starts_with), starts_with, name) for starts_with in name_infos["starts_with"]],
+                )
             if "ends_with" in name_infos:
-                for ends_with in name_infos["ends_with"]:
-                    ends_with_list.append((len(ends_with), ends_with, name))
+                starts_with_list.extend(
+                    [(len(ends_with), ends_with, name) for ends_with in name_infos["ends_with"]],
+                )
 
         replace_rules[tag_name] = {
             "tag_to_name": tag_to_name,
@@ -239,15 +237,14 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
         "streetcomplete": np.array(data_dict["streetcomplete"], dtype=np.uint16),
         "bot": np.array(data_dict["bot"], dtype=np.bool_),
     }
-    save_dir = os.path.join(parquet_save_dir, "general")
+    save_dir = Path(parquet_save_dir) / "general"
     parquet_write(
-        save_dir,
+        str(save_dir),
         pd.DataFrame.from_dict(data=general),
         compression="GZIP",
         file_scheme="hive",
         partition_on=["month_index"],
-        # write_index=False,
-        append=os.path.isdir(save_dir),
+        append=save_dir.is_dir(),
     )
 
     for tag_name in ("imagery", "hashtag", "source", "all_tags"):
@@ -267,15 +264,14 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
             tag_name: np.array(data_dict[tag_name], dtype=np.uint32),
         }
 
-        save_dir = os.path.join(parquet_save_dir, f"{tag_name}")
+        save_dir = Path(parquet_save_dir) / f"{tag_name}"
         parquet_write(
-            save_dir,
+            str(save_dir),
             pd.DataFrame.from_dict(data=tag_dict),
             compression="GZIP",
             file_scheme="hive",
             partition_on=["month_index"],
-            # write_index=False,
-            append=os.path.isdir(save_dir),
+            append=save_dir.is_dir(),
         )
 
 
@@ -307,14 +303,14 @@ def init_data_dict():
 
 def main():
     save_dir = sys.argv[1]
-    os.mkdir(save_dir)
+    Path(save_dir).mkdir()
     years, year_to_index, months, month_to_index = get_year_and_month_to_index()
 
-    with open(os.path.join(save_dir, "months.txt"), "w", encoding="UTF-8") as f:
+    with (Path(save_dir) / "months.txt").open("w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
 
-    with open(os.path.join(save_dir, "years.txt"), "w", encoding="UTF-8") as f:
+    with (Path(save_dir) / "years.txt").open("w", encoding="UTF-8") as f:
         f.writelines("\n".join(years))
         f.writelines("\n")
 
@@ -332,8 +328,8 @@ def main():
     replace_rules = create_replace_rules()
     user_name_to_corporation = load_user_name_to_corporation_dict()
 
-    parquet_save_dir = os.path.join(save_dir, "changeset_data")
-    os.makedirs(parquet_save_dir, exist_ok=True)
+    parquet_save_dir = Path(save_dir) / "changeset_data"
+    Path.mkdir(parquet_save_dir, exist_ok=True)
 
     batch_size = 5_000_000
     file_counter = 0
