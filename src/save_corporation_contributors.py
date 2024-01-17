@@ -13,10 +13,17 @@ def get_all_users_from_links(url, soup=None):
     user_names = []
     for a in soup.find_all("a", href=True):
         href = a["href"]
+
         if href[:5] == "http:":
             href = f"https{href[4:]}"
         elif href[:2] == "//":
             href = f"https:{href}"
+        elif href[:2] == '\\"':
+            href = href[2:]
+
+        if href[-2:] == '\\"':
+            href = href[:-2]
+
         if href[: len(link_prefix)] == link_prefix:
             user_name = href[len(link_prefix) :]
             user_name = user_name.split("/")[0]
@@ -57,6 +64,8 @@ def get_all_users_from_microsoft_link(url):
     return [url, users]
 
 
+# for these organizations look at teams here: https://wiki.openstreetmap.org/wiki/Category:Organised_Editing_Teams or
+# https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities
 corporation_to_users = {
     "Amazon": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Amazon"),
     "Apple": get_all_users_from_links("https://github.com/osmlab/appledata/wiki/Data-Team"),
@@ -70,6 +79,7 @@ corporation_to_users = {
     "Grab": get_username_from_tables("https://github.com/GRABOSM/Grab-Data/blob/master/Grab%20Data%20Team.md", 1),
     "Graphmasters": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Graphmasters"),
     "Kaart": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kaart"),
+    "Komoot": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/komoot"),
     "Kontur": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Kontur"),
     "Lightcyphers": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Lightcyphers"),
     "Lyft": get_all_users_from_links(
@@ -82,17 +92,23 @@ corporation_to_users = {
     ),
     "Neshan": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Neshan"),
     "NextBillion.AI": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/NextBillion.AI-OSM"),
-    "Ola": get_username_from_tables("https://wiki.openstreetmap.org/wiki/Ola", 2),
+    "Ola": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Ola"),
     "Rocketdata.io": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Rocketdata.io"),
     "Snap": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Snap"),
     "Snapp": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Fa:Snapp"),
     "Stackbox": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Stackbox"),
     "Swiggy": get_username_from_tables("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Swiggy", 1),
+    "TeleClinic": get_all_users_from_links(
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TeleClinic"
+    ),
     "Telenav": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Telenav"),
     "TfNSW": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/TfNSW"),
     "TIDBO": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TIDBO"),
     "TomTom": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TomTom"),
-    "Uber": get_all_users_from_links("https://github.com/Uber-OSM/DataTeam"),
+    "Uber": get_all_users_from_links("https://github.com/Uber-OSM/DataTeam/blob/master/README.md"),
+    "VK_Maps": get_all_users_from_links(
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/VK_Maps_Team"
+    ),
     "WIGeoGIS": get_all_users_from_links(
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Updating_assets_of_OMV_group",
     ),
