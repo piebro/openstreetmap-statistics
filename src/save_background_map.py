@@ -13,7 +13,7 @@ def save_map(geometry, scale, save_path, background_color, fill_color):
         x, y = poly.exterior.coords.xy
         x = (np.array(x) + 180) * scale
         y = (-np.array(y) + 90) * scale
-        xy = [(xx, yy) for xx, yy in zip(x, y)]
+        xy = list(zip(x, y))
         draw.polygon(xy, fill=fill_color, outline=None, width=0)
     img.save(save_path)
 

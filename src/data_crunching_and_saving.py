@@ -17,7 +17,9 @@ def save_topic_general():
     def save_general_contributor_count_more_the_k_edits_monthly():
         ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "user_index"))
         total_edits_of_contributors = ddf.groupby(["user_index"], observed=False)["edits"].sum().compute()
-        contributors_unique_monthly_set = ddf.groupby(["month_index"], observed=False)["user_index"].unique().compute().apply(set)
+        contributors_unique_monthly_set = (
+            ddf.groupby(["month_index"], observed=False)["user_index"].unique().compute().apply(set)
+        )
 
         min_edit_count = [10, 100, 1_000, 10_000, 100_000]
         contributor_count_more_the_k_edits_monthly = []
@@ -103,7 +105,10 @@ def save_topic_general():
 
     save_general_contributor_count_more_the_k_edits_monthly()
     util.save_edit_count_map_yearly(
-        YEARS, progress_bar, "general", util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "pos_x", "pos_y")),
+        YEARS,
+        progress_bar,
+        "general",
+        util.load_ddf(DATA_DIR, "general", ("year_index", "edits", "pos_x", "pos_y")),
     )
 
     save_general_edit_count_per_contributor_median_monthly()
@@ -178,7 +183,11 @@ def save_topic_editing_software():
             ddf = util.load_ddf(DATA_DIR, "general", ("month_index", tag, "created_by"))
             df = pd.concat(
                 [
-                    ddf[ddf["created_by"].isin(v)].groupby(["month_index"], observed=False)[tag].nunique().compute().rename(k)
+                    ddf[ddf["created_by"].isin(v)]
+                    .groupby(["month_index"], observed=False)[tag]
+                    .nunique()
+                    .compute()
+                    .rename(k)
                     for k, v in editor_type_lists.items()
                 ],
                 axis=1,
@@ -194,7 +203,11 @@ def save_topic_editing_software():
         ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "edits", "created_by"))
         df = pd.concat(
             [
-                ddf[ddf["created_by"].isin(v)].groupby(["month_index"], observed=False)["edits"].sum().compute().rename(k)
+                ddf[ddf["created_by"].isin(v)]
+                .groupby(["month_index"], observed=False)["edits"]
+                .sum()
+                .compute()
+                .rename(k)
                 for k, v in editor_type_lists.items()
             ],
             axis=1,
@@ -241,12 +254,16 @@ def save_topic_editing_software():
 
     util.save_monthly_to_yearly("created_by_top_100_edit_count_monthly")
     util.save_merged_yearly_total_data(
-        "created_by_top_100_contributor_count_yearly", "created_by_top_100_contributor_count_total",
+        "created_by_top_100_contributor_count_yearly",
+        "created_by_top_100_contributor_count_total",
     )
     util.save_merged_yearly_total_data("created_by_top_100_edit_count_yearly", "created_by_top_100_edit_count_total")
     util.save_percent("created_by_top_10_edit_count_monthly", "general_edit_count_monthly", "months", "edits")
     util.save_percent(
-        "created_by_top_10_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors",
+        "created_by_top_10_contributor_count_monthly",
+        "general_contributor_count_monthly",
+        "months",
+        "contributors",
     )
     util.save_accumulated("created_by_top_10_new_contributor_count_monthly")
     util.save_accumulated("created_by_top_10_edit_count_monthly")
@@ -268,7 +285,10 @@ def save_topic_corporation():
     )
     util.save_sum_of_top_k("corporation_top_100_edit_count_monthly")
     util.save_percent(
-        "corporation_top_100_edit_count_monthly_sum_top_k", "general_edit_count_monthly", "months", "edits",
+        "corporation_top_100_edit_count_monthly_sum_top_k",
+        "general_edit_count_monthly",
+        "months",
+        "edits",
     )
     util.save_top_k(10, "corporation_top_100_new_contributor_count_monthly")
     util.save_top_k(10, "corporation_top_100_edit_count_monthly")
@@ -281,7 +301,6 @@ def save_topic_corporation():
 
 
 def save_topic_source_imagery_hashtag():
-
     all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
 
     for tag, tag_name_in_all_tags in [("source", "source"), ("imagery", "imagery_used"), ("hashtag", "hashtags")]:
@@ -317,14 +336,17 @@ def save_topic_source_imagery_hashtag():
         util.save_accumulated(f"{tag}_top_10_edit_count_monthly")
         util.save_accumulated(f"{tag}_top_10_changeset_count_monthly")
         util.save_merged_yearly_total_data(
-            f"{tag}_top_100_contributor_count_yearly", f"{tag}_top_100_contributor_count_total",
+            f"{tag}_top_100_contributor_count_yearly",
+            f"{tag}_top_100_contributor_count_total",
         )
         util.save_merged_yearly_total_data(f"{tag}_top_100_edit_count_yearly", f"{tag}_top_100_edit_count_total")
 
 
 def save_topic_streetcomplete():
     ddf_all_tags = util.load_ddf(
-        DATA_DIR, "all_tags", ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags"),
+        DATA_DIR,
+        "all_tags",
+        ("month_index", "edits", "user_index", "pos_x", "pos_y", "all_tags"),
     )
     all_tags_tag_to_index = util.load_tag_to_index(DATA_DIR, "all_tags")
     util.save_base_statistics(
@@ -337,7 +359,10 @@ def save_topic_streetcomplete():
         edit_count_map_total=True,
     )
     util.save_percent(
-        "streetcomplete_contributor_count_monthly", "general_contributor_count_monthly", "months", "contributors",
+        "streetcomplete_contributor_count_monthly",
+        "general_contributor_count_monthly",
+        "months",
+        "contributors",
     )
     util.save_percent("streetcomplete_edit_count_monthly", "general_edit_count_monthly", "months", "edits")
 
@@ -360,13 +385,16 @@ def save_topic_streetcomplete():
     util.save_accumulated("streetcomplete_top_10_edit_count_monthly")
     util.save_accumulated("streetcomplete_top_10_changeset_count_monthly")
     util.save_merged_yearly_total_data(
-        "streetcomplete_top_300_edit_count_yearly", "streetcomplete_top_300_edit_count_total",
+        "streetcomplete_top_300_edit_count_yearly",
+        "streetcomplete_top_300_edit_count_total",
     )
 
 
 def save_topic_bot():
     ddf = util.load_ddf(
-        DATA_DIR, "general", ("month_index", "edits", "user_index", "pos_x", "pos_y", "bot", "created_by"),
+        DATA_DIR,
+        "general",
+        ("month_index", "edits", "user_index", "pos_x", "pos_y", "bot", "created_by"),
     )
     util.save_base_statistics(
         DATA_DIR,
@@ -392,11 +420,18 @@ def save_topic_bot():
     )
 
     util.save_base_statistics_tag(
-        DATA_DIR, progress_bar, "created_by", ddf[ddf["bot"]], k=100, prefix="bot", edit_count_monthly=True,
+        DATA_DIR,
+        progress_bar,
+        "created_by",
+        ddf[ddf["bot"]],
+        k=100,
+        prefix="bot",
+        edit_count_monthly=True,
     )
     util.save_monthly_to_yearly("bot_created_by_top_100_edit_count_monthly")
     util.save_merged_yearly_total_data(
-        "bot_created_by_top_100_edit_count_yearly", "bot_created_by_top_100_edit_count_total",
+        "bot_created_by_top_100_edit_count_yearly",
+        "bot_created_by_top_100_edit_count_total",
     )
 
 
@@ -406,10 +441,14 @@ def save_topic_tags():
     util.save_monthly_to_yearly("all_tags_top_100_changeset_count_monthly")
     util.save_top_k(10, "all_tags_top_100_changeset_count_monthly")
     util.save_percent(
-        "all_tags_top_10_changeset_count_monthly", "general_changeset_count_monthly", "months", "changesets",
+        "all_tags_top_10_changeset_count_monthly",
+        "general_changeset_count_monthly",
+        "months",
+        "changesets",
     )
     util.save_merged_yearly_total_data(
-        "all_tags_top_100_changeset_count_yearly", "all_tags_top_100_changeset_count_total",
+        "all_tags_top_100_changeset_count_yearly",
+        "all_tags_top_100_changeset_count_total",
     )
 
     selected_editors = ["JOSM", "iD", "Potlatch", "StreetComplete", "Rapid", "Vespucci"]
@@ -444,8 +483,7 @@ def save_name_to_link():
         util.get_name_to_link("replace_rules_imagery_and_source.json"),
     )
     corporation_name_to_link = {
-        name: link
-        for name, (link, _) in util.load_json(Path("assets") / "corporation_contributors.json").items()
+        name: link for name, (link, _) in util.load_json(Path("assets") / "corporation_contributors.json").items()
     }
     util.save_json(Path("assets") / "data" / "corporation_name_to_link.json", corporation_name_to_link)
 

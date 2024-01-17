@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 def get_all_users_from_links(url, soup=None):
     if soup is None:
-        page = requests.get(url)
+        page = requests.get(url, timeout=10)
         soup = BeautifulSoup(page.content, "html.parser")
     link_prefix = "https://www.openstreetmap.org/user/"
     user_names = []
@@ -26,7 +26,7 @@ def get_all_users_from_links(url, soup=None):
 
 
 def get_username_from_tables(url, column_index):
-    page = requests.get(url)
+    page = requests.get(url, timeout=10)
     soup = BeautifulSoup(page.content, "html.parser")
     users = []
     for tr in soup.find_all("tr"):
@@ -40,13 +40,13 @@ def get_username_from_tables(url, column_index):
 
 
 def get_all_users_from_mapbox_link(url):
-    page = requests.get(url)
+    page = requests.get(url, timeout=10)
     soup = BeautifulSoup(page.content, "html.parser")
     return [url, get_all_users_from_links(None, soup.find_all("table")[0])[1]]
 
 
 def get_all_users_from_microsoft_link(url):
-    page = requests.get(url)
+    page = requests.get(url, timeout=10)
     soup = BeautifulSoup(page.content, "html.parser")
     soup = soup.find_all("table")[0]
     users = []
@@ -100,8 +100,8 @@ corporation_to_users = {
     "Zartico": get_all_users_from_links("https://wiki.openstreetmap.org/wiki/Zartico"),
 }
 
-for name in corporation_to_users.keys():
-    corporation_to_users[name][1] = sorted(list(set(corporation_to_users[name][1])))
+for name in corporation_to_users:
+    corporation_to_users[name][1] = sorted(set(corporation_to_users[name][1]))
     for i in range(len(corporation_to_users[name][1])):
         user_name = corporation_to_users[name][1][i]
         user_name = user_name.replace("%20", "%20%").replace(" ", "%20%")
@@ -109,5 +109,5 @@ for name in corporation_to_users.keys():
         user_name = user_name.replace("%40", "%40%").replace("@", "%40%")
         corporation_to_users[name][1][i] = user_name
 
-with open(os.path.join("assets", "corporation_contributors.json"), "w") as f:
+with (Path("assets") / "corporation_contributors.json").open("w") as f:
     json.dump(corporation_to_users, f, sort_keys=True, indent=4)

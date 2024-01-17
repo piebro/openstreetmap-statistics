@@ -25,7 +25,7 @@ It's important to keep this in mind looking and interpreting the data.
 Another aspect is that the `created_by`, `imagery` and `source` tag use filters to determine the editing software and imagery.
 Some categories are opinionated (e.g., should stats for Android and iOS editing apps be counted separately?), and other categories could be very reasonable, depending on the purpose.
 The filtering process is done with simple rules to make it as transparent as possible and easily extendable by anyone.
-The rules are definded at [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
+The rules are defined at [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
 
 ### Editing Software
 
@@ -59,7 +59,7 @@ The code is tested on Ubuntu 20.04 but should work on every Linux distro. I'm no
 # Install dependencies for downloading and handling the latest changeset and showing a progress bar
 sudo apt install aria2 osmium-tool pv
 
-# create a vitual enviroment
+# create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
@@ -128,8 +128,9 @@ Also, if you see any typos or other mistakes, feel free to correct them and crea
 Another valuable way to contribute is to add editing software or imagery sources to [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
 This can make the statistics more accurate.
 
-You can use `black -l 120 .` in the project root diretory to run the python code formatter [Black](https://pypi.org/project/black/) befor committing code.
-
+The Projected uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting. Run `ruff check` and `ruff format` in the project root directory tu use it.
+[Prettier](https://prettier.io/playground/) is used for linting the javascript code with a `print-width` of 120, `tab-width` of 4 and [Stylelint](https://stylelint.io/demo/) is used for linting css code.
+Furthermore, [Codespell](https://github.com/codespell-project/codespell) is used to find spelling mistakes and can be used with this command `codespell src README.md index.html assets/statistic_website.js`.
 
 ## Website Statistics
 

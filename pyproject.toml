@@ -25,6 +25,8 @@ ignore = [
     "TRY003",   # Avoid specifying long messages outside the exception class
     "EM101",    # Exception must not use a string literal, assign to variable first
     "ERA001",   # Found commented-out code
+    "ISC001",
+    "COM812",
 
     # fix later
     "FBT002",   # Boolean default positional argument in function definition
