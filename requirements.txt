@@ -5,3 +5,4 @@ fastparquet==2023.10.1
 plotly
 tqdm
 ruff
+codespell

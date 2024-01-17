@@ -132,9 +132,9 @@ def add_source(tags, index_dicts, replace_rules):
         source = tags["source"].replace("%20%", " ").replace("%2c%", ",")
 
         source_list = [source]
-        for seperator in [";", " | ", " + ", "+", " / ", " & ", ", "]:
-            if seperator in source:
-                source_list = [key for key in source.split(seperator) if len(key) > 0]
+        for separator in [";", " | ", " + ", "+", " / ", " & ", ", "]:
+            if separator in source:
+                source_list = [key for key in source.split(separator) if len(key) > 0]
                 break
 
         for i in range(len(source_list)):
