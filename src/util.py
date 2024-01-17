@@ -239,7 +239,6 @@ def save_base_statistics_tag(
     top_10_edit_count_map_total=False,
     top_50_edit_count_map_total=False,
 ):
-
     months, years = get_months_years(data_dir)
     time_dict = get_month_year_dicts(data_dir)
 
@@ -259,7 +258,13 @@ def save_base_statistics_tag(
 
     if edit_count_monthly:
         indices, names = top_k["edit_count"]
-        df = ddf[ddf[tag].isin(indices)].groupby(["month_index", tag], observed=False)["edits"].sum().compute().reset_index()
+        df = (
+            ddf[ddf[tag].isin(indices)]
+            .groupby(["month_index", tag], observed=False)["edits"]
+            .sum()
+            .compute()
+            .reset_index()
+        )
         df = pd.pivot_table(df, values="edits", index="month_index", columns=tag)[indices]
         df.columns = names
 
@@ -371,7 +376,9 @@ def save_base_statistics_tag(
             break
 
         ddf_is_in = ddf[ddf[tag].isin(top_indices)]
-        tag_map_edits = ddf_is_in[ddf_is_in["pos_x"] >= 0].groupby(["pos_x", "pos_y", tag], observed=False)["edits"].sum().compute()
+        tag_map_edits = (
+            ddf_is_in[ddf_is_in["pos_x"] >= 0].groupby(["pos_x", "pos_y", tag], observed=False)["edits"].sum().compute()
+        )
         tag_maps = [tag_map_edits[tag_map_edits.index.get_level_values(tag) == i].droplevel(2) for i in top_indices]
 
         if i == 0:
@@ -439,7 +446,9 @@ def get_tag_top_k_and_save_top_k_total(
 
 
 def save_edit_count_map_yearly(years, progress_bar, prefix, ddf):
-    yearly_map_edits = ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"], observed=False)["edits"].sum().compute()
+    yearly_map_edits = (
+        ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"], observed=False)["edits"].sum().compute()
+    )
     year_maps = [
         yearly_map_edits[yearly_map_edits.index.get_level_values("year_index") == year_i].droplevel(0)
         for year_i in range(len(years))
@@ -449,14 +458,23 @@ def save_edit_count_map_yearly(years, progress_bar, prefix, ddf):
 
 
 def save_tag_top_10_contributor_count_first_changeset_monthly(
-    time_dict, progress_bar, tag, ddf, tag_to_index, data_name_for_top_names,
+    time_dict,
+    progress_bar,
+    tag,
+    ddf,
+    tag_to_index,
+    data_name_for_top_names,
 ):
     df_names = pd.read_json(Path("assets") / "data" / f"{data_name_for_top_names}.json", orient="split")
     names = get_columns_without_months_and_years(df_names)
     indices = [tag_to_index[tag_name] for tag_name in names]
 
-    contibutor_monthly = ddf[ddf[tag].isin(indices)].groupby(["user_index"], observed=False)["month_index", tag].first().compute()
-    contibutor_count_monthly = contibutor_monthly.reset_index().groupby(["month_index", tag], observed=False)["user_index"].count()
+    contibutor_monthly = (
+        ddf[ddf[tag].isin(indices)].groupby(["user_index"], observed=False)["month_index", tag].first().compute()
+    )
+    contibutor_count_monthly = (
+        contibutor_monthly.reset_index().groupby(["month_index", tag], observed=False)["user_index"].count()
+    )
     contibutor_count_monthly = contibutor_count_monthly.rename("contributors").reset_index()
 
     df = pd.pivot_table(contibutor_count_monthly, values="contributors", index="month_index", columns=tag)[indices]
@@ -581,5 +599,8 @@ def save_merged_yearly_total_data(yearly_data_name, total_data_name):
     df_total["years"] = "total"
     df_concat = pd.concat([df_yearly, df_total], ignore_index=True)
     df_concat.to_json(
-        Path("assets") / "data" / f"{yearly_data_name}_total.json", orient="split", index=False, indent=1,
+        Path("assets") / "data" / f"{yearly_data_name}_total.json",
+        orient="split",
+        index=False,
+        indent=1,
     )

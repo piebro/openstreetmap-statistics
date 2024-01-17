@@ -255,17 +255,19 @@ def save_data(parquet_save_dir, file_counter, batch_size, data_dict):
         save_dir = Path(parquet_save_dir) / f"{tag_name}"
         parquet_write(
             str(save_dir),
-            pd.DataFrame.from_dict(data={
-                "changeset_index": changeset_index_with_offset,
-                "year_index": general["year_index"][changeset_index_with_offset],
-                "month_index": general["month_index"][changeset_index_with_offset],
-                "edits": general["edits"][changeset_index_with_offset],
-                "user_index": general["user_index"][changeset_index_with_offset],
-                "pos_x": general["pos_x"][changeset_index_with_offset],
-                "pos_y": general["pos_y"][changeset_index_with_offset],
-                "created_by": general["created_by"][changeset_index_with_offset],
-                tag_name: np.array(data_dict[tag_name], dtype=np.uint32),
-            }),
+            pd.DataFrame.from_dict(
+                data={
+                    "changeset_index": changeset_index_with_offset,
+                    "year_index": general["year_index"][changeset_index_with_offset],
+                    "month_index": general["month_index"][changeset_index_with_offset],
+                    "edits": general["edits"][changeset_index_with_offset],
+                    "user_index": general["user_index"][changeset_index_with_offset],
+                    "pos_x": general["pos_x"][changeset_index_with_offset],
+                    "pos_y": general["pos_y"][changeset_index_with_offset],
+                    "created_by": general["created_by"][changeset_index_with_offset],
+                    tag_name: np.array(data_dict[tag_name], dtype=np.uint32),
+                }
+            ),
             compression="GZIP",
             file_scheme="hive",
             partition_on=["month_index"],
