@@ -47,8 +47,8 @@
   "https:\/\/aed.openstreetmap.org.pl",
   "QGIS OSM",
   "BigTinCan Upload Script",
-  "https:\/\/osm.wikidata.link\/",
   "OSMPOIEditor",
+  "https:\/\/osm.wikidata.link\/",
   "OSMapTuner",
   "OSMyBiz",
   "osm-revert",
@@ -62,8 +62,8 @@
   "openaedmap.org",
   "Mundi App",
   "PLanes",
-  "rocketdata.io",
   "My Opening Hours",
+  "rocketdata.io",
   "Grass_and_Green",
   "meta",
   "Jungle Bus",
@@ -94,12 +94,12 @@
   "simple_revert.py",
   "Busy Hours",
   "Brick",
+  "https:\/\/map.osm.wikidata.link\/",
   "Go Kaart!!",
   "RoofMapper",
   "POI Collector",
   "restore-version.py",
-  "LoPoi",
-  "fix.loggingroads.org"
+  "LoPoi"
  ],
  "data":[
   [
@@ -150,8 +150,8 @@
    573,
    542,
    519,
-   512,
    504,
+   473,
    472,
    468,
    463,
@@ -197,10 +197,10 @@
    75,
    75,
    75,
+   70,
    63,
    61,
    58,
-   56,
    56,
    56
   ]
