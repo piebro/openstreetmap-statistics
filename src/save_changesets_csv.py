@@ -17,6 +17,7 @@ streetcomplete_tag_changes = {
     "AddSidewalks": "AddSidewalk",
 }
 
+source_split_separators = [";", "|", "+", "/", "&", ","]
 
 def get_tags(tags_str):
     tags = {}
@@ -127,29 +128,71 @@ def add_hashtags(tags, index_dicts):
         return ()
 
 
+def split_source_excluding_brackets(s):
+    """Split a string into parts based on separator characters, while excluding characters that are within brackets.
+
+    The function is designed to split a string `s` at designated separator characters, but it will not split the
+    string inside bracketed sections. Supported brackets are `(`, `)`, `{`, and `}`.
+
+    Args:
+    ----
+        s (str): The string to be split.
+
+    Returns:
+    -------
+        list: A list of strings, split from the original string while excluding bracketed sections.
+    """
+    bracket_pairs = {"(": ")", "{": "}"}
+    stack = []
+    last_index = 0
+    parts = []
+
+    for i, char in enumerate(s):
+        if char in bracket_pairs:
+            stack.append(bracket_pairs[char])
+        elif stack and char == stack[-1]:
+            stack.pop()
+        elif not stack and char in source_split_separators:
+            # Split the string at this character if it's a separator and not within brackets.
+            # Special case for URLs: don't split if the separator is '/' and 'http' is part of the string.
+            if char == "/" and "http" in s:
+                continue
+            parts.append(s[last_index:i])
+            last_index = i + 1
+
+    parts.append(s[last_index:])
+    return parts
+
+
 def add_source(tags, index_dicts, replace_rules):
     if "source" in tags and len(tags["source"]) > 0:
-        source = tags["source"].replace("%20%", " ").replace("%2c%", ",")
+        source_all = tags["source"].replace("%20%", " ").replace("%2c%", ",")
 
-        source_list = [source]
-        for separator in [";", " | ", " + ", "+", " / ", " & ", ", "]:
-            if separator in source:
-                source_list = [key for key in source.split(separator) if len(key) > 0]
-                break
+        if source_all[:10] == "source%3d%":
+            source_all = source_all[10:]
+        elif source_all[:7] == "source:":
+            source_all = source_all[7:]
+        elif source_all[:6] == "source":
+            source_all = source_all[6:]
 
-        for i in range(len(source_list)):
-            if source_list[i][0] == " ":
-                source_list[i] = source_list[i][1:]
-            source_list[i] = replace_with_rules(source_list[i], replace_rules["source"])
+        source_list = split_source_excluding_brackets(source_all)
 
-            if source_list[i][:8] == "https://":
-                source_list[i] = "https://" + source_list[i].split("/")[2]
-            elif source_list[i][:7] == "http://":
-                source_list[i] = "http://" + source_list[i].split("/")[2]
+        new_source_list = []
+        for source_raw in source_list:
+            source = source_raw.strip()
+            if len(source) == 0:
+                continue
 
-            source_list[i] = source_list[i][:120]
+            source = replace_with_rules(source, replace_rules["source"])
 
-        return index_dicts["source"].add_keys(source_list)
+            if source[:8] == "https://":
+                source = "https://" + source.split("/")[2]
+            elif source[:7] == "http://":
+                source = "http://" + source.split("/")[2]
+
+            new_source_list.append(source)
+
+        return index_dicts["source"].add_keys(new_source_list)
     else:
         return ()
 
@@ -187,6 +230,7 @@ def create_replace_rules():
         tag_to_name = {}
         starts_with_list = []
         ends_with_list = []
+        contains_list = []
         for name, name_infos in name_to_tags_and_link.items():
             if "aliases" in name_infos:
                 for alias in name_infos["aliases"]:
@@ -199,11 +243,14 @@ def create_replace_rules():
                 starts_with_list.extend(
                     [(len(ends_with), ends_with, name) for ends_with in name_infos["ends_with"]],
                 )
+            if "contains" in name_infos:
+                contains_list.extend([(compare_str, name) for compare_str in name_infos["contains"]])
 
         replace_rules[tag_name] = {
             "tag_to_name": tag_to_name,
             "starts_with_list": starts_with_list,
             "ends_with_list": ends_with_list,
+            "contains_list": contains_list,
         }
     return replace_rules
 
@@ -218,6 +265,10 @@ def replace_with_rules(tag, replace_rules):
 
     for compare_str_length, compare_str, replace_str in replace_rules["ends_with_list"]:
         if tag[-compare_str_length:] == compare_str:
+            return replace_str
+
+    for compare_str, replace_str in replace_rules["contains_list"]:
+        if compare_str in tag:
             return replace_str
 
     return tag
