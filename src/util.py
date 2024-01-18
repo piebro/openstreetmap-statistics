@@ -407,29 +407,26 @@ def get_tag_top_k_and_save_top_k_total(
         highest_number = np.iinfo(ddf[tag].dtype).max
         ddf = ddf[ddf[tag] < highest_number]
 
-    units = []
+    total_dict = {}
     if edit_count:
-        units.append("edit_count")
-    if changeset_count:
-        units.append("changeset_count")
+        total_dict["edit_count"] = ddf.groupby(tag)["user_index"].nunique().compute().sort_values(ascending=False)
+    if changeset_count or contributor_count:
+        total_dict["changeset_count"] = ddf.groupby(tag)["edits"].sum().compute().sort_values(ascending=False)
     if contributor_count:
-        units.append("contributor_count")
+        # this should be lower then the contributor count of the top 100 from previous runs
+        tag_to_min_amount_of_changeset = {
+            "created_by": 40,
+            "imagery": 700,
+            "hashtag": 3000,
+            "source": 300,
+        }
+        total_dict["contributor_count"] = get_total_contirbutor_count_tag_optimized(
+            ddf, tag, total_dict["changeset_count"], min_amount_of_changeset=tag_to_min_amount_of_changeset[tag]
+        )
 
     unit_to_top_k_indices_and_names = {"tag": tag}
-    for unit in units:
-        if unit == "contributor_count":
-            # TODO: this is by far the slowest part in gathering all statistics (for tags with many tagnames).
-            # Are there ways for speeding it up?
-            # Maybe use https://docs.dask.org/en/stable/generated/dask.dataframe.Series.nunique_approx.html
-            # as a fist approximation and then get the right statistics on a subset of all tags
-            # or reducing the number of different tags (e.g. less distinct sources)
-            total = ddf.groupby(tag, observed=False)["user_index"].nunique().compute()
-        if unit == "edit_count":
-            total = ddf.groupby(tag, observed=False)["edits"].sum().compute()
-        if unit == "changeset_count":
-            total = ddf.groupby(tag, observed=False).size().compute()
-
-        indices = total.index[(-total.to_numpy().astype(np.int64)).argsort()[:k]]
+    for unit, total in total_dict.items():
+        indices = total.index.to_numpy()[:k]
         names = [index_to_tag[i] for i in indices]
         unit_to_top_k_indices_and_names[unit] = (indices, names)
 
@@ -443,6 +440,38 @@ def get_tag_top_k_and_save_top_k_total(
         )
 
     return unit_to_top_k_indices_and_names
+
+
+def get_total_contributor_count_tag_optimized(ddf, tag, total_changesets, min_amount_of_changeset=200):
+    """Compute and return the number of unique contributors for each tag in a distributed DataFrame.
+
+    This function filters and aggregates data based on the provided tag and a minimum changeset threshold.
+    It optimizes performance by pre-filtering tags with a high number of changesets and then computing
+    the unique count of users (contributors) per tag.
+
+    Args:
+    ----
+        ddf (Dask DataFrame): The distributed DataFrame containing the data.
+        tag (str): The column name in `ddf` representing the tag to group by.
+        total_changesets (Series): A Pandas Series where the index represents tags and values represent
+                                   the total number of changesets for each tag.
+        min_amount_of_changeset (int, optional): The minimum number of changesets a tag must have to be considered.
+                                                 Defaults to 200.
+
+    Returns:
+    -------
+        Series: A Pandas Series where the index represents tags and values represent the count of unique contributors
+                for each tag, sorted in descending order.
+    """
+    # Filter out tags with changesets less than the minimum threshold to optimize performance.
+    tags_with_high_changesets = total_changesets[total_changesets > min_amount_of_changeset].index
+    # Apply this filter to the original DataFrame.
+    filtered_ddf = ddf[ddf[tag].isin(tags_with_high_changesets)]
+
+    # Group the filtered data by the specified tag and calculate the number of unique users (contributors)
+    # for each tag. Finally, compute the result (as the operation is on a Dask DataFrame) and sort it
+    # in descending order based on the count of unique contributors.
+    return filtered_ddf.groupby(tag)["user_index"].nunique().compute().sort_values(ascending=False)
 
 
 def save_edit_count_map_yearly(years, progress_bar, prefix, ddf):
