@@ -1,6 +1,7 @@
-*.osm.bz2
-__pycache__
-temp*
 .venv
-changesets-latest.osm.bz2.torrent
 .jupyterlite.doit.db
+.ruff_cache
+__pycache__
+*.osm.bz2
+changesets-latest.osm.bz2.torrent
+temp*

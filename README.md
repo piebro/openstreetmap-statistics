@@ -127,6 +127,7 @@ Also, if you see any typos or other mistakes, feel free to correct them and crea
 
 Another valuable way to contribute is to add editing software or imagery sources to [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
 This can make the statistics more accurate.
+[JSON sorter](https://r37r0m0d3l.github.io/json_sort/) with `four spaces` can be used to sort and format the json correctly.
 
 The Projected uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting. Run `ruff check` and `ruff format` in the project root directory tu use it.
 [Prettier](https://prettier.io/playground/) is used for linting the javascript code with a `print-width` of 120, `tab-width` of 4 and [Stylelint](https://stylelint.io/demo/) is used for linting css code.
