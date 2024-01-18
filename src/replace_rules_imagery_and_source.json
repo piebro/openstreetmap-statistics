@@ -1,7 +1,13 @@
 {
+    ".geojson data file": {
+        "ends_with": [
+            ".geojson"
+        ]
+    },
     ".gpx data file": {
         "aliases": [
-            "Local GPX"
+            "Local GPX",
+            "data file"
         ],
         "ends_with": [
             ".gpx"
@@ -9,6 +15,11 @@
         "link": "https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks",
         "starts_with": [
             "GPX "
+        ]
+    },
+    ".kml data file": {
+        "ends_with": [
+            ".kml"
         ]
     },
     "{switch:a,b,c,d}.tiles.mapbox.com": {
@@ -21,6 +32,20 @@
             "(AGIS 2022)",
             "(AGIS 2021)",
             "(AGIS 2011)"
+        ],
+        "starts_with": [
+            "AGIS"
+        ]
+    },
+    "AIV Flanders": {
+        "starts_with": [
+            "AIV Flanders "
+        ]
+    },
+    "BAG": {
+        "link": "https://wiki.openstreetmap.org/wiki/BAGimport",
+        "starts_with": [
+            "BAG "
         ]
     },
     "basemap.at": {
@@ -37,9 +62,26 @@
             "Bavaria (80 cm) TMS"
         ]
     },
+    "BDOrtho": {
+        "aliases": [
+            "BDOrtho IGN",
+            "fr.ign.bdortho"
+        ],
+        "link": "https://geoservices.ign.fr/bdortho"
+    },
+    "Bebauungsplan": {
+        "starts_with": [
+            "Bebauungsplan"
+        ]
+    },
     "Berlin aerial photography": {
         "starts_with": [
             "Berlin aerial photography "
+        ]
+    },
+    "BEV Adressdaten": {
+        "starts_with": [
+            "BEV Adressdaten"
         ]
     },
     "Bing Aerial Imagery": {
@@ -56,9 +98,38 @@
             "bing "
         ]
     },
+    "CanVec": {
+        "aliases": [
+            "canvec",
+            "CANVEC",
+            "Canvec",
+            "NRCan-CanVec-10.0",
+            "NRCAN-CanVec-10.0",
+            "NRCAN-CanVec-10",
+            "NRCan-Canvec-10",
+            "NRCan-CanVec-8.0",
+            "NRCan-CanVec-7.0",
+            "Canvec DATA",
+            "Canvec 10"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/CanVec",
+        "starts_with": [
+            "CanVec"
+        ]
+    },
+    "Catastro Spain": {
+        "aliases": [
+            "Catastro-Spain"
+        ]
+    },
     "Custom": {
         "starts_with": [
             "Custom ("
+        ]
+    },
+    "data file": {
+        "starts_with": [
+            "file:///"
         ]
     },
     "DigitalGlobe Imagery (now Maxar)": {
@@ -99,7 +170,7 @@
         "link": "https://every-door.app/"
     },
     "Every Door iOS": {
-        "aliases":[
+        "aliases": [
             "Every Door ios"
         ],
         "link": "https://every-door.app/"
@@ -117,12 +188,27 @@
     },
     "GPS": {
         "aliases": [
-            "gps"
+            "gps",
+            "OpenStreetMap GPS traces",
+            "OpenStreetMap GPS Traces",
+            "osm-gps"
+        ],
+        "starts_with": [
+            "GPS ",
+            "GPS-",
+            "gps ",
+            "gps-"
         ]
     },
     "HOTOSM": {
         "starts_with": [
             "https://tasks.hotosm.org/"
+        ]
+    },
+    "http://geo-spatial.org": {
+        "link": "http://geo-spatial.org",
+        "starts_with": [
+            "http://geo-spatial.org"
         ]
     },
     "IBGE": {
@@ -133,6 +219,25 @@
     "Japan GSI": {
         "starts_with": [
             "Japan GSI "
+        ]
+    },
+    "JOSM Validator": {
+        "ends_with": [
+            "JOSM Validator"
+        ],
+        "link": "https://wiki.openstreetmap.org/wiki/JOSM/Validator",
+        "starts_with": [
+            "JOSM Validator"
+        ]
+    },
+    "Kartverket": {
+        "ends_with": [
+            "Kartverket",
+            "kartverket.no"
+        ],
+        "link": "https://www.kartverket.no/",
+        "starts_with": [
+            "Kartverket"
         ]
     },
     "Kartverket ": {
@@ -161,12 +266,31 @@
     },
     "MapComplete": {
         "link": "https://mapcomplete.osm.be"
-    }, 
+    },
     "Mapillary": {
         "starts_with": [
             "mapillary",
             "Mapillary",
             "https://www.mapillary.com/"
+        ]
+    },
+    "MAPNIK": {
+        "aliases": [
+            "OpenStreetMap (Mapnik)"
+        ]
+    },
+    "mapwithai": {
+        "aliases": [
+            "#mapwithai",
+            "MapWithAI"
+        ],
+        "ends_with": [
+            "MapWithAI"
+        ],
+        "link": "https://github.com/JOSM/MapWithAI",
+        "starts_with": [
+            "mapwithai ",
+            "mapwithai,"
         ]
     },
     "Maxar Imagery": {
@@ -179,6 +303,22 @@
             "maxar"
         ]
     },
+    "OpenRailwayMap": {
+        "aliases": [
+            "OpenRailwayMap Maxspeeds",
+            "OpenRailwayMap Signalling",
+            "openrailwaymap-maxspeeds",
+            "openrailwaymap-signalling"
+        ]
+    },
+    "OpenStreetCam Images": {
+        "aliases": [
+            "OpenStreetCam",
+            "OpenStreetCam Image",
+            "openstreetcam",
+            "Openstreetcam"
+        ]
+    },
     "OSM Note": {
         "starts_with": [
             "Note",
@@ -186,6 +326,12 @@
             "OSM Note",
             "https://www.openstreetmap.org/note/",
             "OpenStreetMap Notes"
+        ]
+    },
+    "OSM Notes": {
+        "aliases": [
+            "osm notes",
+            "OSM notes"
         ]
     },
     "PDOK aerial imagery": {
@@ -204,10 +350,21 @@
             "Russian maritime notification"
         ]
     },
+    "SDFI": {
+        "starts_with": [
+            "SDFI"
+        ]
+    },
     "Strava": {
         "starts_with": [
             "Strava",
             "strava"
+        ]
+    },
+    "Streetlevel Imagery": {
+        "aliases": [
+            "streetlevel imagery",
+            "streetlevel_imagery"
         ]
     },
     "Survey": {
@@ -233,6 +390,7 @@
             "tms[1,22]:https://",
             "tms:https:/",
             "tms[19]:http://",
+            "tms[19]:https://",
             "tms:http://"
         ]
     },
@@ -252,26 +410,33 @@
         ]
     },
     "wiki.openstreetmap.org": {
+        "link": "https://wiki.openstreetmap.org",
         "starts_with": [
-            "http://wiki.openstreetmap.org"
-        ]
-    },
-    "wiki.openstreetmap.org/": {
-        "starts_with": [
-            "https://wiki.openstreetmap.org/"
+            "http://wiki.openstreetmap.org",
+            "https://wiki.openstreetmap.org"
         ]
     },
     "www.openstreetmap.org/changeset/": {
+        "link": "https://www.openstreetmap.org/changeset",
         "starts_with": [
-            "https://www.openstreetmap.org/changeset/"
+            "https://www.openstreetmap.org/changeset"
         ]
     },
     "www.openstreetmap.org/way": {
+        "link": "https://www.openstreetmap.org/way",
         "starts_with": [
             "https://www.openstreetmap.org/way"
         ]
     },
+    "Yahoo": {
+        "link": "http://geo-spatial.org",
+        "starts_with": [
+            "Yahoo",
+            "yahoo"
+        ]
+    },
     "youtube": {
+        "link": "https://youtube.com/",
         "starts_with": [
             "https://youtube.com/",
             "https://youtu.be/",

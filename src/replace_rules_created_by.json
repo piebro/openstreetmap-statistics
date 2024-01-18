@@ -218,6 +218,9 @@
         "link": "https://osm.wikidata.link/"
     },
     "iD": {
+        "aliases": [
+            "ID"
+        ],
         "link": "https://wiki.openstreetmap.org/wiki/ID",
         "starts_with": [
             "iD ",
@@ -249,6 +252,9 @@
         "type": "tool"
     },
     "JOSM": {
+        "contains": [
+            "JOSM/1.5"
+        ],
         "link": "https://josm.openstreetmap.de/",
         "starts_with": [
             "JOSM"
@@ -896,6 +902,30 @@
     "YAPIS": {
         "starts_with": [
             "YAPIS "
+        ]
+    },
+    "Zaczero/osm-budynki-orto-import": {
+        "link": "https://github.com/Zaczero/osm-budynki-orto-import",
+        "starts_with": [
+            "osm-budynki-orto-import "
+        ]
+    },
+    "Zaczero/osm-relatify": {
+        "link": "https://github.com/Zaczero/osm-relatify",
+        "starts_with": [
+            "osm-relatify "
+        ]
+    },
+    "Zaczero/osm-warszawa-restauracje": {
+        "link": "https://github.com/Zaczero/osm-warszawa-restauracje",
+        "starts_with": [
+            "osm-warszawa-restauracje "
+        ]
+    },
+    "Zaczero/osm-yolo-crossings": {
+        "link": "https://github.com/Zaczero/osm-yolo-crossings",
+        "starts_with": [
+            "osm-yolo-crossings "
         ]
     },
     "Zazolc": {
