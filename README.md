@@ -74,7 +74,7 @@ wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torren
 aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 ```
 
-Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:10h).
+Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:30h).
 ```bash
 rm -r -d temp
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | python3 src/save_changesets_csv.py temp
@@ -85,7 +85,7 @@ If you want to add new topics, plots or tables and iterate faster with a subset 
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
 ```
 
-Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 1:10h and it runs with less then 8GB of RAM.
+Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 0:30h and it runs with less then 8GB of RAM.
 ```bash
 python3 src/data_crunching_and_saving.py temp
 ```
@@ -126,7 +126,8 @@ If there are other topics and questions about OpenStreetMap you think are intere
 Also, if you see any typos or other mistakes, feel free to correct them and create a pull request.
 
 Another valuable way to contribute is to add editing software or imagery sources to [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
-This can make the statistics more accurate.
+The cmd `python3 src/finde_new_replace_rule_candidates.py temp` can be used to find new impactful candidates to add to the rules.
+Adding rules can make the statistics more accurate and links help with the usability.
 [JSON sorter](https://r37r0m0d3l.github.io/json_sort/) with `four spaces` can be used to sort and format the json correctly.
 
 The Projected uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting. Run `ruff check` and `ruff format` in the project root directory tu use it.
