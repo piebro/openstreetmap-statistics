@@ -77,17 +77,17 @@ aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:30h).
 ```bash
 rm -r -d temp
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | python3 src/save_changesets_csv.py temp
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | python3 src/changeset_to_parquet.py temp
 ```
 
 If you want to add new topics, plots or tables and iterate faster with a subset of all data, you can use every 500th changeset like this.
 ```bash
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/save_changesets_csv.py temp_dev
+osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/changeset_to_parquet.py temp_dev
 ```
 
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 0:30h and it runs with less then 8GB of RAM.
 ```bash
-python3 src/data_crunching_and_saving.py temp
+python3 src/parquet_to_json_stats.py temp
 ```
 
 ### Update cooperation user names

@@ -46,11 +46,11 @@ jobs:
 
       - name: save compressed changeset csv
         if: steps.check_second_monday.outputs.run_jobs == 'true'
-        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp
+        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/changeset_to_parquet.py temp
       
       - name: save data
         if: steps.check_second_monday.outputs.run_jobs == 'true'
-        run: python3 src/data_crunching_and_saving.py temp
+        run: python3 src/parquet_to_json_stats.py temp
         
       - name: Create Pull Request
         if: steps.check_second_monday.outputs.run_jobs == 'true'
