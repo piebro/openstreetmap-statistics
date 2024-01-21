@@ -44,7 +44,6 @@
   "osmuser63783_script 0.1",
   "osmfetch",
   "FixEscapes",
-  "Redaction bot;JOSM\/1.5 (4878 ru)",
   "myPyOSM-alpha",
   "%5c0f%%748b%%6d41%%540c%%6b65%%6a5f%%5668%%4eba% (osmapi\/0.6.0)",
   "business.zoon.ru",
@@ -56,9 +55,8 @@
   "scosmol",
   "BagBot",
   "Kikimora",
-  "https:\/\/github.com\/OsmSharp\/osm-api-client\/",
   "osm_gobot\/0.1.0",
-  "reverter_plugin (JOSM)",
+  "https:\/\/github.com\/OsmSharp\/osm-api-client\/",
   "pyxbot",
   "manchesterclimate.com 1.0"
  ],
@@ -68,7 +66,7 @@
    26816999,
    5785742,
    4156236,
-   4147032,
+   4147276,
    4063738,
    2128414,
    1600985,
@@ -108,7 +106,6 @@
    1050,
    393,
    256,
-   242,
    221,
    212,
    194,
@@ -122,7 +119,6 @@
    10,
    9,
    9,
-   2,
    0,
    0
   ]
