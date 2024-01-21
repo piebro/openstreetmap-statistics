@@ -2,8 +2,8 @@
  "columns":[
   "months",
   "comment",
-  "imagery_used",
   "locale",
+  "imagery_used",
   "host",
   "changesets_count",
   "hashtags",

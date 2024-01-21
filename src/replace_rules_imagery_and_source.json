@@ -98,6 +98,11 @@
             "bing "
         ]
     },
+    "cadastre-dgi-fr": {
+        "starts_with": [
+            "cadastre-dgi-fr"
+        ]
+    },
     "CanVec": {
         "aliases": [
             "canvec",
@@ -250,6 +255,11 @@
             "knowledge"
         ]
     },
+    "License IODL-2.0": {
+        "starts_with": [
+            "License IODL-2.0 ("
+        ]
+    },
     "Local Knowledge": {
         "aliases": [
             "local knowledge",
@@ -279,6 +289,12 @@
             "OpenStreetMap (Mapnik)"
         ]
     },
+    "Maps4BW": {
+        "aliases": [
+            "Maps4BW (LGL-BW, www.lgl-bw.de)"
+        ],
+        "link": "www.lgl-bw.de"
+    },
     "mapwithai": {
         "aliases": [
             "#mapwithai",
@@ -301,6 +317,15 @@
         "starts_with": [
             "Maxar",
             "maxar"
+        ]
+    },
+    "Norge i Bilder": {
+        "link": "https://www.norgeibilder.no/",
+        "starts_with": [
+            "Norge i bilder",
+            "Norge i Bilder",
+            "norge i bilder",
+            "Norge I Bilder"
         ]
     },
     "OpenRailwayMap": {

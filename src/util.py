@@ -409,9 +409,9 @@ def get_tag_top_k_and_save_top_k_total(
 
     total_dict = {}
     if edit_count:
-        total_dict["edit_count"] = ddf.groupby(tag)["user_index"].nunique().compute().sort_values(ascending=False)
+        total_dict["edit_count"] = ddf.groupby(tag)["edits"].sum().compute().sort_values(ascending=False)
     if changeset_count or contributor_count:
-        total_dict["changeset_count"] = ddf.groupby(tag)["edits"].sum().compute().sort_values(ascending=False)
+        total_dict["changeset_count"] = ddf.groupby(tag).size().compute().sort_values(ascending=False)
     if contributor_count:
         # this should be lower then the contributor count of the top 100 from previous runs
         tag_to_min_amount_of_changeset = {
@@ -419,8 +419,11 @@ def get_tag_top_k_and_save_top_k_total(
             "imagery": 700,
             "hashtag": 3000,
             "source": 300,
+            "corporation": 0,
+            "streetcomplete": 0,
         }
-        total_dict["contributor_count"] = get_total_contirbutor_count_tag_optimized(
+        print(tag)
+        total_dict["contributor_count"] = get_total_contributor_count_tag_optimized(
             ddf, tag, total_dict["changeset_count"], min_amount_of_changeset=tag_to_min_amount_of_changeset[tag]
         )
 

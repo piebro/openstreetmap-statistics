@@ -86,6 +86,7 @@ name_url_function = [
         get_usernames_from_links,
     ],
     ["Mapbox", "https://wiki.openstreetmap.org/wiki/Mapbox#Mapbox_Data_Team", get_usernames_from_links],
+    ["Mapbox", "https://wiki.openstreetmap.org/wiki/Mapbox/Previous_Team_Members", get_usernames_from_links],
     ["Meta", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Facebook", get_usernames_from_links],
     [
         "Microsoft",
@@ -144,7 +145,10 @@ for i, (name, url, func) in enumerate(name_url_function):
         for username in usernames
     ]
     print("usernames:", usernames)
-    name_to_url_username[name] = [url, usernames]
+    if name not in name_to_url_username:
+        name_to_url_username[name] = [url, usernames]
+    else:
+        name_to_url_username[name][1].extend(usernames)
 
 with (Path("assets") / "corporation_contributors.json").open("w") as f:
     json.dump(name_to_url_username, f, sort_keys=True, indent=4)

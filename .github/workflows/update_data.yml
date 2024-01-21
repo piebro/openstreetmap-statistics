@@ -17,43 +17,43 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] || \
              ([[ $(date +'%d') -gt 7 && $(date +'%d') -lt 15 ]] && [[ $(date +'%u') -eq 1 ]]); then
             echo "Running jobs."
-            echo "::set-output name=run_jobs::true"
+            echo "RUN_JOBS=true" >> $GITHUB_ENV
           else
             echo "Skipping jobs."
-            echo "::set-output name=run_jobs::false"
+            echo "RUN_JOBS=false" >> $GITHUB_ENV
           fi
         shell: bash
 
       - uses: actions/checkout@v3
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        if: env.RUN_JOBS == 'true'
         
       - uses: actions/setup-python@v4
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        if: env.RUN_JOBS == 'true'
         with:
           python-version: '3.10'
       
       - name: setup
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        if: env.RUN_JOBS == 'true'
         run: |
           sudo apt install aria2 osmium-tool pv
           pip install -r requirements.txt 
 
       - name: download latest changeset
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        if: env.RUN_JOBS == 'true'
         run: |
           wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torrent
           aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
 
       - name: save compressed changeset csv
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
-        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/save_changesets_csv.py temp
+        if: env.RUN_JOBS == 'true'
+        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/changeset_to_parquet.py temp
       
       - name: save data
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
-        run: python3 src/data_crunching_and_saving.py temp
+        if: env.RUN_JOBS == 'true'
+        run: python3 src/parquet_to_json_stats.py temp
         
       - name: Create Pull Request
-        if: steps.check_second_monday.outputs.run_jobs == 'true'
+        if: env.RUN_JOBS == 'true'
         uses: peter-evans/create-pull-request@v4
         with:
           add-paths: assets/*

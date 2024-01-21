@@ -253,13 +253,18 @@
     },
     "JOSM": {
         "contains": [
-            "JOSM/1.5"
+            "JOSM"
         ],
         "link": "https://josm.openstreetmap.de/",
         "starts_with": [
-            "JOSM"
+            "josm",
+            "reverter_plugin/"
         ],
-        "type": "desktop_editor"
+        "ends_with": [
+            "josm"
+
+        ],
+        "type": "tool"
     },
     "Jungle Bus": {
         "starts_with": [
@@ -383,11 +388,6 @@
     "naptan2osm": {
         "type": "tool"
     },
-    "noteSolver_plugin (JOSM)": {
-        "starts_with": [
-            "noteSolver_plugin/"
-        ]
-    },
     "nsr2osm": {
         "starts_with": [
             "nsr2osm "
@@ -475,11 +475,7 @@
         ],
         "type": "mobile_editor"
     },
-    "OSM Conflator (JOSM)": {
-        "starts_with": [
-            "OSM Conflator "
-        ]
-    },
+
     "OSM Contributor": {
         "link": "https://wiki.openstreetmap.org/wiki/OSM_Contributor",
         "starts_with": [
@@ -759,25 +755,14 @@
         "link": "https://wiki.openstreetmap.org/wiki/OSMF_Redaction_Bot",
         "type": "tool"
     },
-    "reverter_plugin (JOSM)": {
-        "link": "https://wiki.openstreetmap.org/wiki/JOSM/Plugins/Reverter",
-        "starts_with": [
-            "reverter_plugin/",
-            "reverter;JOSM/"
-        ],
-        "type": "tool"
-    },
+
     "RevertUI": {
         "starts_with": [
             "RevertUI "
         ],
         "type": "tool"
     },
-    "Rocketdata Conflator (JOSM)": {
-        "starts_with": [
-            "Rocketdata Conflator "
-        ]
-    },
+    
     "rocketdata.io": {
         "link": "https://rocketdata.io/"
     },
@@ -856,11 +841,6 @@
     "SweetThooths": {
         "starts_with": [
             "SweetThooths "
-        ]
-    },
-    "Tino Pinilla (JOSM)": {
-        "starts_with": [
-            "Tino Pinilla;JOSM"
         ]
     },
     "upload.py": {

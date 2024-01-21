@@ -27,7 +27,7 @@ for filename, tag, replace_rule_fn in [
 
     total_edits = ddf.groupby(tag)["edits"].sum().compute().sort_values(ascending=False)
     total_changesets = ddf.groupby(tag).size().compute().sort_values(ascending=False)
-    total_users = util.get_total_contirbutor_count_tag_optimized(
+    total_users = util.get_total_contributor_count_tag_optimized(
         ddf, tag, total_changesets, min_amount_of_changeset=200
     )
 
