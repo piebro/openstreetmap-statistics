@@ -88,30 +88,31 @@ def cumsum_new_nunique_set_list(set_list):
     return values
 
 
-def save_data(time_dict, progress_bar, name, pd_df_or_series, columns):
-    pd_df_or_series = pd_df_or_series.reset_index()
+def save_data(time_dict, progress_bar, name, pd_df_or_series):
+    pd_df = pd_df_or_series.reset_index() if isinstance(pd_df_or_series, pd.Series) else pd_df_or_series
 
     start_index_offset = None
-    if "month_index" in pd_df_or_series:
-        pd_df_or_series["months"] = pd_df_or_series["month_index"].map(time_dict["month"])
+    if "month_index" in pd_df:
+        pd_df.insert(0, "months", pd_df["month_index"].map(time_dict["month"]))
+        pd_df = pd_df.drop(columns=["month_index"])
         start_index_offset = 3
-    elif "year_index" in pd_df_or_series:
-        pd_df_or_series["years"] = pd_df_or_series["year_index"].map(time_dict["year"])
+    elif "year_index" in pd_df:
+        pd_df.insert(0, "years", pd_df["year_index"].map(time_dict["year"]))
+        pd_df = pd_df.drop(columns=["year_index"])
         start_index_offset = 0
-    columns = list(columns)
+    columns = list(pd_df.columns)
 
     # delete rows with only zeros in them
     if start_index_offset is not None:
         value_columns = [c for c in columns if c not in ["months", "years"]]
-        if_zero_row = (pd_df_or_series[value_columns] != 0).any(axis=1).to_numpy()
+        if_zero_row = (pd_df[value_columns] != 0).any(axis=1).to_numpy()
 
         if len(np.nonzero(if_zero_row)[0]) > 0:
             start_index = np.max([0, np.nonzero(if_zero_row)[0][0] - start_index_offset])
-            pd_df_or_series = pd_df_or_series.loc[start_index:]
+            pd_df = pd_df.loc[start_index:]
 
-    pd_df_or_series[columns].to_json(Path("assets") / "data" / f"{name}.json", orient="split", index=False, indent=1)
+    pd_df.to_json(Path("assets") / "data" / f"{name}.json", orient="split", index=False, indent=1)
     if progress_bar is not None:
-        print(name)
         progress_bar.update(1)
 
 
@@ -127,7 +128,7 @@ def histogram_2d_to_xyz(pd_histogram_2d):
 def save_map(progress_bar, name, pd_histogram_2d):
     x, y, z = histogram_2d_to_xyz(pd_histogram_2d)
     xyz_df = pd.DataFrame({"x": [x], "y": [y], "z": [z], "max_z_value": int(np.max(z))})
-    save_data(None, progress_bar, name, xyz_df, ("max_z_value", "x", "y", "z"))
+    save_data(None, progress_bar, name, xyz_df) #, ("max_z_value", "x", "y", "z"))
 
 
 def save_maps(progress_bar, name, pd_histogram_2d_list, map_names):
@@ -149,7 +150,7 @@ def save_maps(progress_bar, name, pd_histogram_2d_list, map_names):
             "max_z_value": [np.max(max_z_value_list)] * len(map_names),
         },
     )
-    save_data(None, progress_bar, name, xyz_df, ("map_name", "max_z_value", "x", "y", "z"))
+    save_data(None, progress_bar, name, xyz_df) #, ("map_name", "max_z_value", "x", "y", "z"))
 
 
 def save_base_statistics(
@@ -477,50 +478,6 @@ def get_total_contributor_count_tag_optimized(ddf, tag, total_changesets, min_am
     return filtered_ddf.groupby(tag)["user_index"].nunique().compute().sort_values(ascending=False)
 
 
-def save_edit_count_map_yearly(years, progress_bar, prefix, ddf):
-    yearly_map_edits = (
-        ddf[ddf["pos_x"] >= 0].groupby(["year_index", "pos_x", "pos_y"], observed=False)["edits"].sum().compute()
-    )
-    year_maps = [
-        yearly_map_edits[yearly_map_edits.index.get_level_values("year_index") == year_i].droplevel(0)
-        for year_i in range(len(years))
-    ]
-    year_map_names = [f"total edits {year}" for year in years]
-    save_maps(progress_bar, f"{prefix}_edit_count_maps_yearly", year_maps, year_map_names)
-
-
-def save_tag_top_10_contributor_count_first_changeset_monthly(
-    time_dict,
-    progress_bar,
-    tag,
-    ddf,
-    tag_to_index,
-    data_name_for_top_names,
-):
-    df_names = pd.read_json(Path("assets") / "data" / f"{data_name_for_top_names}.json", orient="split")
-    names = get_columns_without_months_and_years(df_names)
-    indices = [tag_to_index[tag_name] for tag_name in names]
-
-    contibutor_monthly = (
-        ddf[ddf[tag].isin(indices)].groupby(["user_index"], observed=False)["month_index", tag].first().compute()
-    )
-    contibutor_count_monthly = (
-        contibutor_monthly.reset_index().groupby(["month_index", tag], observed=False)["user_index"].count()
-    )
-    contibutor_count_monthly = contibutor_count_monthly.rename("contributors").reset_index()
-
-    df = pd.pivot_table(contibutor_count_monthly, values="contributors", index="month_index", columns=tag)[indices]
-    df.columns = names
-
-    save_data(
-        time_dict,
-        progress_bar,
-        f"{tag}_top_10_contributor_count_first_changeset_monthly",
-        df,
-        ("months", *df.columns.to_numpy()),
-    )
-
-
 def get_name_to_link(replace_rules_file_name):
     name_to_tags_and_link = load_json(Path("src") / replace_rules_file_name)
     name_to_link = {}
@@ -540,6 +497,14 @@ def save_accumulated(data_name):
     columns = get_columns_without_months_and_years(df)
     df[columns] = df[columns].cumsum()
     df.to_json(Path("assets") / "data" / f"{data_name}_accumulated.json", orient="split", index=False, indent=1)
+
+
+def save_different_timespan(data_name, months, start_month_str):
+    df = pd.read_json(Path("assets") / "data" / f"{data_name}.json", orient="split")
+    start_month_index = list(months).index(start_month_str)
+    df = df.iloc[start_month_index:]
+    save_path = Path("assets") / "data" / f"{data_name}_{start_month_str.replace('-', '_')}.json"
+    df.to_json(save_path, orient="split", index=False, indent=1)
 
 
 def save_top_k(k, data_name):
