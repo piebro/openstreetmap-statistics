@@ -910,19 +910,19 @@ def main():
         #     "query": lambda ddf: get_edit_count_map_yearly(ddf),
         #     "data_type": "maps",
         # },
-        {
-            "question": "What is the monthly contributor count for contributors with more the k edits?",
-            "filename": "general_contributor_count_more_the_k_edits_monthly",
-            "ddf": load_parquet_func("general", ["month_index", "edits", "user_index"]),
-            "query": lambda ddf: get_general_contributor_count_more_the_k_edits_monthly(ddf),
-            "data_type": "table",
-        },
-        {
-            "question": "What is the monthly median contributor count per contributors?",
-            "filename": "general_edit_count_per_contributor_median_monthly",
-            "query": get_general_edit_count_per_contributor_median_monthly,
-            "data_type": "table",
-        },
+        # {
+        #     "question": "What is the monthly contributor count for contributors with more the k edits?",
+        #     "filename": "general_contributor_count_more_the_k_edits_monthly",
+        #     "ddf": load_parquet_func("general", ["month_index", "edits", "user_index"]),
+        #     "query": lambda ddf: get_general_contributor_count_more_the_k_edits_monthly(ddf),
+        #     "data_type": "table",
+        # },
+        # {
+        #     "question": "What is the monthly median edit count per contributors?",
+        #     "filename": "general_edit_count_per_contributor_median_monthly",
+        #     "query": get_general_edit_count_per_contributor_median_monthly,
+        #     "data_type": "table",
+        # },
         # {
         #     "question": "What is the yearly contributor count attrition rate?",
         #     "filename": "general_contributor_count_attrition_rate_yearly",
