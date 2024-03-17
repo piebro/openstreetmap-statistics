@@ -43,6 +43,7 @@ def load_ddf(data_dir, tag, columns=None, filters=None):
     return dd.read_parquet(Path(data_dir) / "changeset_data" / tag, columns=columns, filters=filters)
 
 def save_data(data_dir, name, pd_df_or_series):
+    pd_df_or_series = pd_df_or_series.copy(deep=True)
     pd_df = pd_df_or_series.reset_index() if isinstance(pd_df_or_series, pd.Series) else pd_df_or_series
     time_dict = get_month_year_dicts(data_dir)
 

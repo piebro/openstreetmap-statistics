@@ -72,7 +72,7 @@ table {
 }
 
 table th, table td {
-    padding: 0.15em;
+    padding: 0.15em 0.65em;
     /* border: 1px solid #ccc; */
     text-align: left;
     min-width: 5em;
@@ -145,7 +145,32 @@ header a + a {
 .dataDiv {
     aspect-ratio: 2/1;
     width: 100%;
-    display: block;
+    display: inline-block;
     margin: 0 auto;
     padding: 0.5em;
+    
+}
+
+.mode-switch {
+    margin: 20px 0;
+    /* text-align: center; */
+}
+
+.mode-button {
+    background-color: #fa6432;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.mode-button:hover {
+    background-color: #e56228;
 }

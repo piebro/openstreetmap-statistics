@@ -23,24 +23,27 @@ async function init(){
         show_plot(plot);
     }
 
-    
-    // TODO: only make the first two columns sticky if the first column is "rank".
-    // document.addEventListener('DOMContentLoaded', function() {
-    // Calculate and set offset for each first thead th in rows
-    var firstTheadThWidth = document.querySelector('thead th').offsetWidth;
-    var secondTheadThs = document.querySelectorAll('thead th:nth-child(2)');
-    secondTheadThs.forEach(function(th) {
-        th.style.left = firstTheadThWidth + 'px';
-    });
+    // TODO: add sorting with: "2020 ▼▲", "2020 ▼ ", "2020  ▲" Buttons
 
-    // Calculate and set offset for each first tbody th in rows
-    document.querySelectorAll('tbody tr').forEach(function(row) {
-        var firstThWidth = row.querySelector('th').offsetWidth;
-        var secondTh = row.querySelector('th:nth-child(2)');
-        if (secondTh) {
-            secondTh.style.left = firstThWidth + 'px';
-        }
-    });
-    // });
+    // TODO: only make the first two columns sticky if the first column is "rank".
+
+    // Calculate and set offset for each first thead th in rows
+    var firstTheadTh = document.querySelector('thead th');
+    if (firstTheadTh) {
+        var firstTheadThWidth = firstTheadTh.offsetWidth;
+        var secondTheadThs = document.querySelectorAll('thead th:nth-child(2)');
+        secondTheadThs.forEach(function(th) {
+            th.style.left = firstTheadThWidth + 'px';
+        });
+
+        // Calculate and set offset for each first tbody th in rows
+        document.querySelectorAll('tbody tr').forEach(function(row) {
+            var firstThWidth = row.querySelector('th').offsetWidth;
+            var secondTh = row.querySelector('th:nth-child(2)');
+            if (secondTh) {
+                secondTh.style.left = firstThWidth + 'px';
+            }
+        });
+    }
 }
 
