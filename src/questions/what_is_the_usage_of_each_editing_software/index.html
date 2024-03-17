@@ -1,0 +1,102 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=800">
+    <meta name="description" content="Monthly updated interactive statistics of OpenStreetMap.">
+    <title>OpenStreetMap Statistics</title>
+    <link rel='icon' type='image/x-icon' href='/assets/favicon.ico' />
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <script src="/assets/util.js"></script>
+    <script src="/assets/plotly-custom.min.js"></script>
+    <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/script.js"></script>
+</head>
+
+<body onload="init()">
+<header class='header'>
+<a class="logo" href="/src/questions">all question</a>
+<nav>
+    <a href="https://github.com/piebro/openstreetmap-statistics/src/questions/how_many_people_are_contributing_to_osm/calculations.ipynb">notebook</a>
+    <a href="https://github.com/piebro/openstreetmap-statistics/">about</a>
+</nav>
+</header>
+
+<h1>What is the usage of each editing software?</h1>
+
+<p>
+There are many different <a href="https://wiki.openstreetmap.org/wiki/Editors">editors</a> one can use to contribute to OSM.
+The default editor is <a href="https://wiki.openstreetmap.org/wiki/ID">iD</a>, which is opened if you click on edit in <a href="https://www.openstreetmap.org">openstreetmap.org</a>.
+There are two different useful metrics to compare the editors.
+The first one is how many users are using the editor to contribute and the the seconde one is how many edits are made with an editor per month or year.
+For each metric the rank of each editor will differ.
+There are some editors like iD or StreetComplete that are used by many people to make many smaller important changes and there are bulk editors like JOSM where users can upload external data and make many edits at once.
+</p>
+
+<div class="mode-switch">
+    <button id="modeButton" class="mode-button">Show Edit Count</button>
+</div>
+
+<div id="contributorPlots">
+    <!-- <p>
+    some text
+    </p> -->
+    <div id="created_by_top_10_contributor_count_monthly" class="dataDiv"></div>
+    <div id="created_by_top_100_edit_count_yearly" class="dataDiv"></div>
+    
+    
+</div>
+
+<div id="editPlots">
+    <div id="created_by_top_10_edit_count_monthly" class="dataDiv"></div>
+    <!-- <p>
+    other text
+    </p>
+    <div id="general_contributor_count_monthly" class="dataDiv"></div> -->
+
+</div>
+
+
+
+
+<p>
+Similar questions for further reading are <a href="https://github.com/piebro/openstreetmap-statistics/">Why is that so?</a> and <a href="https://github.com/piebro/openstreetmap-statistics/">Cool to be here?</a>.
+</p>
+<br><br><br><br><br>
+
+
+<script>
+function toggle(){
+    const contributorPlots = document.getElementById('contributorPlots');
+    const editPlots = document.getElementById('editPlots');
+    const modeButton = document.getElementById('modeButton');
+    
+    // Determine which plot is currently visible
+    const isContributorPlotsVisible = contributorPlots.style.visibility !== 'hidden';
+    
+    if (isContributorPlotsVisible) {
+        // Hide contributor plots and show edit plots
+        contributorPlots.style.visibility = 'hidden';
+        contributorPlots.style.height = '0';
+        editPlots.style.visibility = 'visible';
+        editPlots.style.height = 'auto'; // Adjust as needed
+        modeButton.textContent = 'Show Contributor Count';
+    } else {
+        // Hide edit plots and show contributor plots
+        contributorPlots.style.visibility = 'visible';
+        contributorPlots.style.height = 'auto'; // Adjust as needed
+        editPlots.style.visibility = 'hidden';
+        editPlots.style.height = '0';
+        modeButton.textContent = 'Show Edit Count';
+    }
+}
+
+toggle()
+
+document.getElementById('modeButton').addEventListener('click', function() {
+    toggle()
+});
+</script>
+</body>
+</html>
