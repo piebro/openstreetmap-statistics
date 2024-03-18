@@ -46,16 +46,8 @@ p code {
     border: 1px solid #ccc;
 }
 
-ol, ul {
-    margin: 1em;
-}
-
-ol li ol, ol li ul, ul li ol, ul li ul {
-    margin: 0 2em;
-}
-
-ol li p, ul li p {
-    margin: 0;
+li {
+    list-style-position: inside;
 }
 
 .table-container {
@@ -73,7 +65,6 @@ table {
 
 table th, table td {
     padding: 0.15em 0.65em;
-    /* border: 1px solid #ccc; */
     text-align: left;
     min-width: 5em;
 }
