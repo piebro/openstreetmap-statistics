@@ -11,6 +11,14 @@ from IPython.display import HTML
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="dask.dataframe.io.parquet.core")
 
+
+def reset_data_and_plots():
+    for file in Path("data").iterdir():
+        file.unlink()
+    with Path("plots.json").open("w") as f:
+        f.write("{}")
+
+
 def get_months_years(data_dir):
     with (Path(data_dir) / "months.txt").open("r", encoding="UTF-8") as f:
         months = [line[:-1] for line in f.readlines()]
@@ -258,3 +266,79 @@ def save_monthly_to_yearly(data_name, only_full_years=False):
         index=False,
         indent=1,
     )
+
+
+
+
+def get_top_k_contributor_count(data_dir, ddf, tag, k):
+    if tag in ["created_by", "corporation", "streetcomplete"]:
+        highest_number = np.iinfo(ddf[tag].dtype).max
+        ddf = ddf[ddf[tag] < highest_number]
+
+    # counting the contibutor count only for tags that have a minimum amount of changesets for efficiency
+    # min_amount_of_changeset should be lower then the contributor count of the top 500 from previous runs
+    total_changeset_count = ddf.groupby(tag).size().compute().sort_values(ascending=False)
+    tag_to_min_amount_of_changeset = {
+        "created_by": 30,
+        "imagery": 500,
+        "hashtag": 2500,
+        "source": 250,
+        "corporation": 0,
+        "streetcomplete": 0,
+    }
+    min_amount_of_changeset = tag_to_min_amount_of_changeset.get(tag, 0)
+    filtered_ddf = ddf[ddf[tag].isin(total_changeset_count[total_changeset_count > min_amount_of_changeset].index)]
+
+    total_contributor_count = filtered_ddf.groupby(tag)["user_index"].nunique().compute().sort_values(ascending=False)
+
+    indices = total_contributor_count.index.to_numpy()[:k]
+    index_to_tag = load_index_to_tag(data_dir, tag)
+    names = [index_to_tag[i] for i in indices]
+    
+    values = total_contributor_count[indices[:k]].to_numpy()
+    return indices[:k], names[:k], values
+
+def get_top_k_edit_count(data_dir, ddf, tag, k):
+    if tag in ["created_by", "corporation", "streetcomplete"]:
+        highest_number = np.iinfo(ddf[tag].dtype).max
+        ddf = ddf[ddf[tag] < highest_number]
+    
+    total_edit_count = ddf.groupby(tag)["edits"].sum().compute().sort_values(ascending=False)
+
+    indices = total_edit_count.index.to_numpy()[:k]
+    index_to_tag = load_index_to_tag(data_dir, tag)
+    names = [index_to_tag[i] for i in indices]
+    
+    values = total_edit_count[indices[:k]].to_numpy()
+    return indices[:k], names[:k], values
+
+def get_top_k_changeset_count(data_dir, ddf, tag, k):
+    if tag in ["created_by", "corporation", "streetcomplete"]:
+        highest_number = np.iinfo(ddf[tag].dtype).max
+        ddf = ddf[ddf[tag] < highest_number]
+    
+    total_changeset_count = ddf.groupby(tag).size().compute().sort_values(ascending=False)
+
+    indices = total_changeset_count.index.to_numpy()[:k]
+    index_to_tag = load_index_to_tag(data_dir, tag)
+    names = [index_to_tag[i] for i in indices]
+
+    values = total_changeset_count[indices[:k]].to_numpy()
+    return indices[:k], names[:k], values
+
+
+def top_k_unique_contributor_monthly_list(data_dir, contributor_count_ddf_filename, tag, indices):
+    months, _ = get_months_years(data_dir)
+    unique_monthly_list = [[set() for _ in range(len(months))] for _ in range(len(indices))]
+
+    for month_i in range(len(months)):
+        filters = [("month_index", "==", month_i)]
+        temp_ddf = load_ddf(data_dir, contributor_count_ddf_filename, ("user_index", tag), filters)
+        contributor_unique_month = (
+            temp_ddf[temp_ddf[tag].isin(indices)].groupby([tag], observed=False)["user_index"].unique().compute()
+        )
+        for i, tag_index in enumerate(indices):
+            value = contributor_unique_month[contributor_unique_month.index == tag_index].to_numpy()
+            if len(value) > 0:
+                unique_monthly_list[i][month_i] = set(value[0].tolist())
+    return unique_monthly_list

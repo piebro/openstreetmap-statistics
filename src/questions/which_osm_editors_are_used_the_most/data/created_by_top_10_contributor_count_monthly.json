@@ -1,16 +1,16 @@
 {
  "columns":[
   "months",
-  "JOSM",
   "iD",
   "Potlatch",
-  "Rapid",
-  "osmtools",
-  "bulk_upload.py",
-  "Merkaartor",
-  "upload.py",
+  "MAPS.ME android",
+  "JOSM",
+  "MAPS.ME ios",
   "StreetComplete",
-  "osmapi"
+  "OsmAnd",
+  "Vespucci",
+  "Go Map!!",
+  "Rapid"
  ],
  "data":[
   [
