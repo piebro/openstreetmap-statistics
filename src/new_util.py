@@ -39,6 +39,17 @@ def load_tag_to_index(data_dir, data_name):
     return list_to_dict(load_index_to_tag(data_dir, data_name))
 
 
+def get_year_index_to_month_indices(data_dir):
+    months, years = get_months_years(data_dir)
+    years = years.tolist()
+
+    year_index_to_month_indices = [[] for _ in years]
+    for month_i, month in enumerate(months):
+        year_index_to_month_indices[years.index(month[:4])].append(month_i)
+
+    return year_index_to_month_indices
+
+
 def load_ddf(data_dir, tag, columns=None, filters=None):
     return dd.read_parquet(Path(data_dir) / "changeset_data" / tag, columns=columns, filters=filters)
 
@@ -146,14 +157,23 @@ def show_plot(plot_config):
     else:
         ValueError(f"unknown plot type: {plot_config['type']}")
 
-def get_html_table_str(filename, transpose_new_index_column=None, add_rank=False):
+def get_html_table_str(filename, transpose_new_index_column=None, add_rank=False, last_column_name_values=(None, None)):
     df = pd.read_json(Path("data") / f"{filename}.json", orient="split")
     if transpose_new_index_column is not None:
-        df = df.set_index(transpose_new_index_column)
-        df = df.transpose()
-    
-    # TODO: add "," for big numbers.
-    html = df.to_html(index=True, border=0)
+        df = df.set_index(transpose_new_index_column).transpose()
+
+    df.columns.name = None
+    df = df.reset_index().rename(columns={"index": "Editor"})
+
+    if add_rank:
+        df.insert(0, "Rank", range(1, 1 + len(df)))
+
+    if last_column_name_values[0] is not None:
+        df[last_column_name_values[0]] = last_column_name_values[1]
+
+    df = df.map(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+
+    html = df.to_html(index=False, border=0)
     html = html.replace('<tr style="text-align: right;">', "<tr>").replace('<table class="dataframe">', "<table>")
     soup = BeautifulSoup(html, "html.parser")
 
@@ -190,3 +210,51 @@ def cumsum_new_nunique(series):
 
     return pd.Series(data=values, index=index, name=series.name)
 
+
+
+def save_percent(data_name, data_name_divide, merge_on_column_name, divide_column_name):
+    df_divide = pd.read_json(Path("data") / f"{data_name_divide}.json", orient="split")
+    df_divide = df_divide.rename(columns={divide_column_name: f"{divide_column_name}_divide"})
+
+    df = pd.read_json(Path("data") / f"{data_name}.json", orient="split")
+    columns = get_columns_without_months_and_years(df)
+    merged_df = df.merge(df_divide, on=merge_on_column_name, suffixes=("", "_divide"))
+
+    merged_df[columns] = (
+        merged_df[columns].div(merged_df[f"{divide_column_name}_divide"], axis="index").mul(100, axis="index")
+    )
+    merged_df[[merge_on_column_name, *columns]].to_json(
+        Path("data") / f"{data_name}_percent.json",
+        orient="split",
+        index=False,
+        indent=1,
+        double_precision=1,
+    )
+
+def get_columns_without_months_and_years(df):
+    return [v for v in df.columns.to_numpy() if v not in ["months", "years"]]
+
+
+def save_monthly_to_yearly(data_name, only_full_years=False):
+    if "contributor" in data_name:
+        raise ValueError("save_monthly_to_yearly does not work for contributors")
+    df = pd.read_json(Path("data") / f"{data_name}.json", orient="split")
+
+    if "months" not in df:
+        raise ValueError("'month' in in dataframe")
+
+    df["months"] = df["months"].apply(lambda v: v[:4])
+    df = df.rename(columns={"months": "years"})
+    years = df["years"].to_numpy()
+
+    df = df.groupby(["years"], observed=False).sum().reset_index()
+    if only_full_years and years[-12] != years[-1]:
+        df = df[:-1]
+
+    suffix = "_only_full_years" if only_full_years else ""
+    df.to_json(
+        Path("data") / f"{data_name.replace('_monthly', '_yearly')}{suffix}.json",
+        orient="split",
+        index=False,
+        indent=1,
+    )
