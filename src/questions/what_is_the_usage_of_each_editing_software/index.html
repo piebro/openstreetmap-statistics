@@ -35,30 +35,38 @@ There are some editors like iD or StreetComplete that are used by many people to
 </p>
 
 <div class="mode-switch">
-    <button id="modeButton" class="mode-button">Show Edit Count</button>
+    <button id="contributorEditButton" class="mode-button"></button>
 </div>
 
 <div id="contributorPlots">
-    <!-- <p>
-    some text
-    </p> -->
     <div id="created_by_top_10_contributor_count_monthly" class="dataDiv"></div>
-    <div id="created_by_top_100_edit_count_yearly" class="dataDiv"></div>
-    
-    
+    <p>
+    Looking at how many percent of all contributors useed an editor in a give month, we can get a better feeling of the distribution of used editors.
+    </p>
+    <div id="created_by_top_10_contributor_count_monthly_percent" class="dataDiv"></div>
+    <p>
+    It's also interesting to look at contributor count of less popular editors.
+    </p>
+    <div id="created_by_top_100_contributor_count_yearly" class="dataDiv"></div>
 </div>
 
 <div id="editPlots">
     <div id="created_by_top_10_edit_count_monthly" class="dataDiv"></div>
-    <!-- <p>
-    other text
-    </p>
-    <div id="general_contributor_count_monthly" class="dataDiv"></div> -->
-
+    <div id="created_by_top_100_edit_count_yearly" class="dataDiv"></div>
 </div>
 
-
-
+<p>
+Which is edior is used for the first edit?
+</p>
+<div class="mode-switch">
+    <button id="relativeAbsoluteButton" class="mode-button"></button>
+</div>
+<div id="relativePlots">
+    <div id="created_by_top_10_contributor_count_first_changeset_monthly_percent" class="dataDiv"></div>
+</div>
+<div id="absolutePlots">
+    <div id="created_by_top_10_contributor_count_first_changeset_monthly" class="dataDiv"></div>
+</div>
 
 <p>
 Similar questions for further reading are <a href="https://github.com/piebro/openstreetmap-statistics/">Why is that so?</a> and <a href="https://github.com/piebro/openstreetmap-statistics/">Cool to be here?</a>.
@@ -67,36 +75,8 @@ Similar questions for further reading are <a href="https://github.com/piebro/ope
 
 
 <script>
-function toggle(){
-    const contributorPlots = document.getElementById('contributorPlots');
-    const editPlots = document.getElementById('editPlots');
-    const modeButton = document.getElementById('modeButton');
-    
-    // Determine which plot is currently visible
-    const isContributorPlotsVisible = contributorPlots.style.visibility !== 'hidden';
-    
-    if (isContributorPlotsVisible) {
-        // Hide contributor plots and show edit plots
-        contributorPlots.style.visibility = 'hidden';
-        contributorPlots.style.height = '0';
-        editPlots.style.visibility = 'visible';
-        editPlots.style.height = 'auto'; // Adjust as needed
-        modeButton.textContent = 'Show Contributor Count';
-    } else {
-        // Hide edit plots and show contributor plots
-        contributorPlots.style.visibility = 'visible';
-        contributorPlots.style.height = 'auto'; // Adjust as needed
-        editPlots.style.visibility = 'hidden';
-        editPlots.style.height = '0';
-        modeButton.textContent = 'Show Edit Count';
-    }
-}
-
-toggle()
-
-document.getElementById('modeButton').addEventListener('click', function() {
-    toggle()
-});
+addToggle("contributorEditButton", "contributorPlots", "Show Contributor Count", "editPlots", "Show Edit Count")
+addToggle("relativeAbsoluteButton", "relativePlots", "Show Relative Numbers", "absolutePlots", "Show Absolute Numbers")
 </script>
 </body>
 </html>
