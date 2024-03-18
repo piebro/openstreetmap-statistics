@@ -502,7 +502,7 @@ def save_tag_top_10_contributor_count_first_changeset_monthly(
     indices = [tag_to_index[tag_name] for tag_name in names]
 
     contibutor_monthly = (
-        ddf[ddf[tag].isin(indices)].groupby(["user_index"], observed=False)["month_index", tag].first().compute()
+        ddf.groupby(["user_index"], observed=False)["month_index", tag].first().compute()
     )
     contibutor_count_monthly = (
         contibutor_monthly.reset_index().groupby(["month_index", tag], observed=False)["user_index"].count()
