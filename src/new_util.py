@@ -268,6 +268,11 @@ def save_monthly_to_yearly(data_name, only_full_years=False):
     )
 
 
+def save_accumulated(data_name):
+    df = pd.read_json(Path("data") / f"{data_name}.json", orient="split")
+    columns = get_columns_without_months_and_years(df)
+    df[columns] = df[columns].cumsum()
+    df.to_json(Path("data") / f"{data_name}_accumulated.json", orient="split", index=False, indent=1)
 
 
 def get_top_k_contributor_count(data_dir, ddf, tag, k):
