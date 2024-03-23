@@ -16,11 +16,11 @@ ignore = [
     "ANN202",   # Missing return type annotation for private function
     "ANN204",   # Missing return type annotation for special method `__init__`
     
-
     "T201",     # `print` found
     "TD002",    # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
     "TD003",    # Missing issue link on the line following this TODO
     "FIX002",   # Line contains TODO, consider resolving the issue
+    "S301",     # `pickle` and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue
     "RET505",   # Unnecessary `else` after `return` statement
     "TRY003",   # Avoid specifying long messages outside the exception class
     "EM101",    # Exception must not use a string literal, assign to variable first
@@ -37,9 +37,6 @@ ignore = [
     "PD901",    # Avoid using the generic variable name `df` for DataFrames
     "F821",     # Undefined name `data_dict`
     "B023",     # Function definition does not bind loop variable
-    
-    
-
 ]
 fixable = ["ALL"]
 unfixable = []
