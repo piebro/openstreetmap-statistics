@@ -6,6 +6,7 @@ The plots and tables are organized in topics and questions I asked myself about 
 
 There is also a notebook to create [custom plots](https://piebro.github.io/openstreetmap-statistics/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
 
+I'm experimenting with a [website](https://piebro.github.io/openstreetmap-statistics/src/questions) to show the statistics. Most plots are is still missing, but I might migrate them in the future and change it as the default starting page.
 
 ## Methodology
 
@@ -88,6 +89,16 @@ osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p'
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 0:30h and it runs with less then 8GB of RAM.
 ```bash
 python3 src/parquet_to_json_stats.py temp
+```
+
+### Update notebooks
+
+There are multiple question in `src/questions` and each one has a jupyter notebook to compute the relevant data for the question. To Execute all notebooks run:
+
+```bash
+for notebook in $(find src/questions -name calculations.ipynb); do
+    jupyter nbconvert --to notebook --execute "$notebook" --output calculations.ipynb
+done
 ```
 
 ### Update cooperation user names
