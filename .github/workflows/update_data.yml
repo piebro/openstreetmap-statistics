@@ -52,11 +52,17 @@ jobs:
         if: env.RUN_JOBS == 'true'
         run: python3 src/parquet_to_json_stats.py temp
         
+      - name: save notebooks and data
+        if: env.RUN_JOBS == 'true'
+        run: for notebook in $(find src/questions -name calculations.ipynb); do jupyter nbconvert --to notebook --execute "$notebook" --output calculations.ipynb; done
+        
       - name: Create Pull Request
         if: env.RUN_JOBS == 'true'
         uses: peter-evans/create-pull-request@v4
         with:
-          add-paths: assets/*
+          add-paths: |
+            assets/*
+            src/questions/*
           commit-message: data update
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
