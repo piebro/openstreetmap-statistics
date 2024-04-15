@@ -13,6 +13,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="dask.dataframe
 
 
 def reset_data_and_plots():
+    Path("data").mkdir(exist_ok=True)
     for file in Path("data").iterdir():
         file.unlink()
     with Path("plots.json").open("w") as f:
