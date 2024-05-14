@@ -6,7 +6,7 @@ The plots and tables are organized in topics and questions I asked myself about 
 
 There is also a notebook to create [custom plots](https://piebro.github.io/openstreetmap-statistics/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
 
-I'm experimenting with a [website](https://piebro.github.io/openstreetmap-statistics/src/questions) to show the statistics. Most plots are is still missing, but I might migrate them in the future and change it as the default starting page.
+I'm experimenting with a [website](https://piebro.github.io/openstreetmap-statistics/src/questions) to show the statistics. Many plots are still missing, but I might migrate them in the future and change it as the default starting page.
 
 ## Methodology
 
