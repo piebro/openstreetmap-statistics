@@ -67,7 +67,6 @@ name_url_function = [
     ["Balad", "https://wiki.openstreetmap.org/wiki/Balad", get_usernames_from_links],
     ["Blitzer.de", "https://wiki.openstreetmap.org/wiki/Blitzer.de", get_usernames_from_links],
     ["Bolt", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activites/Bolt", get_usernames_from_links],
-    ["DevSeed", "https://wiki.openstreetmap.org/wiki/DevSeed-Data", get_usernames_from_links],
     ["DigitalEgypt", "https://wiki.openstreetmap.org/wiki/DigitalEgypt", get_usernames_from_links],
     ["Expedia", "https://github.com/osmlab/expedia/wiki/Data-Team", get_usernames_from_links],
     ["GeoCompas", "https://wiki.openstreetmap.org/wiki/GeoCompas", get_usernames_from_links],
@@ -87,8 +86,7 @@ name_url_function = [
         "https://github.com/OSM-DCT-Lyft/US/wiki/OSM-Team-Members#lyft-mapping-team-osm-ids",
         get_usernames_from_links,
     ],
-    ["Mapbox", "https://wiki.openstreetmap.org/wiki/Mapbox#Mapbox_Data_Team", get_usernames_from_links],
-    ["Mapbox", "https://wiki.openstreetmap.org/wiki/Mapbox/Previous_Team_Members", get_usernames_from_links],
+    ["Mapbox", "https://github.com/mapbox/mapping/wiki/OSM-Data-Team-Members", get_usernames_from_links],
     ["Meta", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Facebook", get_usernames_from_links],
     [
         "Microsoft",
