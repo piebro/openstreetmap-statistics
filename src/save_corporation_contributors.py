@@ -65,10 +65,12 @@ name_url_function = [
     ["Apple", "https://github.com/osmlab/appledata/wiki/Data-Team", get_usernames_from_links],
     ["AppLogica", "https://wiki.openstreetmap.org/wiki/AppLogica", get_usernames_from_links],
     ["Balad", "https://wiki.openstreetmap.org/wiki/Balad", get_usernames_from_links],
+    ["Blitzer.de", "https://wiki.openstreetmap.org/wiki/Blitzer.de", get_usernames_from_links],
     ["Bolt", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activites/Bolt", get_usernames_from_links],
     ["DevSeed", "https://wiki.openstreetmap.org/wiki/DevSeed-Data", get_usernames_from_links],
     ["DigitalEgypt", "https://wiki.openstreetmap.org/wiki/DigitalEgypt", get_usernames_from_links],
     ["Expedia", "https://github.com/osmlab/expedia/wiki/Data-Team", get_usernames_from_links],
+    ["GeoCompas", "https://wiki.openstreetmap.org/wiki/GeoCompas", get_usernames_from_links],
     ["Gojek", "https://wiki.openstreetmap.org/wiki/Gojek", get_usernames_from_links],
     [
         "Grab",
@@ -95,6 +97,7 @@ name_url_function = [
     ],
     ["Neshan", "https://wiki.openstreetmap.org/wiki/Neshan", get_usernames_from_links],
     ["NextBillion.AI", "https://wiki.openstreetmap.org/wiki/NextBillion.AI-OSM", get_usernames_from_links],
+    ["NNG", "https://wiki.openstreetmap.org/wiki/NNG", get_usernames_from_links],
     ["Ola", "https://wiki.openstreetmap.org/wiki/Ola", get_usernames_from_links],
     ["Rocketdata.io", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Rocketdata.io", get_usernames_from_links],
     ["Snap", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Snap", get_usernames_from_links],
@@ -124,6 +127,11 @@ name_url_function = [
         "WIGeoGIS",
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Updating_assets_of_OMV_group",
         get_usernames_from_links,
+    ],
+    [
+        "Wildberries Geo Team",
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/WB_Geo_Team",
+        get_usernames_from_links
     ],
     ["Wonder", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Wonder", get_usernames_from_links],
     ["Zartico", "https://wiki.openstreetmap.org/wiki/Zartico", get_usernames_from_links],
