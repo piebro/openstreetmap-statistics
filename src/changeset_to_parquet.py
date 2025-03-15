@@ -240,7 +240,7 @@ def create_replace_rules():
                     [(len(starts_with), starts_with, name) for starts_with in name_infos["starts_with"]],
                 )
             if "ends_with" in name_infos:
-                starts_with_list.extend(
+                ends_with_list.extend(
                     [(len(ends_with), ends_with, name) for ends_with in name_infos["ends_with"]],
                 )
             if "contains" in name_infos:
