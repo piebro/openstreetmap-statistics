@@ -12,7 +12,7 @@
   "BDOrtho",
   "Geoportal 2: Orthophotomap",
   "GPS",
-  "unknown.geojson",
+  ".geojson data file",
   "TIGER Roads",
   "OpenStreetCam Images",
   "PNOA Spain",
@@ -35,7 +35,6 @@
   "NRW Orthophoto",
   "National Agriculture Imagery Program",
   "Norway Orthophoto",
-  ".geojson data file",
   "OpenTopoMap",
   "USGS 3D Elevation Program",
   "SDFE aerial imagery",
@@ -99,13 +98,14 @@
   "polska.e-mapa.net: Buildings",
   "Ortho HR",
   "Geoportal 2 Nazwy ulic",
-  "PEMA Orthoimagery (2018-2020)"
+  "PEMA Orthoimagery (2018-2020)",
+  "G\u00e9od\u00e9sie Qu\u00e9bec"
  ],
  "data":[
   [
    2245221968,
    719874848,
-   694358128,
+   694442081,
    570237135,
    234332233,
    204968824,
@@ -115,7 +115,7 @@
    86313950,
    81542867,
    77377439,
-   60359715,
+   70347051,
    52936085,
    52269098,
    51538354,
@@ -134,11 +134,10 @@
    13646552,
    13059515,
    12460374,
-   11809777,
+   11805225,
    10754839,
    10743494,
    10383626,
-   9987665,
    9937949,
    8559366,
    7126845,
@@ -202,7 +201,8 @@
    1965101,
    1910307,
    1896760,
-   1847989
+   1847989,
+   1810695
   ]
  ]
 }

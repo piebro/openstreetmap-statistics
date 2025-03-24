@@ -11,9 +11,9 @@
   "BDOrtho",
   "Custom",
   "OpenStreetMap (Standard)",
+  ".geojson data file",
   "Geoportal 2: Orthophotomap",
   "DigitalGlobe Imagery (now Maxar)",
-  "unknown.geojson",
   "PNOA Spain",
   "GPS",
   "Japan GSI",
@@ -22,7 +22,6 @@
   "PDOK aerial imagery",
   "Geoportal.gov.pl (Orthophotomap)",
   "NRW Orthophoto",
-  ".geojson data file",
   "KartaView Images",
   "MML Orthophoto",
   "Cadastre",
@@ -99,13 +98,14 @@
   "PNOA-Spain-TMS",
   "F\u00d6MI orthophoto 2007-2010",
   "Kanton Zurich, Orthofoto ZH Fr\u00fchjahr 2021 RGB 5cm",
-  "Brandenburg GeoBasis-DE\/LGB (latest) \/ DOP20c"
+  "Brandenburg GeoBasis-DE\/LGB (latest) \/ DOP20c",
+  "Berlin\/Geoportal DOP20RGBI (2022)"
  ],
  "data":[
   [
    44335631,
    10082868,
-   8444563,
+   8448153,
    7456424,
    5913859,
    3461710,
@@ -114,9 +114,9 @@
    2468450,
    2377523,
    1236149,
+   1179320,
    1154587,
    1094718,
-   923303,
    852507,
    619425,
    574737,
@@ -125,7 +125,6 @@
    430505,
    379708,
    270679,
-   256014,
    238395,
    215603,
    209415,
@@ -143,7 +142,7 @@
    113551,
    111526,
    110878,
-   108257,
+   108368,
    104136,
    101606,
    100986,
@@ -202,7 +201,8 @@
    24134,
    24129,
    23107,
-   22994
+   22994,
+   22833
   ]
  ]
 }
