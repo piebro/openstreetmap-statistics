@@ -8,7 +8,7 @@
   "Mapbox Satellite",
   "OpenStreetMap (Standard)",
   "BDOrtho",
-  "unknown.geojson",
+  ".geojson data file",
   "DigitalGlobe Imagery (now Maxar)",
   "GPS",
   "MAPNIK",
@@ -64,7 +64,6 @@
   "NRW vDOP",
   "OpenAerialMap Mosaic, by Kontur.io",
   "ICGC - Ortofoto de Catalunya 1:2.500 vigent",
-  ".geojson data file",
   "GURS: Slovenia orthophoto 25cm (DOF025)",
   "Strava",
   "Helsinki region orthophoto",
@@ -99,19 +98,20 @@
   "Stockholm Orthophoto",
   "USGS Imagery",
   "USGS Large Scale Imagery",
-  "Stuttgart Luftbild Stadtmessungsamt 2017"
+  "Stuttgart Luftbild Stadtmessungsamt 2017",
+  "OpenStreetMap (Basque Style)"
  ],
  "data":[
   [
    1241016,
-   364400,
+   364520,
    150589,
    127807,
    126439,
    79168,
    78458,
    58036,
-   45548,
+   47403,
    38697,
    35139,
    23041,
@@ -167,7 +167,6 @@
    2015,
    2009,
    1964,
-   1947,
    1935,
    1886,
    1862,
@@ -202,7 +201,8 @@
    991,
    974,
    967,
-   946
+   946,
+   881
   ]
  ]
 }

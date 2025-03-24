@@ -39,10 +39,10 @@
   "Osmose Editor",
   "JOpenMapVN\/1.5 (19039 SVN en)",
   "https_all_the_things",
+  "https:\/\/osm.wikidata.link\/",
   "rosemary",
   "LINZ Data Import",
   "Globe",
-  "https:\/\/osm.wikidata.link\/",
   "LINZ Address Import",
   "OSM Translator UA",
   "FixKarlsruheSchema",
@@ -86,7 +86,6 @@
   "Tagger",
   "bulkyosm.py",
   "DataNovaImportScripts",
-  "https:\/\/map.osm.wikidata.link\/",
   "Columbia County",
   "Zaczero\/osm-relatify",
   "MaliMrav-Bot",
@@ -99,11 +98,12 @@
   "Abakus StrazakOSM uploader",
   "Findeschorse007",
   "Organic Maps ios",
-  "https:\/\/github.com\/Cyrille37\/yapafo v2.0"
+  "https:\/\/github.com\/Cyrille37\/yapafo v2.0",
+  "OsmSeaShark-EffacerWays"
  ],
  "data":[
   [
-   10712180673,
+   10712180709,
    3721155653,
    782889370,
    314671764,
@@ -142,10 +142,10 @@
    1133937,
    1104218,
    1022675,
+   1009458,
    995534,
    914173,
    904070,
-   880723,
    860022,
    857795,
    824301,
@@ -189,7 +189,6 @@
    146189,
    141000,
    129561,
-   127625,
    126632,
    115627,
    112522,
@@ -202,7 +201,8 @@
    92891,
    85700,
    85086,
-   81915
+   81915,
+   79146
   ]
  ]
 }

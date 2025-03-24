@@ -36,6 +36,7 @@
   "Organic Maps ios",
   "MapComplete",
   "osm-revert",
+  "https:\/\/osm.wikidata.link\/",
   "Map builder",
   "iLOE",
   "Osm.Org Tags Editor",
@@ -46,7 +47,6 @@
   "ArcGIS Editor for OpenStreetMap",
   "FreieTonne",
   "Columbia County",
-  "https:\/\/osm.wikidata.link\/",
   "Refill S\u00fcdtirol \/ Alto Adige",
   "Mapzen",
   "peundemerg.ro",
@@ -62,7 +62,6 @@
   "OpenMaps iOS",
   "IsraelHiking.osm.org.il",
   "POI+",
-  "https:\/\/map.osm.wikidata.link\/",
   "addr2osm",
   "Pic4Review",
   "b-jazz",
@@ -99,12 +98,13 @@
   "za\u017c\u00f3\u0142\u0107",
   "Artur'In",
   "Ubiflow www.ubiflow.net",
-  "DataNovaImportScripts"
+  "DataNovaImportScripts",
+  "Route4U.org"
  ],
  "data":[
   [
    68177684,
-   57865509,
+   57865511,
    12429075,
    8846945,
    2147000,
@@ -139,6 +139,7 @@
    57401,
    56549,
    52614,
+   48467,
    44222,
    42075,
    39375,
@@ -149,7 +150,6 @@
    35167,
    34298,
    33402,
-   32374,
    29356,
    28949,
    25707,
@@ -165,7 +165,6 @@
    16094,
    16030,
    15788,
-   15740,
    15553,
    15187,
    15096,
@@ -202,7 +201,8 @@
    5291,
    5276,
    5258,
-   5056
+   5056,
+   4880
   ]
  ]
 }
