@@ -99,6 +99,13 @@
             "CODAP "
         ]
     },
+    "CoMaps": {
+        "link": "https://www.comaps.app/",
+        "starts_with": [
+            "CoMaps "
+        ],
+        "type": "mobile_editor"
+    },
     "Completionist": {
         "starts_with": [
             "Completionist "
