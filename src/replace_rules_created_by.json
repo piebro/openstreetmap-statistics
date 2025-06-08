@@ -38,10 +38,10 @@
     "Brick": {
         "link": "https://github.com/OSMBuildings/Brick"
     },
-    "BTC Map Android": {
+    "BTC Map": {
         "link": "https://github.com/teambtcmap/btcmap-android",
         "starts_with": [
-            "BTC Map Android "
+            "BTC Map "
         ],
         "type": "mobile_editor"
     },
@@ -82,9 +82,9 @@
             "catatom3dfix/"
         ]
     },
-    "CityZen Android": {
+    "CityZen": {
         "starts_with": [
-            "CityZen Android app "
+            "CityZen "
         ]
     },
     "Climb The World": {
@@ -127,19 +127,10 @@
     "Deriviste": {
         "type": "desktop_editor"
     },
-    "Every Door Android": {
+    "Every Door": {
         "link": "https://every-door.app/",
         "starts_with": [
-            "Every Door Android",
-            "Every Door android"
-        ],
-        "type": "mobile_editor"
-    },
-    "Every Door iOS": {
-        "link": "https://every-door.app/",
-        "starts_with": [
-            "Every Door iOS",
-            "Every Door ios"
+            "Every Door "
         ],
         "type": "mobile_editor"
     },
@@ -340,17 +331,10 @@
         "link": "https://wiki.openstreetmap.org/wiki/MapRoulette",
         "type": "desktop_editor"
     },
-    "MAPS.ME android": {
+    "MAPS.ME": {
         "link": "https://maps.me/",
         "starts_with": [
-            "MAPS.ME android "
-        ],
-        "type": "mobile_editor"
-    },
-    "MAPS.ME ios": {
-        "link": "https://maps.me/",
-        "starts_with": [
-            "MAPS.ME ios "
+            "MAPS.ME "
         ],
         "type": "mobile_editor"
     },
@@ -400,17 +384,10 @@
             "nsr2osm "
         ]
     },
-    "OMaps android": {
+    "OMaps": {
         "link": "https://wiki.openstreetmap.org/wiki/OMaps",
         "starts_with": [
-            "OMaps android "
-        ],
-        "type": "mobile_editor"
-    },
-    "OMaps ios": {
-        "link": "https://wiki.openstreetmap.org/wiki/OMaps",
-        "starts_with": [
-            "OMaps ios "
+            "OMaps "
         ],
         "type": "mobile_editor"
     },
@@ -426,17 +403,16 @@
             "OpenMapKit Server "
         ]
     },
-    "OpenMaps iOS": {
+    "OpenMaps": {
         "aliases": [
-            "OpenMaps for iOS",
-            "OpenMaps iPhone"
+            "OpenMaps "
         ],
         "link": "https://wiki.openstreetmap.org/wiki/OpenMaps_(IZE)",
         "type": "mobile_editor"
     },
-    "OpenPOI iOS": {
+    "OpenPOI": {
         "starts_with": [
-            "OpenPOI iOS "
+            "OpenPOI "
         ]
     },
     "OpenRecycleMap": {
@@ -468,21 +444,13 @@
             "OpenStreetQuests "
         ]
     },
-    "Organic Maps android": {
-        "link": "https://organicmaps.app/de/",
+    "Organic Maps": {
+        "link": "https://organicmaps.app/",
         "starts_with": [
-            "Organic Maps android "
+            "Organic Maps "
         ],
         "type": "mobile_editor"
     },
-    "Organic Maps ios": {
-        "link": "https://organicmaps.app/de/",
-        "starts_with": [
-            "Organic Maps ios "
-        ],
-        "type": "mobile_editor"
-    },
-
     "OSM Contributor": {
         "link": "https://wiki.openstreetmap.org/wiki/OSM_Contributor",
         "starts_with": [
@@ -712,8 +680,11 @@
     "ProjetDuMois.fr": {
         "link": "https://projetdumois.fr/"
     },
-    "Pushpin iOS": {
+    "Pushpin": {
         "link": "https://wiki.openstreetmap.org/wiki/Pushpin_OSM",
+        "starts_with": [
+            "Pushpin"
+        ],
         "type": "mobile_editor"
     },
     "PythonOsmApi": {
@@ -741,7 +712,7 @@
         ],
         "type": "desktop_editor"
     },
-    "rahino Android": {
+    "rahino": {
         "link": "http://rahinoapp.ir/",
         "starts_with": [
             "rahino("
@@ -871,7 +842,7 @@
             "w3GIS "
         ]
     },
-    "Wemapp iOS": {
+    "Wemapp": {
         "starts_with": [
             "Wemapp("
         ],
