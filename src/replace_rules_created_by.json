@@ -302,7 +302,7 @@
         ]
     },
     "Map builder": {
-        "link": "https://www.bing.com/mapbuilder/",
+        "link": "https://wiki.openstreetmap.org/wiki/Map_builder",
         "starts_with": [
             "Map builder "
         ],
@@ -314,7 +314,7 @@
         ]
     },
     "MapComplete": {
-        "link": "https://mapcomplete.osm.be",
+        "link": "https://mapcomplete.org",
         "starts_with": [
             "MapComplete "
         ],
