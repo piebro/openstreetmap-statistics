@@ -4,8 +4,6 @@ Monthly updated statistics of OpenStreetMap. There is a [website](https://piebro
 
 The plots and tables are organized in topics and questions I asked myself about OpenStreetMap. My motivation for this project was that I couldn't find some statistics I was interested in or that the data was outdated. That's why I created these statistics, which are easily updatable with a simple script run locally or with GitHub actions.
 
-There is also a notebook to create [custom plots](https://piebro.github.io/openstreetmap-statistics/jupyter_lite/retro/notebooks/?path=custom_plots_browser.ipynb) with the data in a browser. You can use [this](https://github.com/piebro/openstreetmap-statistics/blob/master/src/custom_data_and_plots.ipynb) notebook if you want to create custom data with custom plots locally.
-
 I'm experimenting with a [website](https://piebro.github.io/openstreetmap-statistics/src/questions) to show the statistics. Many plots are still missing, but I might migrate them in the future and change it as the default starting page.
 
 ## Methodology
@@ -24,7 +22,7 @@ This leads to an overrepresented of changes in the geometry of ways and relation
 It's important to keep this in mind looking and interpreting the data.
 
 Another aspect is that the `created_by`, `imagery` and `source` tag use filters to determine the editing software and imagery.
-Some categories are opinionated (e.g., should stats for Android and iOS editing apps be counted separately?), and other categories could be very reasonable, depending on the purpose.
+Some categories are opinionated (e.g., should stats for Android and iOS editing apps be counted as one or two categories?), and other categories could be very reasonable, depending on the purpose.
 The filtering process is done with simple rules to make it as transparent as possible and easily extendable by anyone.
 The rules are defined at [src/replace_rules_created_by.json](src/replace_rules_created_by.json) and [src/replace_rules_imagery_and_source.json](src/replace_rules_imagery_and_source.json).
 
@@ -54,41 +52,35 @@ Incorrect and out-of-date user lists could be a source of error in the data.
 
 ### Update data
 
-The code is tested on Ubuntu 20.04 but should work on every Linux distro. I'm not sure about Windows or Mac.
+The code is tested on Ubuntu 24.04 but should work on every Linux distro.
+If you dowload the latest changeset file manually, you can also use Windows or Mac.
 
 ```bash
-# Install dependencies for downloading and handling the latest changeset and showing a progress bar
-sudo apt install aria2 osmium-tool pv
+git clone https://github.com/piebro/openstreetmap-statistics.git
+cd openstreetmap-statistics
 
-# create a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# install python dependencies
-pip3 install -r requirements.txt
+uv venv
+uv sync 
 ```
 
 Run the following commands to get the latest OSM changeset file.
 ```bash
 rm $(ls *.osm.bz2)
 wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torrent
-aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
+
+sudo apt install aria2
+aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent -o changesets-latest.osm.bz2
 ```
 
-Next, you can extract the data and save it in a compressed CSV file like this. `pv` is used to generate a progress bar. The extraction can take some time (on my laptop this takes about 1:30h).
+Next, you can run the preprocessing pipeline and save the data in partitioned parquet files to easily query it.
+The extraction can take some time (on my laptop this takes about 1:30h).
 ```bash
-rm -r -d temp
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | python3 src/changeset_to_parquet.py temp
+uv run openstreetmap_statistics/preprocessing.py changesets-latest.osm.bz2.torrent data
 ```
 
-If you want to add new topics, plots or tables and iterate faster with a subset of all data, you can use every 500th changeset like this.
+If you want to work on the preprocessing pipeline, you can iterate faster with by creating a subset of all data using the following command.
 ```bash
-osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/changeset_to_parquet.py temp_dev
-```
-
-Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 0:30h and it runs with less then 8GB of RAM.
-```bash
-python3 src/parquet_to_json_stats.py temp
+uv run openstreetmap_statistics/create_test_osm_bz2_file.py changesets-latest.osm.bz2.torrent test_5000.osm.bz2 --skip-interval 5000
 ```
 
 ### Update notebooks
@@ -144,6 +136,11 @@ Adding rules can make the statistics more accurate and links help with the usabi
 The Projected uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting. Run `ruff check` and `ruff format` in the project root directory tu use it.
 [Prettier](https://prettier.io/playground/) is used for linting the javascript code with a `print-width` of 120, `tab-width` of 4 and [Stylelint](https://stylelint.io/demo/) is used for linting css code.
 Furthermore, [Codespell](https://github.com/codespell-project/codespell) is used to find spelling mistakes and can be used with this command `codespell src README.md index.html assets/statistic_website.js`.
+
+```bash
+uv sync --extra dev
+uv run pre-commit install
+```
 
 ## Website Statistics
 

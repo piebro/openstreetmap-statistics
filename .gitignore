@@ -5,3 +5,5 @@ __pycache__
 *.osm.bz2
 changesets-latest.osm.bz2.torrent
 temp*
+*.egg-info
+*.parquet
