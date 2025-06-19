@@ -17,6 +17,7 @@ dependencies = [
     "tqdm",
     "osmium",
     "pyarrow>=20.0.0",
+    "duckdb",
 ]
 
 [project.urls]

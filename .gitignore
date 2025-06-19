@@ -7,3 +7,4 @@ changesets-latest.osm.bz2.torrent
 temp*
 *.egg-info
 *.parquet
+openstreetmap_statistics/_version.py
