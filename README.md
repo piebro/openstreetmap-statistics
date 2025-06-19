@@ -47,6 +47,61 @@ The companies are added to [src/save_corporation_contributors.py](src/save_corpo
 The cooperation statistics are gathered with the list of users working at each company.
 Incorrect and out-of-date user lists could be a source of error in the data.
 
+## Data Schema
+
+The processed data is stored in partitioned Parquet files with the following schema. Each changeset from OpenStreetMap is represented as a row with various attributes extracted and normalized for analysis.
+
+```
+year: BIGINT - Partition column
+month: BIGINT - Partition column
+edit_count: INTEGER - Number of edits in the changeset. An edit is creating, modifying or deleting nodes, ways or relations.
+user_index: INTEGER - A unique number for each username.
+pos_x: SMALLINT - Normalized longitude coordinate (0-360 range) of the changeset bounding box center.
+pos_y: SMALLINT - Normalized latitude coordinate (0-180 range) of the changeset bounding box center.
+created_by: VARCHAR - Tool or application used to create the changeset.
+is_bot: BOOLEAN - Whether the changeset was created by a bot (based on bot=yes tag).
+corporation: VARCHAR - Corporation or organization associated with the username of the contributor.
+imagery_used: VARCHAR[] - List of imagery sources used for the changeset.
+hashtags: VARCHAR[] - List of hashtags associated with the changeset.
+source: VARCHAR[] - List of data sources used for the changeset.
+streetcomplete_quest: VARCHAR - StreetComplete quest type if the changeset was created by Stree.tComplete
+mobile_os: VARCHAR - Mobile operating system (Android/iOS) detected from created_by tag.
+all_tags: VARCHAR[] - List of all tag prefixes (before colon) used in the changeset.
+```
+
+<details>
+<summary>Click to view code to get the column descriptions from the parquet files</summary>
+
+```bash
+uv run python -c "
+import duckdb
+import pyarrow.parquet as pq
+import glob
+
+# Get column info
+columns = duckdb.sql(\"SELECT * FROM 'data_test/year=*/month=*/*.parquet' LIMIT 0\").columns
+types = duckdb.sql(\"SELECT * FROM 'data_test/year=*/month=*/*.parquet' LIMIT 0\").types
+
+# Read schema from first parquet file
+parquet_file = glob.glob('data_test/year=*/month=*/*.parquet')[0]
+schema = pq.read_schema(parquet_file)
+
+# Create a mapping of field names to fields
+field_map = {f.name: f for f in schema}
+
+# Print column info with descriptions
+for col, dtype in zip(columns, types):
+   if col in field_map:
+       field = field_map[col]
+       desc = field.metadata.get(b'description', b'No description').decode() if field.metadata else 'No description'
+   else:
+       desc = 'Partition column'
+   print(f'{col}: {dtype} - {desc}')
+"
+```
+
+</details>
+
 
 ## Usage
 
