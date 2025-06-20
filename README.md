@@ -75,28 +75,10 @@ all_tags: VARCHAR[] - List of all tag prefixes (before colon) used in the change
 ```bash
 uv run python -c "
 import duckdb
-import pyarrow.parquet as pq
-import glob
-
-# Get column info
-columns = duckdb.sql(\"SELECT * FROM 'data_test/year=*/month=*/*.parquet' LIMIT 0\").columns
-types = duckdb.sql(\"SELECT * FROM 'data_test/year=*/month=*/*.parquet' LIMIT 0\").types
-
-# Read schema from first parquet file
-parquet_file = glob.glob('data_test/year=*/month=*/*.parquet')[0]
-schema = pq.read_schema(parquet_file)
-
-# Create a mapping of field names to fields
-field_map = {f.name: f for f in schema}
-
-# Print column info with descriptions
+columns = duckdb.sql("SELECT * FROM 'data_250602_test_enriched/year=*/month=*/*.parquet' LIMIT 0").columns
+types = duckdb.sql("SELECT * FROM 'data_250602_test_enriched/year=*/month=*/*.parquet' LIMIT 0").types
 for col, dtype in zip(columns, types):
-   if col in field_map:
-       field = field_map[col]
-       desc = field.metadata.get(b'description', b'No description').decode() if field.metadata else 'No description'
-   else:
-       desc = 'Partition column'
-   print(f'{col}: {dtype} - {desc}')
+    print(f"{col}: {dtype}")
 "
 ```
 
@@ -135,7 +117,7 @@ uv run openstreetmap_statistics/preprocessing.py changesets-latest.osm.bz2.torre
 
 If you want to work on the preprocessing pipeline, you can iterate faster with by creating a subset of all data using the following command.
 ```bash
-uv run openstreetmap_statistics/create_test_osm_bz2_file.py changesets-latest.osm.bz2.torrent test_5000.osm.bz2 --skip-interval 5000
+uv run openstreetmap_statistics/create_test_osm_bz2_file.py changesets-latest.osm.bz2.torrent changesets-latest-5000.osm.bz2 --skip-interval 5000
 ```
 
 ### Update notebooks
