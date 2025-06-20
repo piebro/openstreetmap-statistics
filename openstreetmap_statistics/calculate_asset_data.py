@@ -10,7 +10,8 @@ def save_as_json(
 ):
     def save(file_name, columns, df):
         with open(f"assets/data/{file_name}.json", "w") as f:
-            data = df.values.tolist()[:-1]  # Remove last entry (current month/year)
+            # remove last entry for monthly data
+            data = df.values.tolist()[:-1] if columns[0] == "months" else df.values.tolist()
             json.dump({"columns": columns, "data": data}, f, indent=1)
 
     df = duckdb.sql(sql_query).df()
@@ -147,7 +148,7 @@ def save_general(data_path):
         f"""
 		SELECT 
 			CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months,
-			SUM(edit_count) as edits
+			CAST(SUM(edit_count) as INTEGER) as edits
 		FROM '{data_path}/year=*/month=*/*.parquet'
 		GROUP BY year, month
 		ORDER BY year, month
@@ -163,7 +164,7 @@ def save_general(data_path):
         f"""
 		SELECT 
 			CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months,
-			COUNT(*) as changesets
+			CAST(COUNT(*) AS INTEGER) as changesets
 		FROM '{data_path}/year=*/month=*/*.parquet'
 		GROUP BY year, month
 		ORDER BY year, month
@@ -194,7 +195,7 @@ def save_general(data_path):
 				month,
 				CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months,
 				user_name,
-				SUM(edit_count) as user_edits
+				CAST(SUM(edit_count) as INTEGER) as user_edits
 			FROM '{data_path}/year=*/month=*/*.parquet'
 			GROUP BY year, month, user_name
 		)
@@ -217,7 +218,7 @@ def save_general(data_path):
 				month,
 				CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months,
 				user_name,
-				SUM(edit_count) as user_edits
+				CAST(SUM(edit_count) as INTEGER) as user_edits
 			FROM '{data_path}/year=*/month=*/*.parquet'
 			WHERE year >= 2010
 			GROUP BY year, month, user_name
