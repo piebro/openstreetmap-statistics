@@ -1,5 +1,5 @@
 {
- "columns": [
+ "columns":[
   "months",
   "more then 10 edits",
   "more then 100 edits",
@@ -7,7 +7,7 @@
   "more then 10000 edits",
   "more then 100000 edits"
  ],
- "data": [
+ "data":[
   [
    "2005-04",
    4,

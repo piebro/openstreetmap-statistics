@@ -1,9 +1,9 @@
 {
- "columns": [
+ "columns":[
   "months",
   "median number of edits per contributor"
  ],
- "data": [
+ "data":[
   [
    "2010-01",
    45
