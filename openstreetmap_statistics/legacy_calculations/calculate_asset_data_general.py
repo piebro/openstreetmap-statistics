@@ -101,7 +101,7 @@ def calculate_contributor_count_more_than_k_edits_monthly(data_path):
     util.save_query_as_json("general_contributor_count_more_the_k_edits_monthly", sql_query)
 
 
-def calculate_edit_count_monthly(data_path):
+def calculate_edit_count(data_path):
     """Calculate monthly edit counts"""
     sql_query = f"""
         SELECT
@@ -113,7 +113,10 @@ def calculate_edit_count_monthly(data_path):
     """
     util.save_query_as_json("general_edit_count_monthly", sql_query)
     util.save_accumulated("general_edit_count_monthly")
-    util.save_monthly_to_yearly("general_edit_count_monthly")
+    util.save_monthly_to_yearly(
+        "general_edit_count_monthly"
+    )  # needed for calculating  the percent for "general_contributor_count_attrition_rate_yearly"
+    util.save_monthly_to_yearly("general_edit_count_monthly", only_full_years=True)
 
 
 def calculate_changeset_count_monthly(data_path):
@@ -247,6 +250,7 @@ def calculate_contributor_attrition_rate_yearly(data_path):
     df = duckdb.sql(sql_query).df()
     df_pivoted = df.pivot(index="years", columns="first_edit_period", values="total_edits").reset_index()
     util.save_df_as_json("general_contributor_count_attrition_rate_yearly", df_pivoted)
+    util.save_percent("general_contributor_count_attrition_rate_yearly", "general_edit_count_yearly", "years", "edits")
 
 
 def calculate_no_maps_me_contributor_count_monthly(data_path):
@@ -312,7 +316,7 @@ def save_general(data_path):
     calculate_contributor_count_monthly(data_path)
     calculate_new_contributor_count_monthly(data_path)
     calculate_contributor_count_more_than_k_edits_monthly(data_path)
-    calculate_edit_count_monthly(data_path)
+    calculate_edit_count(data_path)
     calculate_changeset_count_monthly(data_path)
     calculate_contributors_unique_yearly(data_path)
     calculate_edit_count_per_contributor_median_monthly(data_path)

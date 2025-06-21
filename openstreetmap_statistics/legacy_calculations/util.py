@@ -84,7 +84,7 @@ def save_monthly_to_yearly(data_name, only_full_years=False):
     if only_full_years and years[-12] != years[-1]:
         df = df[:-1]
 
-    suffix = "_only_full_years" if only_full_years else ""
+    suffix = "_full_years_only" if only_full_years else ""
     df.to_json(
         Path("assets") / "data" / f"{data_name.replace('_monthly', '_yearly')}{suffix}.json",
         orient="split",
