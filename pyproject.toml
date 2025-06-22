@@ -8,7 +8,7 @@ authors = [
     {name = "Piet Brömmel", email = "piet.broemmel@gmail.com"}
 ]
 keywords = ["openstreetmap", "statistics", "osm"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "pandas==2.3.0",
     "nbconvert==7.14.2",
@@ -39,6 +39,7 @@ testpaths = ["test"]
 
 [tool.ruff]
 line-length = 120
+target-version = "py311"
 exclude = [
     "assets",
 ]

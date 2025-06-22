@@ -134,17 +134,58 @@ def save_merged_yearly_total_data(yearly_data_name, total_data_name):
     )
 
 
-def save_df_as_json(file_name, pd_df_or_series):
+def save_total(data_name):
+    """Save total statistics by summing all data columns"""
+    df = pd.read_json(Path("assets") / "data" / f"{data_name}.json", orient="split")
+
+    # Get columns excluding time columns (months/years)
+    data_columns = get_columns_without_months_and_years(df)
+
+    # Sum each column to get totals
+    totals = df[data_columns].sum()
+
+    # Create result with just the totals as a single row
+    total_df = pd.DataFrame([totals.values], columns=totals.index)
+
+    # Save with _total suffix
+    total_df.to_json(
+        Path("assets") / "data" / f"{data_name}_total.json",
+        orient="split",
+        index=False,
+        indent=1,
+    )
+
+
+def save_df_as_json(file_name, pd_df_or_series, add_empty_months=0):
     # Remove last row if 'months' column exists, because it is not a full month
     if "months" in pd_df_or_series.columns:
         pd_df_or_series = pd_df_or_series.iloc[:-1]
 
+        if add_empty_months > 0:
+            first_month = pd.to_datetime(pd_df_or_series["months"].iloc[0], format="%Y-%m")
+
+            # Generate months before the first month
+            empty_months_range = pd.date_range(
+                start=first_month - pd.DateOffset(months=add_empty_months),
+                end=first_month - pd.DateOffset(months=1),
+                freq="MS",
+            )
+            empty_months_str = empty_months_range.strftime("%Y-%m").tolist()
+
+            # Create empty DataFrame with same structure using dictionary comprehension
+            empty_df = pd.DataFrame(
+                {"months": empty_months_str, **{col: 0 for col in pd_df_or_series.columns if col != "months"}}
+            )
+
+            # Concatenate with original data
+            pd_df_or_series = pd.concat([empty_df, pd_df_or_series], ignore_index=True)
+
     pd_df_or_series.to_json(Path("assets") / "data" / f"{file_name}.json", orient="split", index=False, indent=1)
 
 
-def save_query_as_json(file_name, sql_query):
+def save_query_as_json(file_name, sql_query, add_empty_months=0):
     df = duckdb.sql(sql_query).df()
-    save_df_as_json(file_name, df)
+    save_df_as_json(file_name, df, add_empty_months)
 
 
 def histogram_2d_to_xyz(pd_histogram_2d):
