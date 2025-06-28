@@ -91,11 +91,12 @@ def generate_html(notebook, notebook_name=""):
         <p><a href="https://github.com/piebro/openstreetmap-statistics/">View on GitHub</a></p>
     </footer>"""
 
+    # <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=yes">
     html_template = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>{title}</title>
     <link rel="stylesheet" href="notebook_styles.css">
     <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
@@ -235,22 +236,6 @@ def process_output(output):
             else:
                 output_html += f'<div class="output">{html_data}</div>'
 
-        # Skip widget outputs (like FloatProgress) - check for widget-view+json
-        elif "application/vnd.jupyter.widget-view+json" in data:
-            # Skip widget outputs entirely
-            pass
-
-        # Handle text output (fallback) - but skip if it looks like a widget
-        elif "text/plain" in data:
-            print("text/plain")
-            text_data = data["text/plain"]
-            if isinstance(text_data, list):
-                text_data = "".join(text_data)
-
-            # Skip widget-related text outputs
-            if not ("Progress(" in text_data or "Widget(" in text_data or "Layout(" in text_data):
-                output_html += f'<div class="output">{escape_html(text_data)}</div>'
-
     # Handle execute_result outputs (like DataFrame displays)
     elif output.get("output_type") == "execute_result" and "data" in output:
         print("execute_result")
@@ -375,7 +360,7 @@ def generate_index_html(output_dir: str = "stats"):
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=yes">
     <title>OpenStreetMap Statistics</title>
     <link rel="stylesheet" href="notebook_styles.css">
 </head>

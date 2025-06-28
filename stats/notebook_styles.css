@@ -28,22 +28,28 @@ body {
     margin-top: 10px;
 }
 
-.plotly-output {
+.output {
     margin-top: 10px;
-    width: 100%;
+    width: 800px;
     height: 500px;
+    max-width: 100%;
+    transform-origin: top left;
 }
 
-/* Mobile responsiveness for plots */
-@media (max-width: 768px) {
-    .plotly-output {
-        height: 400px;
+/* Scale plots down on smaller screens */
+@media (max-width: 800px) {
+    .output {
+        transform: scale(0.75);
+        width: 800px;
+        height: 500px;
     }
-    
-    /* Force Plotly to be responsive */
-    .plotly-output .plotly-graph-div {
-        width: 100% !important;
-        height: 100% !important;
+}
+
+@media (max-width: 600px) {
+    .output {
+        transform: scale(0.6);
+        width: 800px;
+        height: 500px;
     }
 }
 
