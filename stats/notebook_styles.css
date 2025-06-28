@@ -28,28 +28,9 @@ body {
     margin-top: 10px;
 }
 
-.output {
-    margin-top: 10px;
-    width: 800px;
-    height: 500px;
-    max-width: 100%;
-    transform-origin: top left;
-}
-
-/* Scale plots down on smaller screens */
-@media (max-width: 800px) {
-    .output {
-        transform: scale(0.75);
+@media (width <= 800px) {
+    .plotly-output {
         width: 800px;
-        height: 500px;
-    }
-}
-
-@media (max-width: 600px) {
-    .output {
-        transform: scale(0.6);
-        width: 800px;
-        height: 500px;
     }
 }
 
