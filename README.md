@@ -135,7 +135,8 @@ done
 To convert Jupyter notebooks to Python scripts with jupytext format (preserves markdown cells), use:
 
 ```bash
-uv run jupytext --to py:percent notebook.ipynb
+uv run jupytext --to py:percent notebooks/editing_software.ipynb
+uv run jupyter nbconvert --to python notebooks/editing_software.ipynb
 ```
 
 To convert Python scripts back to Jupyter notebooks, use:

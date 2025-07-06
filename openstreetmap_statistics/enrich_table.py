@@ -58,6 +58,26 @@ def get_corporation_case_statement(corp_file):
     return f"CASE\n{conditions_str}\nELSE NULL\nEND"
 
 
+def get_device_type_case_statement():
+    """Generate SQL CASE statement for device type classification."""
+    rules_path = Path("config/replace_rules_created_by.json")
+
+    with rules_path.open(encoding="utf-8") as f:
+        rules = json.load(f)
+
+    escape = lambda s: s.replace("'", "''")
+    conditions = []
+
+    for name, info in rules.items():
+        if "type" in info:
+            device_type = info["type"]
+            if device_type in ["desktop_editor", "mobile_editor", "tool"]:
+                conditions.append(f"WHEN created_by = '{escape(name)}' THEN '{device_type}'")
+
+    conditions_str = "\n".join(conditions)
+    return f"CASE\n{conditions_str}\nELSE 'other'\nEND"
+
+
 def get_column_expressions():
     """Get SQL expressions for all enrichment columns."""
     expressions = {}
@@ -70,9 +90,10 @@ def get_column_expressions():
     expressions["bot"] = "COALESCE(tags['bot'] = 'yes', false)"
 
     # Created by
-    expressions["created_by"] = sql_case_statement_from_rules(
-        "config/replace_rules_created_by.json", "tags['created_by']"
-    )
+    expressions["created_by"] = sql_case_statement_from_rules("config/replace_rules_created_by.json", "tags['created_by']")
+
+    # Device type - must come after created_by
+    expressions["device_type"] = get_device_type_case_statement()
 
     # Imagery used - split on semicolon, clean URL encoding, apply rules to each element
     imagery_case_statement = sql_case_statement_from_rules("config/replace_rules_imagery_and_source.json", "x")
@@ -180,6 +201,12 @@ def enrich_table(input_path, output_path, overwrite):
         SELECT 
             {columns_sql}
         FROM '{input_path}/year=*/month=*/*.parquet'
+        WHERE (year, month) NOT IN (
+            SELECT year, month 
+            FROM '{input_path}/year=*/month=*/*.parquet' 
+            ORDER BY year DESC, month DESC 
+            LIMIT 1
+        )
     ) TO '{output_path}' 
     (FORMAT PARQUET, PARTITION_BY (year, month));
     """

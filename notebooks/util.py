@@ -1,5 +1,10 @@
 import re
 import uuid
+from dataclasses import dataclass
+from typing import Any
+
+import duckdb
+import plotly.graph_objects as go
 
 
 def format_dataframe_for_display(df):
@@ -27,9 +32,7 @@ def get_tables_html(dataframes_dict, show_search=True, center_columns=[]):
 
     for i, name in enumerate(dataframes_dict.keys()):
         active = "active" if i == 0 else ""
-        html += (
-            f'<button id="btn-{uid}-{i}" class="tab-btn {active}" onclick="switchTab(\'{uid}\', {i})">{name}</button>'
-        )
+        html += f'<button id="btn-{uid}-{i}" class="tab-btn {active}" onclick="switchTab(\'{uid}\', {i})">{name}</button>'
     html += '</div><div class="tab-content">'
 
     for i, (name, df) in enumerate(dataframes_dict.items()):
@@ -80,7 +83,99 @@ def get_tables_html(dataframes_dict, show_search=True, center_columns=[]):
         html += table_html
         html += "</div></div>"
     html += "</div></div>"
-    html += (
-        f"<script>initializeTableInstance('{uid}', {len(dataframes_dict)}, 10, {str(show_search).lower()});</script>"
-    )
+    html += f"<script>initializeTableInstance('{uid}', {len(dataframes_dict)}, 10, {str(show_search).lower()});</script>"
     return html
+
+
+DEFAULT_LAYOUT = dict(
+    margin=dict(l=55, r=55, b=55, t=55),
+    font=dict(family="Times", size=15),
+    title_x=0.5,
+    paper_bgcolor="#f5f2f0",
+    plot_bgcolor="#f5f2f0",
+    xaxis=dict(tickcolor="black", linecolor="black", showgrid=True, gridcolor="darkgray", zerolinecolor="darkgray"),
+    yaxis=dict(
+        tickcolor="black",
+        linecolor="black",
+        showgrid=True,
+        gridcolor="darkgray",
+        zerolinecolor="darkgray",
+        rangemode="tozero",
+    ),
+)
+
+
+@dataclass
+class FigureConfig:
+    """Configuration for a single figure/button."""
+
+    title: str
+    y_col: str
+    group_col: str
+    query: str
+    label: str = None
+    y_unit_hover_template: str = None
+
+
+def execute_query_and_process(config):
+    """Execute SQL query and process the data."""
+    df = duckdb.sql(config.query).df()
+    group_list = df[config.group_col].unique().tolist() if not df.empty else []
+    return df, group_list
+
+
+def add_traces_to_figure(fig, df, config, group_list, is_first=False):
+    """Add traces to figure for a given configuration."""
+    for group in group_list:
+        group_data = df[df[config.group_col] == group]
+        y_unit_hover_template = config.y_unit_hover_template if config.y_unit_hover_template else f"{config.y_col}"
+        fig.add_trace(
+            go.Scatter(
+                x=group_data["months"],
+                y=group_data[config.y_col],
+                name=group,
+                visible=is_first,
+                hovertemplate=f"{group}" + f"<br>%{{x}}<br>%{{y:,}} {y_unit_hover_template}<extra></extra>",
+            )
+        )
+
+
+def create_button_config(config: FigureConfig, trace_start_idx: int, trace_count: int, total_traces: int) -> dict[str, Any]:
+    """Create button configuration for updatemenus."""
+    visibility = [False] * total_traces
+    for i in range(trace_start_idx, trace_start_idx + trace_count):
+        visibility[i] = True
+
+    return {
+        "label": config.label,
+        "args": [{"visible": visibility}, {"title.text": config.title, "yaxis.title.text": config.y_col}],
+        "method": "update",
+    }
+
+
+def get_figure(figure_configs, xaxis_title):
+    fig = go.Figure()
+    buttons = []
+    current_trace_idx = 0
+
+    for i, config in enumerate(figure_configs):
+        df, group_list = execute_query_and_process(config)
+        add_traces_to_figure(fig, df, config, group_list, is_first=(i == 0))
+
+        button_config = create_button_config(
+            config, current_trace_idx, len(group_list), sum(len(execute_query_and_process(cfg)[1]) for cfg in figure_configs)
+        )
+        buttons.append(button_config)
+        current_trace_idx += len(group_list)
+
+    layout_config = {
+        "title": buttons[0]["args"][1]["title.text"],
+        "xaxis_title": xaxis_title,
+        "yaxis_title": buttons[0]["args"][1]["yaxis.title.text"],
+        **DEFAULT_LAYOUT,
+    }
+    if len(buttons) > 1:
+        layout_config["updatemenus"] = [{"type": "buttons", "buttons": buttons}]
+
+    fig.update_layout(layout_config)
+    return fig
