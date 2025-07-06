@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <title>Converted Notebook</title>
+    <link rel="stylesheet" href="notebook_styles.css">
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <header class='header'>
+        <a href="index.html">go back</a>
+        <nav>
+            <a href="https://github.com/piebro/openstreetmap-statistics/blob/master/notebooks/test.ipynb">notebook</a>
+            <a href="https://github.com/piebro/openstreetmap-statistics/">about</a>
+        </nav>
+    </header>
+    <div class="cell code-cell"><div class="code">
+                <div class="code-toggle" onclick="toggleCode(this)">Imports and Default Layout</div>
+                <div class="code-content" id="code-1a476731">
+                    <pre><code class="language-python">import re
+import uuid
+
+import pandas as pd
+from IPython.display import HTML, display
+
+
+def create_tabbed_tables(dataframes_dict, show_search=True):
+    &quot;&quot;&quot;Create a tabbed interface for DataFrames with pagination and search.&quot;&quot;&quot;
+    
+    uid = str(uuid.uuid4())[:8]
+    
+    html = f&#x27;div class=&quot;tabs-container&quot; id=&quot;tabs-{uid}&quot;&gt;&lt;div class=&quot;tab-buttons&quot;&gt;&#x27;
+    
+    for i, name in enumerate(dataframes_dict.keys()):
+        active = &#x27;active&#x27; if i == 0 else &#x27;&#x27;
+        html += f&#x27;&lt;button id=&quot;btn-{uid}-{i}&quot; class=&quot;tab-btn {active}&quot; onclick=&quot;switchTab(\&#x27;{uid}\&#x27;, {i})&quot;&gt;{name}&lt;/button&gt;&#x27;
+    html += &#x27;&lt;/div&gt;&lt;div class=&quot;tab-content&quot;&gt;&#x27;
+    
+    for i, (name, df) in enumerate(dataframes_dict.items()):
+        display_style = &#x27;block&#x27; if i == 0 else &#x27;none&#x27;
+        html += f&#x27;&lt;div id=&quot;pane-{uid}-{i}&quot; class=&quot;tab-pane&quot; style=&quot;display: {display_style};&quot;&gt;&#x27;
+        html += &#x27;&lt;div class=&quot;controls-container&quot;&gt;&#x27;
+        
+        if show_search:
+            html += f&#x27;&lt;input type=&quot;text&quot; id=&quot;search-{uid}-{i}&quot; class=&quot;search-box&quot; placeholder=&quot;Search in {name}...&quot; onkeyup=&quot;updateTable(&quot;{uid}&quot;, {i})&quot;&gt;&#x27;
+        else:
+            html += &#x27;&lt;div&gt;&lt;/div&gt;&#x27;
+
+        html += f&#x27;&#x27;&#x27;
+        &lt;div class=&quot;pagination-controls&quot;&gt;
+            &lt;select id=&quot;pagesize-{uid}-{i}&quot; class=&quot;page-size-select&quot; onchange=&quot;updateTable(&#x27;{uid}&#x27;, {i})&quot;&gt;
+                &lt;option value=&quot;10&quot; selected&gt;10&lt;/option&gt;
+                &lt;option value=&quot;25&quot;&gt;25&lt;/option&gt;
+                &lt;option value=&quot;50&quot;&gt;50&lt;/option&gt;
+                &lt;option value=&quot;100&quot;&gt;100&lt;/option&gt;
+            &lt;/select&gt;
+            &lt;div class=&quot;pagination-nav&quot;&gt;
+                &lt;button class=&quot;page-btn&quot; onclick=&quot;changePage(&#x27;{uid}&#x27;, {i}, -1)&quot; id=&quot;prev-{uid}-{i}&quot;&gt;‹&lt;/button&gt;
+                &lt;span id=&quot;pageinfo-{uid}-{i}&quot; class=&quot;page-info&quot;&gt;&lt;/span&gt;
+                &lt;button class=&quot;page-btn&quot; onclick=&quot;changePage(&#x27;{uid}&#x27;, {i}, 1)&quot; id=&quot;next-{uid}-{i}&quot;&gt;›&lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &#x27;&#x27;&#x27;
+        html += &#x27;&lt;/div&gt;&#x27;
+        html += &#x27;&lt;div class=&quot;table-wrapper&quot;&gt;&#x27;
+
+        table_html = df.to_html(index=False, classes=&#x27;data-table&#x27;, table_id=f&#x27;table-{uid}-{i}&#x27;,escape=False)
+        def make_sortable_header(match):
+            header_content = match.group(1)
+            return f&#x27;&lt;th class=&quot;sortable sorting&quot; onclick=&quot;sortTable(\&#x27;{uid}\&#x27;, {i}, this)&quot;&gt;{header_content}&lt;/th&gt;&#x27;
+        
+        table_html = re.sub(r&#x27;&lt;th&gt;([^&lt;]+)&lt;/th&gt;&#x27;, make_sortable_header, table_html)
+        html += table_html
+        html += &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;  # Close table wrapper and pane
+    html += &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;
+    html += f&quot;&lt;script&gt;initializeTableInstance(&#x27;{uid}&#x27;, {len(dataframes_dict)}, 10, {str(show_search).lower()});&lt;/script&gt;&quot;
+    display(HTML(html))
+
+df1 = pd.DataFrame({
+    &#x27;Name&#x27;: [&#x27;Alice&#x27;, &#x27;Bob&#x27;, &#x27;Charlie&#x27;, &#x27;David&#x27;],
+    &#x27;Age&#x27;: [25, 30, 35, 40],
+    &#x27;City&#x27;: [&#x27;New York&#x27;, &#x27;London&#x27;, &#x27;Paris&#x27;, &#x27;Tokyo&#x27;]
+})
+
+df2 = pd.DataFrame({
+    &#x27;Product&#x27;: [&#x27;Laptop&#x27;, &#x27;Phone&#x27;, &#x27;Tablet&#x27;, &#x27;Watch&#x27;, &#x27;Laptop&#x27;, &#x27;Phone&#x27;, &#x27;Tablet&#x27;, &#x27;Watch&#x27;, &#x27;Laptop&#x27;, &#x27;Phone&#x27;, &#x27;Tablet&#x27;, &#x27;Watch&#x27;],
+    &#x27;Price&#x27;: [999, 699, 399, 299, 999, 699, 399, 299, 999, 699, 399, 299],
+    &#x27;Stock&#x27;: [50, 120, 80, 200, 50, 120, 80, 200, 50, 120, 80, 200],
+})
+
+display(HTML(&#x27;&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../notebooks/notebook.css&quot;&gt;&lt;script src=&quot;../notebooks/notebook.js&quot;&gt;&lt;/script&gt;&#x27;))
+create_tabbed_tables({&#x27;Employees&#x27;: df1, &#x27;Products&#x27;: df2}, show_search=True)</code></pre>
+                </div>
+            </div><div class="output"><link rel="stylesheet" type="text/css" href="../notebooks/notebook.css"><script src="../notebooks/notebook.js"></script></div><div class="table-output" id="table-14fc664b">div class="tabs-container" id="tabs-9a66bb22"><div class="tab-buttons"><button id="btn-9a66bb22-0" class="tab-btn active" onclick="switchTab('9a66bb22', 0)">Employees</button><button id="btn-9a66bb22-1" class="tab-btn " onclick="switchTab('9a66bb22', 1)">Products</button></div><div class="tab-content"><div id="pane-9a66bb22-0" class="tab-pane" style="display: block;"><div class="controls-container"><input type="text" id="search-9a66bb22-0" class="search-box" placeholder="Search in Employees..." onkeyup="updateTable("9a66bb22", 0)">
+        <div class="pagination-controls">
+            <select id="pagesize-9a66bb22-0" class="page-size-select" onchange="updateTable('9a66bb22', 0)">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <div class="pagination-nav">
+                <button class="page-btn" onclick="changePage('9a66bb22', 0, -1)" id="prev-9a66bb22-0">‹</button>
+                <span id="pageinfo-9a66bb22-0" class="page-info"></span>
+                <button class="page-btn" onclick="changePage('9a66bb22', 0, 1)" id="next-9a66bb22-0">›</button>
+            </div>
+        </div>
+        </div><div class="table-wrapper"><table border="1" class="dataframe data-table" id="table-9a66bb22-0">
+  <thead>
+    <tr style="text-align: right;">
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 0, this)">Name</th>
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 0, this)">Age</th>
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 0, this)">City</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Alice</td>
+      <td>25</td>
+      <td>New York</td>
+    </tr>
+    <tr>
+      <td>Bob</td>
+      <td>30</td>
+      <td>London</td>
+    </tr>
+    <tr>
+      <td>Charlie</td>
+      <td>35</td>
+      <td>Paris</td>
+    </tr>
+    <tr>
+      <td>David</td>
+      <td>40</td>
+      <td>Tokyo</td>
+    </tr>
+  </tbody>
+</table></div></div><div id="pane-9a66bb22-1" class="tab-pane" style="display: none;"><div class="controls-container"><input type="text" id="search-9a66bb22-1" class="search-box" placeholder="Search in Products..." onkeyup="updateTable("9a66bb22", 1)">
+        <div class="pagination-controls">
+            <select id="pagesize-9a66bb22-1" class="page-size-select" onchange="updateTable('9a66bb22', 1)">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <div class="pagination-nav">
+                <button class="page-btn" onclick="changePage('9a66bb22', 1, -1)" id="prev-9a66bb22-1">‹</button>
+                <span id="pageinfo-9a66bb22-1" class="page-info"></span>
+                <button class="page-btn" onclick="changePage('9a66bb22', 1, 1)" id="next-9a66bb22-1">›</button>
+            </div>
+        </div>
+        </div><div class="table-wrapper"><table border="1" class="dataframe data-table" id="table-9a66bb22-1">
+  <thead>
+    <tr style="text-align: right;">
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 1, this)">Product</th>
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 1, this)">Price</th>
+      <th class="sortable sorting" onclick="sortTable('9a66bb22', 1, this)">Stock</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Laptop</td>
+      <td>999</td>
+      <td>50</td>
+    </tr>
+    <tr>
+      <td>Phone</td>
+      <td>699</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <td>Tablet</td>
+      <td>399</td>
+      <td>80</td>
+    </tr>
+    <tr>
+      <td>Watch</td>
+      <td>299</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>Laptop</td>
+      <td>999</td>
+      <td>50</td>
+    </tr>
+    <tr>
+      <td>Phone</td>
+      <td>699</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <td>Tablet</td>
+      <td>399</td>
+      <td>80</td>
+    </tr>
+    <tr>
+      <td>Watch</td>
+      <td>299</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>Laptop</td>
+      <td>999</td>
+      <td>50</td>
+    </tr>
+    <tr>
+      <td>Phone</td>
+      <td>699</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <td>Tablet</td>
+      <td>399</td>
+      <td>80</td>
+    </tr>
+    <tr>
+      <td>Watch</td>
+      <td>299</td>
+      <td>200</td>
+    </tr>
+  </tbody>
+</table></div></div></div></div><script>initializeTableInstance('9a66bb22', 2, 10, true);</script></div>
+<script>
+    // Format numbers in table with commas
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.querySelector('#table-14fc664b table');
+        if (table) {
+            const cells = table.querySelectorAll('td:not(:first-child)');
+            cells.forEach(cell => {
+                const text = cell.textContent.trim();
+                if (/^\d+$/.test(text)) {
+                    const number = parseInt(text);
+                    cell.textContent = number.toLocaleString();
+                }
+            });
+        }
+    });
+</script>
+</div>
+    <footer class='footer'>
+        <p><a href="https://github.com/piebro/openstreetmap-statistics/">View on GitHub</a></p>
+    </footer>
+    <script>
+        function toggleCode(button) {
+            const content = button.nextElementSibling;
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                button.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                button.classList.add('expanded');
+            }
+        }
+    </script>
+</body>
+</html>
