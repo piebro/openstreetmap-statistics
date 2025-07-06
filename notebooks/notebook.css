@@ -38,7 +38,6 @@
     background: #fafafa;
     border: 1px solid #ddd;
     padding: 20px;
-    min-height: 400px;
 }
 
 .tab-pane {
@@ -143,14 +142,11 @@
 /* Table wrapper for horizontal scroll */
 .table-wrapper {
     overflow: auto;
-    max-height: 70vh;
+    max-height: 55vh;
     position: relative;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     background: white;
-    /* Firefox scrollbar styling */
-    scrollbar-width: thin;
-    scrollbar-color: #c1c1c1 #f1f1f1;
 }
 
 /* Force webkit scrollbar styling with higher specificity */
