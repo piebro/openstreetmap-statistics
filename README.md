@@ -130,6 +130,46 @@ for notebook in $(find src/questions -name calculations.ipynb); do
 done
 ```
 
+### Convert between notebooks and Python scripts
+
+To convert Jupyter notebooks to Python scripts with jupytext format (preserves markdown cells), use:
+
+```bash
+uv run jupytext --to py:percent notebook.ipynb
+```
+
+To convert Python scripts back to Jupyter notebooks, use:
+
+```bash
+uv run jupytext --to notebook script.py
+```
+
+For basic conversion (jupyter nbconvert):
+```bash
+uv run jupyter nbconvert --to python notebook.ipynb
+```
+
+For multiple notebooks:
+```bash
+for notebook in $(find . -name "*.ipynb"); do
+    uv run jupytext --to py:percent "$notebook"
+done
+```
+
+### Run and save notebooks
+
+To run a notebook and save the results:
+
+```bash
+uv run jupyter nbconvert --to notebook --execute notebook.ipynb --output notebook.ipynb
+```
+
+To run a Python script as a notebook:
+
+```bash
+uv run jupytext --to notebook --execute script.py
+```
+
 ### Update cooperation user names
 
 You can update the list of cooperation with their osm user names in assets/corporation_contributors.json with the following command.
