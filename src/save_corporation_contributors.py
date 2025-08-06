@@ -1,4 +1,6 @@
 import json
+import re
+import urllib.parse
 from pathlib import Path
 
 import requests
@@ -36,7 +38,9 @@ def get_usernames_from_tables(url, column_index):
     page = requests.get(url, timeout=10)
     soup = BeautifulSoup(page.content, "html.parser")
     users = []
+    print(soup)
     for tr in soup.find_all("tr"):
+        print(tr)
         tds = tr.find_all("td")
         if len(tds) == 0:
             continue
@@ -58,6 +62,30 @@ def get_usernames_from_microsoft_link(url):
     return users
 
 
+def get_usernames_from_grab_md(url):
+    page = requests.get(url, timeout=10)
+    content = page.text
+    usernames = []
+    lines = content.split("\n")
+    for line_raw in lines:
+        line = line_raw.strip()
+        if line.startswith("| "):
+            seconde_cell = line.split("|")[2]
+            if seconde_cell.startswith(" OSM User Name"):
+                continue
+            if seconde_cell.startswith(" ----"):
+                continue
+            usernames.append(seconde_cell.strip())
+    return usernames
+
+def get_usernames_from_uber_md(url):
+    page = requests.get(url, timeout=10)
+    content = page.text
+    pattern = r"https://www\.openstreetmap\.org/user/([^)]+)"
+    matches = re.findall(pattern, content)
+    return [urllib.parse.unquote(username) for username in matches]
+
+
 # for these organizations look at teams here: https://wiki.openstreetmap.org/wiki/Category:Organised_Editing_Teams or
 # https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities
 name_url_function = [
@@ -73,8 +101,8 @@ name_url_function = [
     ["Gojek", "https://wiki.openstreetmap.org/wiki/Gojek", get_usernames_from_links],
     [
         "Grab",
-        "https://github.com/GRABOSM/Grab-Data/blob/master/Grab%20Data%20Team.md",
-        lambda url: get_usernames_from_tables(url, 1),
+        "https://raw.githubusercontent.com/GRABOSM/Grab-Data/refs/heads/master/Grab%20Data%20Team.md",
+        get_usernames_from_grab_md,
     ],
     ["Graphmasters", "https://wiki.openstreetmap.org/wiki/Graphmasters", get_usernames_from_links],
     ["Kaart", "https://wiki.openstreetmap.org/wiki/Kaart", get_usernames_from_links],
@@ -115,7 +143,7 @@ name_url_function = [
     ["TfNSW", "https://wiki.openstreetmap.org/wiki/TfNSW", get_usernames_from_links],
     ["TIDBO", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TIDBO", get_usernames_from_links],
     ["TomTom", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/TomTom", get_usernames_from_links],
-    ["Uber", "https://github.com/Uber-OSM/DataTeam/blob/master/README.md", get_usernames_from_links],
+    ["Uber", "https://raw.githubusercontent.com/Uber-OSM/DataTeam/refs/heads/master/README.md", get_usernames_from_uber_md],
     [
         "VK_Maps",
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/VK_Maps_Team",
