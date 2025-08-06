@@ -104,7 +104,7 @@ name_url_function = [
     [
         "Swiggy",
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Swiggy",
-        lambda url: get_usernames_from_tables(url, 1),
+        get_usernames_from_links,
     ],
     [
         "TeleClinic",
