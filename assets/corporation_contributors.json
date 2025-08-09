@@ -1572,6 +1572,13 @@
             "mrlotfi"
         ]
     ],
+    "Baly": [
+        "https://wiki.openstreetmap.org/wiki/Baly",
+        [
+            "Ezzulddin_Salman",
+            "Yousif_Isam"
+        ]
+    ],
     "Blitzer.de": [
         "https://wiki.openstreetmap.org/wiki/Blitzer.de",
         [
@@ -1653,6 +1660,13 @@
             "Khaled_AlOtaibi"
         ]
     ],
+    "Digiroad": [
+        "https://wiki.openstreetmap.org/wiki/Digiroad",
+        [
+            "Digiroad-operaattori",
+            "Digiroad-operaattori_ei"
+        ]
+    ],
     "DigitalEgypt": [
         "https://wiki.openstreetmap.org/wiki/DigitalEgypt",
         [
@@ -1719,6 +1733,14 @@
             "tyler_expedia"
         ]
     ],
+    "GOAT": [
+        "https://wiki.openstreetmap.org/wiki/GOAT_(Geo_Open_Accessibility_Tool)",
+        [
+            "DilanKoyunoglu",
+            "EliasPajares",
+            "UJehle"
+        ]
+    ],
     "GeoCompas": [
         "https://wiki.openstreetmap.org/wiki/GeoCompas",
         [
@@ -1727,6 +1749,24 @@
             "karitotp",
             "piligab",
             "yunica"
+        ]
+    ],
+    "Geovelo": [
+        "https://wiki.openstreetmap.org/wiki/Geovelo",
+        [
+            "Geovelo_Notes",
+            "anne_geovelo",
+            "elisabeth_geovelo",
+            "felix_geovelo",
+            "pierre_geovelo",
+            "samuel_geovelo",
+            "simon_geovelo"
+        ]
+    ],
+    "Getpin": [
+        "https://wiki.openstreetmap.org/wiki/Getpin",
+        [
+            "Getpin_Com"
         ]
     ],
     "Gojek": [
@@ -3576,6 +3616,39 @@
             "waseempasha"
         ]
     ],
+    "OpenSidewalks": [
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/OpenSidewalks",
+        [
+            "UW%20%Amy%20%Bordenave",
+            "UW%20%Cy%20%R",
+            "UW%20%Maddie",
+            "UW%20%Nik%20%Wilson",
+            "UW%20%Ryan%20%Liu",
+            "UW%20%Sam%20%Yasen"
+        ]
+    ],
+    "Ozon": [
+        "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Ozon",
+        [
+            "Ozon%20%OSM1",
+            "Ozon%20%OSM10",
+            "Ozon%20%OSM12",
+            "Ozon%20%OSM13",
+            "Ozon%20%OSM14",
+            "Ozon%20%OSM15",
+            "Ozon%20%OSM16",
+            "Ozon%20%OSM2",
+            "Ozon%20%OSM3",
+            "Ozon%20%OSM4",
+            "Ozon%20%OSM5",
+            "Ozon%20%OSM6",
+            "Ozon%20%OSM7",
+            "Ozon%20%OSM8",
+            "Ozon%20%OSM9",
+            "Ozon_OSM11",
+            "geo_ozon"
+        ]
+    ],
     "Rocketdata.io": [
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Rocketdata.io",
         [
@@ -4164,6 +4237,7 @@
             "OSMchik",
             "Roman%20%Timashev",
             "UrbanPlanner69",
+            "ZinaidaZ",
             "abcdep11",
             "dingoy29",
             "eleonora01"
