@@ -1733,6 +1733,24 @@
             "tyler_expedia"
         ]
     ],
+    "FixMyCity": [
+        "https://wiki.openstreetmap.org/wiki/FixMyCity_GmbH",
+        [
+            "FMC-Henri",
+            "StefanHRT",
+            "Supaplex030",
+            "fmc_1",
+            "fmc_2",
+            "fmc_3",
+            "fmc_4",
+            "fmc_5",
+            "fmc_6",
+            "fmc_7",
+            "fmc_8",
+            "hejco",
+            "tordans"
+        ]
+    ],
     "GOAT": [
         "https://wiki.openstreetmap.org/wiki/GOAT_(Geo_Open_Accessibility_Tool)",
         [
@@ -3630,6 +3648,7 @@
     "Ozon": [
         "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Ozon",
         [
+            "NatalieVvln",
             "Ozon%20%OSM1",
             "Ozon%20%OSM10",
             "Ozon%20%OSM12",
@@ -3646,7 +3665,9 @@
             "Ozon%20%OSM8",
             "Ozon%20%OSM9",
             "Ozon_OSM11",
-            "geo_ozon"
+            "addr:",
+            "geo_ozon",
+            "vrrdv"
         ]
     ],
     "Rocketdata.io": [
