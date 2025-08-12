@@ -89,6 +89,7 @@ def get_usernames_from_uber_md(url):
 # for these organizations look at teams here: https://wiki.openstreetmap.org/wiki/Category:Organised_Editing_Teams or
 # https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities
 name_url_function = [
+    ["Amat", "https://wiki.openstreetmap.org/wiki/Agenzia_mobilit%C3%A0_ambiente_territorio", get_usernames_from_links],
     ["Amazon", "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Amazon", get_usernames_from_links],
     ["Apple", "https://github.com/osmlab/appledata/wiki/Data-Team", get_usernames_from_links],
     ["AppLogica", "https://wiki.openstreetmap.org/wiki/AppLogica", get_usernames_from_links],
