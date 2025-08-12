@@ -99,6 +99,7 @@ name_url_function = [
     ["DigitalEgypt", "https://wiki.openstreetmap.org/wiki/DigitalEgypt", get_usernames_from_links],
     ["Digiroad", "https://wiki.openstreetmap.org/wiki/Digiroad", get_usernames_from_links],
     ["Expedia", "https://github.com/osmlab/expedia/wiki/Data-Team", get_usernames_from_links],
+    ["FixMyCity", "https://wiki.openstreetmap.org/wiki/FixMyCity_GmbH", get_usernames_from_links],
     ["GeoCompas", "https://wiki.openstreetmap.org/wiki/GeoCompas", get_usernames_from_links],
     ["Geovelo", "https://wiki.openstreetmap.org/wiki/Geovelo", get_usernames_from_links],
     ["Getpin", "https://wiki.openstreetmap.org/wiki/Getpin", get_usernames_from_links],
