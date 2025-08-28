@@ -483,7 +483,7 @@ def save_name_to_link():
         util.get_name_to_link("replace_rules_imagery_and_source.json"),
     )
     corporation_name_to_link = {
-        name: link for name, (link, _) in util.load_json(Path("assets") / "corporation_contributors.json").items()
+        name: link for name, (link, _) in util.load_json(Path("assets") / "organised_teams_contributors.json").items()
     }
     util.save_json(Path("assets") / "data" / "corporation_name_to_link.json", corporation_name_to_link)
 

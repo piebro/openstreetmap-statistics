@@ -211,7 +211,7 @@ def get_corporation_index(user_name, index_dicts, user_name_to_corporation):
 
 
 def load_user_name_to_corporation_dict():
-    corporation_contributors = util.load_json(Path("assets") / "corporation_contributors.json")
+    corporation_contributors = util.load_json(Path("assets") / "organised_teams_contributors.json")
     user_name_to_corporation = {}
     for corporation_name, (_, user_name_list) in corporation_contributors.items():
         for user_name in user_name_list:
