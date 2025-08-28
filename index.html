@@ -227,67 +227,67 @@ topics = {
             ],
         },
     },
-    Corporations: {
-        "How many edits are added from corporations each month?": {
+    "Organised Teams": {
+        "How many edits are added from organised teams each month?": {
             url_hash: "7034",
             content_functions: [
                 add_single_line_plot(
-                    "percent of edits from corporation per month",
+                    "percent of edits from organised teams per month",
                     "corporation_top_100_edit_count_monthly_sum_top_k_percent",
                     { percent: true },
                 ), //, y_column_name: "%"}),
             ],
         },
-        "Which corporations are contributing how much?": {
+        "Which organised teams are contributing how much?": {
             url_hash: "b34d",
             content_functions: [
                 add_multi_line_plot(
-                    "monthly edits per corporation",
+                    "monthly edits per organised team",
                     "corporation_top_10_edit_count_monthly",
                     "edits",
                 ),
                 add_table(
-                    "monthly edits per corporation",
+                    "monthly edits per organised team",
                     "corporation_top_100_edit_count_yearly_total",
                     "years",
-                    "Corporation",
+                    "Organised Team",
                     "corporation_name_to_link",
                 ),
             ],
         },
-        "What's the total amount of contributors, edits and changesets from corporations over time?": {
+        "What's the total amount of contributors, edits and changesets from organised teams over time?": {
             url_hash: "4ef4",
             content_functions: [
                 add_multi_line_plot(
-                    "total contributor count of corporations",
+                    "total contributor count of organised teams",
                     "corporation_top_10_new_contributor_count_monthly_accumulated",
                     "contributors",
                 ),
                 add_multi_line_plot(
-                    "total edit count of corporations",
+                    "total edit count of organised teams",
                     "corporation_top_10_edit_count_monthly_accumulated",
                     "edits",
                 ),
                 add_multi_line_plot(
-                    "total changeset count of corporations",
+                    "total changeset count of organised teams",
                     "corporation_top_10_changeset_count_monthly_accumulated",
                     "changesets",
                 ),
             ],
         },
-        "Where are the top 10 corporations contributing?": {
+        "Where are the top 10 organised teams contributing?": {
             url_hash: "e19b",
             content_functions: [add_multiple_map_plots("corporation_top_10_edit_count_maps_total")],
         },
-        "Where are the top 10 to 20 corporations contributing?": {
+        "Where are the top 10 to 20 organised teams contributing?": {
             url_hash: "f28a",
             content_functions: [add_multiple_map_plots("corporation_top_10_to_20_edit_count_maps_total")],
         },
-        "Where are the top 20 to 30 corporations contributing?": {
+        "Where are the top 20 to 30 organised teams contributing?": {
             url_hash: "519c",
             content_functions: [add_multiple_map_plots("corporation_top_20_to_30_edit_count_maps_total")],
         },
-        "Where are the top 30 to 40 corporations contributing?": {
+        "Where are the top 30 to 40 organised teams contributing?": {
             url_hash: "2079",
             content_functions: [add_multiple_map_plots("corporation_top_30_to_40_edit_count_maps_total")],
         },
@@ -315,7 +315,7 @@ topics = {
                     "yearly contributor count per source",
                     "source_top_100_contributor_count_yearly_total",
                     "years",
-                    "Corporation",
+                    "Source",
                     "imagery_and_source_name_to_link",
                 ),
             ],

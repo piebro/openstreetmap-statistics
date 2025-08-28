@@ -16,18 +16,18 @@ jobs:
       - name: setup
         run: pip3 install numpy requests beautifulsoup4
       
-      - name: update corporate contributors
-        run: python3 src/save_corporation_contributors.py
+      - name: update organised teams contributors
+        run: python3 src/save_organised_teams_contributors.py
         
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
-          add-paths: assets/corporation_contributors.json
-          commit-message: update corporate contributors
+          add-paths: assets/save_organised_teams_contributors.json
+          commit-message: update organised teams contributors
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           delete-branch: true
-          title: 'update corporate contributors'
-          body: 'update corporate contributors from the web'
+          title: 'update organised teams contributors'
+          body: 'update organised teams contributors from the web'
           
           

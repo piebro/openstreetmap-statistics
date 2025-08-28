@@ -193,5 +193,5 @@ for i, (name, url, func) in enumerate(name_url_function):
     else:
         name_to_url_username[name][1].extend(usernames)
 
-with (Path("assets") / "corporation_contributors.json").open("w") as f:
+with (Path("assets") / "organised_teams_contributors.json").open("w") as f:
     json.dump(name_to_url_username, f, sort_keys=True, indent=4)

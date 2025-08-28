@@ -38,16 +38,15 @@ Many `created_by` tags also include the version number or additional irrelevant 
 One optional tag for changesets is the `imagery` tag, which iD, Vespucci and Go Map!! use to add an image source if aerial or other imagery is used.
 Many `imagery` tags also include irrelevant information for determining the used imagery and are therefore filtered.
 
-### Cooperations
+### Organised Teams
 
 Most mapping is done by individual hobby mappers mapping independently, but there are also organized mapping activities where several people edit the map under specific instructions of others.
 A list of all organized editing teams can be found [here](https://wiki.openstreetmap.org/wiki/Category:Organised_Editing_Teams).
 The teams list all users (including inactive ones) who are mapping for them for transparency reasons.
 
-I looked at each team in the list and added all the for-profit companies I could find.
-The companies are added to [src/save_corporation_contributors.py](src/save_corporation_contributors.py), which extracts all user names and saves them in the assets folder.
-The cooperation statistics are gathered with the list of users working at each company.
-Incorrect and out-of-date user lists could be a source of error in the data.
+The teams are added to [src/save_organised_teams_contributors.py](src/save_organised_teams_contributors.py), which extracts all user names and saves them in the assets folder.
+The statistics are gathered with the list of users working at each team.
+Incorrect and out-of-date user lists could be a source of error for this data.
 
 
 ## Usage
@@ -101,9 +100,9 @@ for notebook in $(find src/questions -name calculations.ipynb); do
 done
 ```
 
-### Update cooperation user names
+### Update Organised Teams user names
 
-You can update the list of cooperation with their osm user names in assets/corporation_contributors.json with the following command.
+You can update the list of Organised Teams with their osm user names in assets/organised_teams_contributors.json with the following command.
 ```bash
 python3 src/save_corporation_contributors.py
 ```
