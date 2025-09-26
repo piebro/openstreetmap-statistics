@@ -115,7 +115,10 @@ def save_topic_general():
 
     ddf = util.load_ddf(DATA_DIR, "general", ("month_index", "user_index", "created_by"))
     created_by_tag_to_index = util.load_tag_to_index(DATA_DIR, "created_by")
-    map_me_indices = np.array([created_by_tag_to_index["MAPS.ME"]])
+    try:
+        map_me_indices = np.array([created_by_tag_to_index["MAPS.ME"]])
+    except KeyError:
+        map_me_indices = np.array([])
     util.save_data(
         TIME_DICT,
         progress_bar,
