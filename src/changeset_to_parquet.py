@@ -5,8 +5,11 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 import util
 from fastparquet import write as parquet_write
+
+import xml.etree.ElementTree as ET
 
 # change some streetcomplete quest type tags that changed their name over the time to the newest name
 # https://github.com/streetcomplete/StreetComplete/issues/1749#issuecomment-593450124
@@ -19,12 +22,20 @@ streetcomplete_tag_changes = {
 
 source_split_separators = [";", "|", "+", "/", "&", ","]
 
-def get_tags(tags_str):
+def get_tags_opl(tags_str):
     tags = {}
     if len(tags_str) > 0:
         for key_value in tags_str.split(","):
             key, value = key_value.split("=")
             tags[key] = value
+    return tags
+
+def get_tags_osm(tags_xml):
+    tags = {}
+    if len(tags_xml) > 0:
+        for tag in tags_xml:
+            key = tags_xml.getroot().get("k")
+            value = tags_xml.getroot().get("v")
     return tags
 
 
@@ -75,13 +86,13 @@ def get_year_and_month_to_index():
 
 
 def get_pos(data):
-    if len(data[7][1:]) > 0:
-        min_x = float(data[7][1:])
-        max_x = float(data[9][1:])
+    if len(data[0]) > 0:
+        min_x = float(data[0])
+        max_x = float(data[2])
         pos_x = round(((min_x + max_x) / 2) - 180) % 360
 
-        min_y = float(data[8][1:])
-        max_y = float(data[10][1:])
+        min_y = float(data[1])
+        max_y = float(data[3])
         pos_y = round(((min_y + max_y) / 2) + 90) % 180
         return pos_x, pos_y
     else:
@@ -356,6 +367,14 @@ def main():
     Path(save_dir).mkdir()
     years, year_to_index, months, month_to_index = get_year_and_month_to_index()
 
+    if len(sys.argv) > 2:
+        input_format = sys.argv[2]
+    else:
+        input_format = "opl"
+
+    if input_format not in ["opl", "osm"]:
+        raise ValueError("Invalid input format")
+
     with (Path(save_dir) / "months.txt").open("w", encoding="UTF-8") as f:
         f.writelines("\n".join(months))
         f.writelines("\n")
@@ -383,50 +402,86 @@ def main():
 
     batch_size = 5_000_000
     file_counter = 0
+    changeset_counter = 0
+    changeset_fully_read = False
+    data = ""
     for i, osmium_line in enumerate(sys.stdin):
-        if i % batch_size == 0:
-            if i > 0:
+        if changeset_counter % batch_size == 0:
+            if changeset_counter > 0:
                 save_data(parquet_save_dir, file_counter, batch_size, data_dict)
                 file_counter += 1
             data_dict = init_data_dict()
 
-        data = osmium_line.split(" ")
-        if data[2][1:8] not in month_to_index:
-            continue
+        data_dict["changeset_index"].append(changeset_counter)
+        if input_format == "opl":
+            data = osmium_line.split(" ")
+            if data[2][1:8] not in month_to_index:
+                continue
 
-        data_dict["changeset_index"].append(i)
-        data_dict["year_index"].append(year_to_index[data[2][1:5]])
-        data_dict["month_index"].append(month_to_index[data[2][1:8]])
-        data_dict["edits"].append(int(data[1][1:]))
-        user_name = data[6][1:]
-        data_dict["user_index"].append(int(index_dicts["user_name"].add(user_name)))
+            data_dict["year_index"].append(year_to_index[data[2][1:5]])
+            data_dict["month_index"].append(month_to_index[data[2][1:8]])
+            data_dict["edits"].append(int(data[1][1:]))
+            user_name = data[6][1:]
+            data_dict["user_index"].append(int(index_dicts["user_name"].add(user_name)))
 
-        pos_x, pos_y = get_pos(data)
-        data_dict["pos_x"].append(pos_x)
-        data_dict["pos_y"].append(pos_y)
+            pos_x, pos_y = get_pos([data[7][1:], data[8][1:], data[9][1:], data[10][1:]])
+            data_dict["pos_x"].append(pos_x)
+            data_dict["pos_y"].append(pos_y)
 
-        tags = get_tags(data[11][1:-1])
-        created_by, streetcomplete = get_created_by_and_streetcomplete(tags, index_dicts, replace_rules)
-        data_dict["created_by"].append(created_by)
-        data_dict["streetcomplete"].append(streetcomplete)
-        data_dict["corporation"].append(get_corporation_index(user_name, index_dicts, user_name_to_corporation))
-        data_dict["bot"].append("bot" in tags and tags["bot"] == "yes")
+            tags = get_tags_opl(data[11][1:-1])
+            changeset_fully_read = True
+        else:  # input_format == "osm"
+            if i > 1:
+                data += osmium_line
 
-        for index in get_imagery(tags, index_dicts, replace_rules):
-            data_dict["imagery_changeset_index"].append(i)
-            data_dict["imagery"].append(index)
+                if osmium_line == " </changeset>":
 
-        for index in add_hashtags(tags, index_dicts):
-            data_dict["hashtag_changeset_index"].append(i)
-            data_dict["hashtag"].append(index)
+                    xml_tree = ET.ElementTree(ET.fromstring(data))
 
-        for index in add_source(tags, index_dicts, replace_rules):
-            data_dict["source_changeset_index"].append(i)
-            data_dict["source"].append(index)
+                    data_dict["year_index"].append(xml_tree.getroot().get("closed_at")[0:4])
+                    data_dict["year_index"].append(xml_tree.getroot().get("closed_at")[0:7])
+                    data_dict["edits"].append(xml_tree.getroot().get("num_changes"))
+                    user_name = xml_tree.getroot().get("user")
+                    data_dict["user_index"].append(int(index_dicts["user_name"].add(user_name)))
 
-        for index in add_all_tags(tags, index_dicts):
-            data_dict["all_tags_changeset_index"].append(i)
-            data_dict["all_tags"].append(index)
+                    pos_x, pos_y = get_pos([
+                        xml_tree.getroot().get("min_lon"),
+                        xml_tree.getroot().get("min_lat"),
+                        xml_tree.getroot().get("max_lon"),
+                        xml_tree.getroot().get("max_lat")
+                    ])
+                    data_dict["pos_x"].append(pos_x)
+                    data_dict["pos_y"].append(pos_y)
+
+                    tags = get_tags_osm(xml_tree.findall("tag"))
+                    changeset_fully_read = True
+
+        if changeset_fully_read:
+            created_by, streetcomplete = get_created_by_and_streetcomplete(tags, index_dicts, replace_rules)
+            data_dict["created_by"].append(created_by)
+            data_dict["streetcomplete"].append(streetcomplete)
+            data_dict["corporation"].append(get_corporation_index(user_name, index_dicts, user_name_to_corporation))
+            data_dict["bot"].append("bot" in tags and tags["bot"] == "yes")
+
+            for index in get_imagery(tags, index_dicts, replace_rules):
+                data_dict["imagery_changeset_index"].append(changeset_counter)
+                data_dict["imagery"].append(index)
+
+            for index in add_hashtags(tags, index_dicts):
+                data_dict["hashtag_changeset_index"].append(changeset_counter)
+                data_dict["hashtag"].append(index)
+
+            for index in add_source(tags, index_dicts, replace_rules):
+                data_dict["source_changeset_index"].append(changeset_counter)
+                data_dict["source"].append(index)
+
+            for index in add_all_tags(tags, index_dicts):
+                data_dict["all_tags_changeset_index"].append(changeset_counter)
+                data_dict["all_tags"].append(index)
+
+            changeset_counter += 1
+            changeset_fully_read = False
+            data = ""
 
     save_data(parquet_save_dir, file_counter, batch_size, data_dict)
 
