@@ -85,6 +85,34 @@ If you want to add new topics, plots or tables and iterate faster with a subset 
 osmium cat --output-format opl $(ls *.osm.bz2) | pv -s 140M -l | sed -n '0~500p' | python3 src/changeset_to_parquet.py temp_dev
 ```
 
+In case you want to use the .osm filetype instead of .opl, extract the data like this
+```bash
+bzcat -d $(ls *.osm.bz2) > changesets.osm 
+```
+
+And to subset it
+```bash
+python3 -c "                                                  
+import sys, xml.etree.ElementTree as ET
+count = 0
+print('<?xml version=\"1.0\" encoding=\"UTF-8\"?>')
+print('<osm>')
+for event, elem in ET.iterparse(sys.stdin, events=('end',)):
+    if elem.tag == 'changeset':
+        if count % 500 == 0:
+            ET.ElementTree(elem).write(sys.stdout, encoding='unicode')
+        count += 1
+        elem.clear()
+print('</osm>')
+" < changesets.osm > changesets_subset.osm
+```
+
+Then
+```bash
+cat changesets.osm | python3 src/changeset_to_parquet.py temp osm
+```
+
+
 Next, you can generate the plots and tables like the following command or with `temp_dev` instead of `temp` for the folder name. On my laptop this takes also about 0:30h and it runs with less then 8GB of RAM.
 ```bash
 python3 src/parquet_to_json_stats.py temp
