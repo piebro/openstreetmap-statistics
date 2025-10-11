@@ -101,7 +101,7 @@ If you want to help, there are many different ways to contribute:
 	- Add more rules to group together the same sources or imagery service in `config/replace_rules_imagery_and_source.json`.
 - Add explaining text to an existing notebook.
 - Add more plots or tables to an existing notebook or create a new one.
-- Add a new column to the preprocessed data in the `scripts/enrich_table.py` file and add a test in the `tests/test_enrich_table.py` file.
+- Add a new column to the preprocessed data in the `scripts/changeset_raw_data_to_data.py` file and add a test in the `tests/test_changeset_raw_data_to_data.py` file.
 
 ## Developer Setup
 
@@ -133,13 +133,13 @@ uv run hf download piebro/osm-changeset-data --repo-type=dataset --local-dir=. -
 wget https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2
 
 # Parse the changeset data into a table
-uv run scripts/changeset_to_table.py changesets-latest.osm.bz2 changeset_data_raw
+uv run scripts/changeset_osm_to_raw_data.py changesets-latest.osm.bz2 changeset_data_raw
 
 # Create the enriched table (full dataset)
-uv run scripts/enrich_table.py changeset_data_raw changeset_data
+uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data
 
 # Create the enriched table for a specific month
-uv run scripts/enrich_table.py changeset_data_raw changeset_data 2025 8
+uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data 2025 8
 
 # Run tests
 uv run pytest
@@ -159,7 +159,7 @@ uv run scripts/save_corporation_contributors.py
 
 ### Adding a new column
 
-Modify the `scripts/enrich_table.py` file and add a test in the `tests/test_enrich_table.py` file.
+Modify the `scripts/changeset_raw_data_to_data.py` file and add a test in the `tests/test_changeset_raw_data_to_data.py` file.
 
 ### Adding a new notebook
 

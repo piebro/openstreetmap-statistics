@@ -12,7 +12,7 @@ The dataset is located at `../changeset_data/year=*/month=*/*.parquet` and conta
 - `year` - Year of the changeset
 - `month` - Month of the changeset
 
-### Enriched Columns (added by `scripts/enrich_table.py`)
+### Enriched Columns (added by `scripts/changeset_raw_data_to_data.py`)
 - `created_by` - Normalized editing software name
 - `device_type` - Classification: `desktop_editor`, `mobile_editor`, `tool`, `other`
 - `bot` - Boolean indicating if the changeset was made by a bot

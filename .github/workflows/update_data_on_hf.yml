@@ -37,7 +37,7 @@ jobs:
         if: env.RUN_JOBS == 'true'
         run: |
           # Run the actual processing
-          uv run scripts/changeset_to_table.py changesets-latest.osm.bz2 changeset_data_raw
+          uv run scripts/changeset_osm_to_raw_data.py changesets-latest.osm.bz2 changeset_data_raw
           # delete changeset file after processing to save disk space
           rm -f changesets-latest.osm.bz2
       
@@ -45,7 +45,7 @@ jobs:
         if: env.RUN_JOBS == 'true'
         run: |
           # Run enrichment for the last complete month
-          uv run scripts/enrich_table.py changeset_data_raw changeset_data --last-complete-month
+          uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data --last-complete-month
         
       - name: Upload data to Hugging Face
         if: env.RUN_JOBS == 'true'

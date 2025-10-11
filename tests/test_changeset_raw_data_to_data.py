@@ -7,7 +7,7 @@ import duckdb
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
-import enrich_table
+import changeset_raw_data_to_data as enrich_table
 
 
 @contextmanager
