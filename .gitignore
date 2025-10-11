@@ -1,8 +1,7 @@
 .venv
+.jupyterlite.doit.db
 .ruff_cache
 __pycache__
 *.osm.bz2
-*.parquet
-changeset_data
-changeset_data_raw
-.env
+changesets-latest.osm.bz2.torrent
+temp*

@@ -1,0 +1,33 @@
+name: update corporate contributors
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      
+      - name: setup
+        run: pip3 install numpy requests beautifulsoup4
+      
+      - name: update organised teams contributors
+        run: python3 src/save_organised_teams_contributors.py
+        
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          add-paths: assets/save_organised_teams_contributors.json
+          commit-message: update organised teams contributors
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          delete-branch: true
+          title: 'update organised teams contributors'
+          body: 'update organised teams contributors from the web'
+          
+          

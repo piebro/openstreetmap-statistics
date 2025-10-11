@@ -1,0 +1,62 @@
+name: update data
+on:
+  schedule:
+    # At 08:00 on every Monday
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check if it's the second Monday of the month or manual trigger
+        id: check_second_monday
+        run: |
+          echo "RUN_JOBS=$(python -c "import datetime, sys; today=datetime.date.today(); first_day=today.replace(day=1); first_monday=first_day+datetime.timedelta(days=(7-first_day.weekday())%7); second_monday=first_monday+datetime.timedelta(days=7); print('true' if today==second_monday or '${{ github.event_name }}'=='workflow_dispatch' else 'false')")" >> $GITHUB_ENV
+        shell: bash
+
+      - uses: actions/checkout@v3
+        if: env.RUN_JOBS == 'true'
+        
+      - uses: actions/setup-python@v4
+        if: env.RUN_JOBS == 'true'
+        with:
+          python-version: '3.10'
+      
+      - name: setup
+        if: env.RUN_JOBS == 'true'
+        run: |
+          sudo apt install aria2 osmium-tool pv
+          pip install -r requirements.txt 
+
+      - name: download latest changeset
+        if: env.RUN_JOBS == 'true'
+        run: |
+          wget -N https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2.torrent
+          aria2c --seed-time 0 --check-integrity changesets-latest.osm.bz2.torrent
+
+      - name: save compressed changeset csv
+        if: env.RUN_JOBS == 'true'
+        run: osmium cat --output-format opl $(ls *.osm.bz2) | python3 src/changeset_to_parquet.py temp
+      
+      - name: save data
+        if: env.RUN_JOBS == 'true'
+        run: python3 src/parquet_to_json_stats.py temp
+        
+      - name: save notebooks and data
+        if: env.RUN_JOBS == 'true'
+        run: for notebook in $(find src/questions -name calculations.ipynb); do jupyter nbconvert --to notebook --execute "$notebook" --output calculations.ipynb; done
+        
+      - name: Create Pull Request
+        if: env.RUN_JOBS == 'true'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          add-paths: |
+            assets/*
+            src/questions/*
+          commit-message: data update
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          delete-branch: true
+          title: 'data update'
+          body: 'update plots and tables with the latest changeset'
