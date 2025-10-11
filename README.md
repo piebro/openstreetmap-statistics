@@ -7,6 +7,8 @@ Monthly updated [data](https://huggingface.co/datasets/piebro/osm-changeset-data
 My motivation for this project was that I couldn't find some statistics I was interested in or that the data was outdated.
 That's why I created these statistics and preprocessed data, which are easily updatable with a simple script run locally or with GitHub actions.
 
+There was a big refctor recently. The old version is still available at https://piebro.github.io/openstreetmap-statistics/archive/.
+
 ## Usage
 
 The statistics website is showcase what you can do with the data. If you want to create your own special plots or tables, you can use the preprocessed data.
