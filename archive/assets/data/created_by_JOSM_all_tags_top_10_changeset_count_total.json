@@ -1,0 +1,28 @@
+{
+ "columns":[
+  "comment",
+  "source",
+  "hashtags",
+  "review_requested",
+  "mapwithai",
+  "type",
+  "url",
+  "import",
+  "imagery_used",
+  "generator"
+ ],
+ "data":[
+  [
+   56630558,
+   44427842,
+   10885366,
+   614794,
+   503539,
+   89651,
+   79945,
+   72773,
+   25937,
+   23648
+  ]
+ ]
+}
