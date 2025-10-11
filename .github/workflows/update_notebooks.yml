@@ -30,13 +30,14 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv sync --python 3.13
 
-      - name: Download dataset from Hugging Face
+      - name: Download all datasets from Hugging Face
         if: env.RUN_JOBS == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          uv run hf download piebro/osm-changeset-data --repo-type=dataset --local-dir=. --include="changeset_data/*"
-          echo "Dataset size: $(du -sh changeset_data)"
+          uv run hf download piebro/osm-data --repo-type=dataset --local-dir=.
+          echo "Dataset sizes:"
+          du -sh changeset_data changeset_comments_data notes_data notes_comments_data
 
       - name: Run all notebooks with timings
         if: env.RUN_JOBS == 'true'

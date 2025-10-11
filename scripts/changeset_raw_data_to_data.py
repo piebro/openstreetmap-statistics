@@ -182,7 +182,7 @@ def get_column_expressions():
 
 
 def get_column_sql(expressions):
-    base_columns = ["main.edit_count", "main.user_name", "main.month", "main.year"]
+    base_columns = ["main.changeset_id", "main.edit_count", "main.user_name", "main.month", "main.year"]
     enriched_columns = [f"{expr} as {name}" for name, expr in expressions.items()]
     all_columns = base_columns + enriched_columns
     columns_sql = ",\n            ".join(all_columns)

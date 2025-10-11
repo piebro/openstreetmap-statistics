@@ -1,8 +1,11 @@
+.env
 .venv
 .ruff_cache
 __pycache__
-*.osm.bz2
+*.bz2
 *.parquet
 changeset_data
 changeset_data_raw
-.env
+changeset_comments_data
+notes_comments_data
+notes_data
