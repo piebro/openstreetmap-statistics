@@ -393,3 +393,4 @@ def init():
     <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
     """)
     )
+    duckdb.sql("SET TimeZone='UTC'")
