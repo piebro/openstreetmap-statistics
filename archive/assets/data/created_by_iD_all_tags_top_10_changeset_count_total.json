@@ -1,0 +1,28 @@
+{
+ "columns":[
+  "imagery_used",
+  "comment",
+  "locale",
+  "host",
+  "changesets_count",
+  "hashtags",
+  "ideditor",
+  "source",
+  "resolved",
+  "warnings"
+ ],
+ "data":[
+  [
+   71625362,
+   66448788,
+   64986250,
+   61862966,
+   54049187,
+   12250924,
+   7678384,
+   7465479,
+   5489783,
+   4460100
+  ]
+ ]
+}
