@@ -28,28 +28,41 @@ jobs:
           echo "Available memory: $(free -h)"
           echo "Disk space: $(df -h .)"
 
-      - name: Download latest changeset
+      - name: Download latest changeset with discussions
         if: env.RUN_JOBS == 'true'
         run: |
-          wget --progress=dot:giga --timeout=3600 --tries=3 https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2
+          wget --progress=dot:giga --timeout=3600 --tries=3 https://planet.openstreetmap.org/planet/discussions-latest.osm.bz2
 
-      - name: Process changeset to table
+      - name: Process changeset and comments to tables
         if: env.RUN_JOBS == 'true'
         run: |
           # Run the actual processing
-          uv run scripts/changeset_osm_to_raw_data.py changesets-latest.osm.bz2 changeset_data_raw
-          # delete changeset file after processing to save disk space
-          rm -f changesets-latest.osm.bz2
-      
-      - name: Enrich table
+          uv run scripts/changeset_osm_to_raw_data.py discussions-latest.osm.bz2 changeset_data_raw changeset_comments_data --comments-ignore-current-month
+          # delete discussions file after processing to save disk space
+          rm -f discussions-latest.osm.bz2
+
+      - name: Enrich changeset table
         if: env.RUN_JOBS == 'true'
         run: |
           # Run enrichment for the last complete month
           uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data --last-complete-month
-        
+
+      - name: Download latest notes
+        if: env.RUN_JOBS == 'true'
+        run: |
+          wget --progress=dot:giga --timeout=3600 --tries=3 https://planet.openstreetmap.org/notes/planet-notes-latest.osn.bz2
+
+      - name: Process notes and comments to tables
+        if: env.RUN_JOBS == 'true'
+        run: |
+          # Run the actual processing
+          uv run scripts/notes_osm_to_data.py planet-notes-latest.osn.bz2 notes_data notes_comments_data --ignore-current-month
+          # delete notes file after processing to save disk space
+          rm -f planet-notes-latest.osn.bz2
+
       - name: Upload data to Hugging Face
         if: env.RUN_JOBS == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          bash scripts/upload_to_huggingface.sh
+          bash scripts/upload_data_to_huggingface.sh
