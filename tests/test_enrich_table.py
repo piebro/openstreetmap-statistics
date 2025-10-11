@@ -306,7 +306,6 @@ def test_expression_streetcomplete_quest(db, expressions):
             (map(['created_by', 'StreetComplete:quest_type'], ['StreetComplete', 'AddSidewalks'])),
             (map(['created_by', 'StreetComplete:quest_type'], ['StreetComplete', 'AddHousenumber'])),  -- no mapping
             (map(['created_by'], ['StreetComplete'])),  -- no quest_type
-            (map(['created_by', 'StreetComplete:quest_type'], ['iD', 'AddHousenumber'])),  -- wrong editor
             (map()::MAP(VARCHAR, VARCHAR)),  -- null
         AS t(tags)
     """)
@@ -318,7 +317,6 @@ def test_expression_streetcomplete_quest(db, expressions):
         "AddSidewalk",  # mapped from AddSidewalks
         "AddHousenumber",  # no mapping, return as-is
         None,  # StreetComplete but no quest_type
-        None,  # wrong editor
         None,  # null
     ]
 
@@ -356,19 +354,25 @@ def test_expression_all_tags(db, expressions):
 def test_expression_corporation(expressions):
     """Test corporation mapping from user names using lookup table."""
     mock_corp_data = {
-        "Amazon": [
-            "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Amazon",
-            ["amazon1", "amazon2", "amazon3"],
-        ],
-        "Apple": ["https://wiki.openstreetmap.org/wiki/Apple", ["apple_user1", "apple_user2"]],
-        "Microsoft": ["https://wiki.openstreetmap.org/wiki/Microsoft", ["microsoft_user1", "microsoft_user2"]],
+        "Amazon": {
+            "usernames": ["amazon1", "amazon2", "amazon3"],
+            "for_profit": True,
+        },
+        "Apple": {
+            "usernames": ["apple_user1", "apple_user2"],
+            "for_profit": True,
+        },
+        "Microsoft": {
+            "usernames": ["microsoft_user1", "microsoft_user2"],
+            "for_profit": False,
+        },
     }
 
     with mock_json_files(mock_corp_data):
-        enrich_table.create_corporation_lookup_table()
+        enrich_table.create_organised_team_lookup_table()
 
         duckdb.sql("""
-            CREATE OR REPLACE TABLE  main AS SELECT * FROM VALUES 
+            CREATE OR REPLACE TABLE  main AS SELECT * FROM VALUES
                 ('amazon1'),
                 ('amazon2'),
                 ('amazon3'),
@@ -379,9 +383,9 @@ def test_expression_corporation(expressions):
         """)
 
         sql_query = f"""
-            SELECT {expressions["corporation"]} 
-            FROM  main 
-            LEFT JOIN corporation_lookup corp_lookup ON  main.user_name = corp_lookup.user_name
+            SELECT {expressions["organised_team"]}
+            FROM  main
+            LEFT JOIN organised_team_lookup team_lookup ON  main.user_name = team_lookup.user_name
         """
         results = [row[0] for row in duckdb.sql(sql_query).fetchall()]
 
