@@ -64,7 +64,7 @@ jobs:
       - name: Commit and push changes
         if: env.RUN_JOBS == 'true'
         run: |
-          git add .
+          git add notebooks/ stats/
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
