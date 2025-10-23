@@ -49,6 +49,11 @@
         "url": "https://wiki.openstreetmap.org/wiki/Digiroad",
         "for_profit": false
     },
+     {
+        "name": "DINAclub",
+        "url": "https://wiki.openstreetmap.org/wiki/DINAclub",
+        "for_profit": true
+    },
     {
         "name": "Expedia",
         "url": "https://github.com/osmlab/expedia/wiki/Data-Team",
