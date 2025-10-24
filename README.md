@@ -175,8 +175,8 @@ cd notebooks && for notebook in *.ipynb; do echo "Running $notebook..."; start_t
 # Convert all notebooks to HTML
 uv run scripts/notebook_to_html.py
 
-# Update the corporation contributors
-uv run scripts/save_corporation_contributors.py
+# Update the organised team contributors
+uv run scripts/save_organised_teams.py
 ```
 
 ### Adding a new column

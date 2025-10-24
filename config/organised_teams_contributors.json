@@ -1678,6 +1678,15 @@
             "Khaled_AlOtaibi"
         ]
     },
+    "DINAclub": {
+        "for_profit": true,
+        "url": "https://wiki.openstreetmap.org/wiki/DINAclub",
+        "usernames": [
+            "Alessandro Ald\u00e8",
+            "Francesca Berteotti",
+            "Repower CMC"
+        ]
+    },
     "Digiroad": {
         "for_profit": false,
         "url": "https://wiki.openstreetmap.org/wiki/Digiroad",
@@ -1762,6 +1771,8 @@
             "StefanHRT",
             "Supaplex030",
             "fmc_1",
+            "fmc_10",
+            "fmc_11",
             "fmc_2",
             "fmc_3",
             "fmc_4",
@@ -1769,6 +1780,8 @@
             "fmc_6",
             "fmc_7",
             "fmc_8",
+            "fmc_9",
+            "fmc_sine",
             "hejco",
             "tordans"
         ]
@@ -2429,7 +2442,7 @@
             "NetWormKido",
             "Nodestrawaymus",
             "Oguzhaner",
-            "Oliviadrose",
+            "Oliviadrose1",
             "Openator_",
             "Ouray",
             "OuterPace",
@@ -2814,6 +2827,7 @@
             "AndreiTalpinski",
             "Andrzey12",
             "Andy_Tol",
+            "Anna Smolyakova",
             "Anton Kasheuski",
             "Anton Valodzin",
             "Anton_Klebanovich",
@@ -2881,6 +2895,7 @@
             "Jothirnadh",
             "Jurygr",
             "KVI0n",
+            "Kanstantsin Bykauskikh",
             "KarinaLis",
             "Katsiaryna Bazhankova",
             "Katsiaryna Shyndzikava",
@@ -2909,6 +2924,7 @@
             "Maryia Shyshkavets",
             "MaryiaKuklis1111",
             "Maryna Makarava",
+            "Maya Avadzinskaya",
             "Maya Smile",
             "Mikitaqz",
             "Misha Boiarkin",
@@ -2948,6 +2964,7 @@
             "Shulka",
             "Siarhei Salauyou",
             "Siarhei Vidzibor",
+            "Sinevich Ilya",
             "Sofiya_Khilchyk",
             "Sonya_Trakala",
             "Sparrow93",
@@ -2977,6 +2994,7 @@
             "Vika_Nosovich",
             "Viki_travel_weak",
             "Viktoriaglu998",
+            "Viktoryia Bystrytskaya",
             "Viktoryia11",
             "VitKlim",
             "Vitalina Hryharkevich",
@@ -2989,6 +3007,7 @@
             "YaStratospheric",
             "Yana Lauryk",
             "Yaraslau Yatskouski",
+            "Yuliya Bokhan",
             "Yuliya Petrash",
             "YuliyaSurta",
             "Yuliya_Pashkouskaya",
@@ -3038,6 +3057,7 @@
             "kolasau",
             "korolenok",
             "lialia_amber",
+            "liudmila_bareika",
             "marialoyko",
             "marinapatsevich",
             "marthaleena",
@@ -3439,6 +3459,7 @@
             "VLD314",
             "VLD316",
             "VLD317",
+            "VLD323",
             "VLD500",
             "VLD501",
             "VLD502",
@@ -3517,18 +3538,13 @@
         "url": "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Microsoft",
         "usernames": [
             "Aleksandar Matejevic",
-            "Aleksandar1994",
             "AndjelaS",
-            "BrackoNe",
             "DareDJ",
-            "LakatosVL",
             "MajaMaravic",
             "OliveraM",
             "PulisakZ",
             "TaraV",
             "borovac",
-            "magrej",
-            "miroslavuzice87",
             "soliMM"
         ]
     },
@@ -3701,6 +3717,7 @@
         "for_profit": true,
         "url": "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Ozon",
         "usernames": [
+            "Dacha2",
             "NatalieVvln",
             "Ozon OSM1",
             "Ozon OSM10",
@@ -3709,6 +3726,8 @@
             "Ozon OSM14",
             "Ozon OSM15",
             "Ozon OSM16",
+            "Ozon OSM17",
+            "Ozon OSM18",
             "Ozon OSM2",
             "Ozon OSM3",
             "Ozon OSM4",
@@ -3718,7 +3737,9 @@
             "Ozon OSM8",
             "Ozon OSM9",
             "Ozon_OSM11",
+            "Sailas",
             "addr:",
+            "chivvavuvva",
             "geo_ozon",
             "vrrdv"
         ]
