@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .query-section {
+        background: white;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .query-section h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #444;
+    }
+
+    .query-section select,
+    .query-section textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .query-section select {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        cursor: pointer;
+    }
+
+    .query-section textarea {
+        min-height: 200px;
+        resize: vertical;
+    }
+
+    .query-section button {
+        background-color: #4a90e2;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .query-section button:hover:not(:disabled) {
+        background-color: #357abd;
+    }
+
+    .query-section button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .query-section label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    #results {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 20px 0;
+    }
+
+    #results pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .results-table th {
+        background-color: #4a90e2;
+        color: white;
+        padding: 12px 8px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #357abd;
+    }
+
+    .results-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .results-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .results-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        margin-top: 10px;
+    }
+
+    .loading {
+        color: #4a90e2;
+        font-style: italic;
+    }
+
+    .error {
+        color: #d32f2f;
+        background-color: #ffebee;
+        padding: 15px;
+        border-radius: 4px;
+        border-left: 4px solid #d32f2f;
+    }
+
+    .info-box {
+        background-color: #e3f2fd;
+        padding: 12px;
+        border-radius: 4px;
+        margin: 20px 0;
+        font-size: 13px;
+        color: #1976d2;
+        border-left: 4px solid #1976d2;
+    }
+
+    .info-box a {
+        color: #1976d2;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cell markdown-cell">
+    <h1>Interactive Data Query Explorer</h1>
+    <p>Query OpenStreetMap datasets with DuckDB WASM - Data hosted on Hugging Face</p>
+</div>
+
+<div class="info-box">
+    <strong>How it works:</strong> When you run a query, the selected dataset files are downloaded and processed directly in your browser using DuckDB WASM. No server-side processing is required. Visit the <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes.
+</div>
+
+<div class="query-section">
+    <h2>Select Example Query</h2>
+
+    <label for="exampleSelect">
+        Choose a query to run:
+    </label>
+    <select id="exampleSelect">
+    </select>
+
+    <label for="queryInput">
+        SQL Query:
+    </label>
+    <textarea id="queryInput" placeholder="Enter your SQL query here..."></textarea>
+
+    <button id="runButton">Run Query</button>
+</div>
+
+<div id="results"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module">
+    import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.31.0/+esm';
+
+    // Example queries (one per dataset)
+    const examples = [
+        {
+            name: "Changeset Data: Top 10 Editing Software by Edit Count (2025 Jan-Mar)",
+            query: `SELECT
+    created_by as "Editing Software",
+    CAST(SUM(edit_count) as BIGINT) as "Total Edits",
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=2/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=3/data_0.parquet'
+])
+WHERE created_by IS NOT NULL
+GROUP BY created_by
+ORDER BY "Total Edits" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Changeset Comments: Top 10 Commenters",
+            query: `SELECT
+    user_name as "User Name",
+    COUNT(*) as "Total Comments",
+    COUNT(DISTINCT changeset_id) as "Changesets Commented On"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-1.parquet'
+])
+WHERE user_name IS NOT NULL
+GROUP BY user_name
+ORDER BY "Total Comments" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Data: Average Time to Close a Note (in days)",
+            query: `SELECT
+    YEAR(created_at) as year,
+    ROUND(AVG(DATE_DIFF('day', created_at, closed_at)), 2) as avg_days_to_close,
+    COUNT(*) as closed_notes_count
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-1.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-2.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-3.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-4.parquet'
+])
+WHERE closed_at IS NOT NULL
+GROUP BY year
+ORDER BY year DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Comments: Total Note Count",
+            query: `SELECT COUNT(*) as total_comments
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_comments_data/part-0.parquet');`
+        }
+    ];
+
+    // DOM elements
+    const exampleSelect = document.getElementById('exampleSelect');
+    const queryInput = document.getElementById('queryInput');
+    const runButton = document.getElementById('runButton');
+    const resultsDiv = document.getElementById('results');
+
+    // Initialize
+    populateExamples();
+    loadDefaultQuery();
+
+    // Event listeners
+    exampleSelect.addEventListener('change', (e) => {
+        const selectedIndex = e.target.value;
+        if (selectedIndex !== '') {
+            queryInput.value = examples[selectedIndex].query;
+        }
+    });
+
+    runButton.addEventListener('click', runQuery);
+
+    // Functions
+    function populateExamples() {
+        examples.forEach((example, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = example.name;
+            exampleSelect.appendChild(option);
+        });
+    }
+
+    function loadDefaultQuery() {
+        // Load the first example as default
+        queryInput.value = examples[0].query;
+        exampleSelect.value = '0';
+    }
+
+    async function runQuery() {
+        try {
+            resultsDiv.innerHTML = '<p class="loading">Initializing database and running query...</p>';
+            runButton.disabled = true;
+
+            const query = queryInput.value.trim();
+            if (!query) {
+                resultsDiv.innerHTML = '<p class="error">Please enter a query.</p>';
+                return;
+            }
+
+            // Initialize DuckDB
+            const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+            const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+            // Fix for CORS issue: Create a Blob URL for the worker
+            const worker_url = URL.createObjectURL(
+                new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'application/javascript'})
+            );
+
+            const worker = new Worker(worker_url);
+            const logger = new duckdb.ConsoleLogger();
+            const db = new duckdb.AsyncDuckDB(logger, worker);
+            await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+            URL.revokeObjectURL(worker_url);
+
+            const c = await db.connect();
+
+            // Execute the query
+            const result = await c.query(query);
+
+            // Convert result to array of objects
+            const rows = result.toArray().map(row => Object.fromEntries(row));
+
+            // Build HTML table
+            let tableHTML = '<div class="table-container"><table class="results-table">';
+
+            if (rows.length > 0) {
+                // Table header
+                tableHTML += '<thead><tr>';
+                const columns = Object.keys(rows[0]);
+                columns.forEach(col => {
+                    tableHTML += `<th>${col}</th>`;
+                });
+                tableHTML += '</tr></thead>';
+
+                // Table body
+                tableHTML += '<tbody>';
+                rows.forEach(row => {
+                    tableHTML += '<tr>';
+                    columns.forEach(col => {
+                        const value = row[col];
+                        // Format the value (handle null, numbers, etc.)
+                        const displayValue = value === null ? 'NULL' :
+                                            typeof value === 'number' ? value.toLocaleString() :
+                                            value;
+                        tableHTML += `<td>${displayValue}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody>';
+            } else {
+                tableHTML += '<tbody><tr><td>No results found</td></tr></tbody>';
+            }
+
+            tableHTML += '</table></div>';
+
+            // Display results
+            resultsDiv.innerHTML = `
+                <h2>Query Results</h2>
+                ${tableHTML}
+            `;
+
+            // Clean up
+            await c.close();
+            await db.terminate();
+            worker.terminate();
+
+        } catch (error) {
+            console.error(error);
+            resultsDiv.innerHTML = `<p class="error"><strong>Error:</strong> ${error.message}</p>`;
+        } finally {
+            runButton.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

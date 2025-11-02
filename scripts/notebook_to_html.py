@@ -1,8 +1,37 @@
 import argparse
 import json
 import os
-import uuid
 from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
+
+# Set up Jinja2 environment
+template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+jinja_env = Environment(loader=FileSystemLoader(template_dir))
+
+
+def build_pages_list(all_notebooks):
+    """Build a list of page objects from notebook paths, including the interactive page"""
+    pages = []
+
+    if not all_notebooks:
+        return pages
+
+    # Add all notebook pages
+    for nb_path in sorted(all_notebooks):
+        nb_name = Path(nb_path).stem
+        # Remove number prefixes like "01_", "02_", etc.
+        display_name = nb_name
+        if "_" in display_name and display_name.split("_")[0].isdigit():
+            display_name = "_".join(display_name.split("_")[1:])
+        display_name = display_name.replace("_", " ").title()
+
+        pages.append({"name": nb_name, "filename": nb_name, "display_name": display_name})
+
+    # Add interactive page as the last page
+    pages.append({"name": "12_interactive", "filename": "12_interactive", "display_name": "Interactive Query"})
+
+    return pages
 
 
 def convert_notebook_to_html(notebook_path: str, all_notebooks=None):
@@ -58,115 +87,18 @@ def extract_title_from_notebook(notebook):
 
 
 def generate_html(notebook, notebook_name="", all_notebooks=None):
-    """Generate basic HTML from notebook content"""
+    """Generate basic HTML from notebook content using Jinja2 templates"""
 
     # Extract title from notebook
     title = extract_title_from_notebook(notebook)
 
-    # Generate navigation links for all pages
-    nav_links = ""
-    if all_notebooks:
-        link_items = []
-        for nb_path in sorted(all_notebooks):
-            nb_name = Path(nb_path).stem
-            # Remove number prefixes like "01_", "02_", etc.
-            display_name = nb_name
-            if "_" in display_name and display_name.split("_")[0].isdigit():
-                display_name = "_".join(display_name.split("_")[1:])
-            display_name = display_name.replace("_", " ").title()
+    # Build pages list
+    pages = build_pages_list(all_notebooks)
 
-            if nb_name == notebook_name:  # Current page should be marked as active
-                link_items.append(f'<a href="{nb_name}.html" class="nav-link active">{display_name}</a>')
-            else:
-                link_items.append(f'<a href="{nb_name}.html" class="nav-link">{display_name}</a>')
-
-        if link_items:
-            links_html = "\n                ".join(link_items)
-            nav_links = (
-                """
-        <div class="page-navigation">
-            <div class="nav-links-container">
-                """
-                + links_html
-                + """
-            </div>
-        </div>"""
-            )
-
-    # Generate header HTML
-    header_html = (
-        """<header class='header'>
-        """
-        + nav_links
-        + """
-        <nav>
-            <a href="https://github.com/piebro/openstreetmap-statistics">About this project</a>
-            <a href="https://piebro.github.io?ref=piebro.github.io/openstreetmap-statistics/">About me</a>
-        </nav>
-    </header>"""
-    )
-
-    # Generate footer HTML
-    footer_nav_links = ""
-    if all_notebooks:
-        footer_link_items = []
-        for nb_path in sorted(all_notebooks):
-            nb_name = Path(nb_path).stem
-            # Remove number prefixes like "01_", "02_", etc.
-            display_name = nb_name
-            if "_" in display_name and display_name.split("_")[0].isdigit():
-                display_name = "_".join(display_name.split("_")[1:])
-            display_name = display_name.replace("_", " ").title()
-
-            if nb_name == notebook_name:  # Current page should be marked as active
-                footer_link_items.append(f'<a href="{nb_name}.html" class="nav-link active">{display_name}</a>')
-            else:
-                footer_link_items.append(f'<a href="{nb_name}.html" class="nav-link">{display_name}</a>')
-
-        if footer_link_items:
-            footer_links_html = " | ".join(footer_link_items)
-            footer_nav_links = f'<p class="footer-navigation">{footer_links_html}</p>'
-
-    footer_html = f"<footer class='footer'>{footer_nav_links}</footer>"
-
-    html_template = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{title}</title>
-    <link rel="stylesheet" type="text/css" href="../notebooks/notebook.css">
-    <script src="../notebooks/notebook.js"></script>
-    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
-
-    <link rel="stylesheet" href="notebook_styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/script.js"></script>
-</head>
-<body>
-    {header}
-    {content}
-    {footer}
-    <script>
-        function toggleCode(button) {{
-            const content = button.nextElementSibling;
-            const isExpanded = content.classList.contains('expanded');
-            
-            if (isExpanded) {{
-                content.classList.remove('expanded');
-                button.classList.remove('expanded');
-            }} else {{
-                content.classList.add('expanded');
-                button.classList.add('expanded');
-            }}
-        }}
-    </script>
-</body>
-</html>"""
-
+    # Process notebook cells to generate content
     content_parts = []
     first_code_cell = True
+    cell_index = 0
 
     # Process each cell
     for cell in notebook.get("cells", []):
@@ -196,7 +128,7 @@ def generate_html(notebook, notebook_name="", all_notebooks=None):
 
             # Extract label for the code block
             code_label = extract_code_label(source_text, first_code_cell)
-            code_id = f"code-{uuid.uuid4().hex[:8]}"
+            code_id = f"code-{cell_index}"
 
             code_html = f'''<div class="code">
                 <div class="code-toggle" onclick="toggleCode(this)">{escape_html(code_label)}</div>
@@ -209,15 +141,22 @@ def generate_html(notebook, notebook_name="", all_notebooks=None):
             outputs = cell.get("outputs", [])
             output_html = ""
             if outputs:
-                for output in outputs:
-                    output_html += process_output(output)
+                for output_index, output in enumerate(outputs):
+                    output_html += process_output(output, cell_index, output_index)
 
             content_parts.append(f'<div class="cell code-cell">{code_html}{output_html}</div>')
+            cell_index += 1
 
-    return html_template.format(title=title, header=header_html, content="\n".join(content_parts), footer=footer_html)
+    # Render the HTML using Jinja2 template
+    template = jinja_env.get_template("base.html")
+    html_content = template.render(
+        title=title, pages=pages, current_page=notebook_name, content="\n".join(content_parts)
+    )
+
+    return html_content
 
 
-def process_output(output):
+def process_output(output, cell_index, output_index):
     """Process notebook cell output and return HTML"""
     output_html = ""
 
@@ -228,7 +167,7 @@ def process_output(output):
         # Handle Plotly plots
         if "application/vnd.plotly.v1+json" in data:
             plotly_data = data["application/vnd.plotly.v1+json"]
-            plot_id = f"plotly-div-{uuid.uuid4().hex[:8]}"
+            plot_id = f"plotly-div-{cell_index}-{output_index}"
 
             # Extract the actual plot data and layout
             plot_data = plotly_data.get("data", [])
@@ -255,7 +194,7 @@ def process_output(output):
 
             # Check if it's a pandas DataFrame table
             if "<table" in html_data and "dataframe" in html_data:
-                table_id = f"table-{uuid.uuid4().hex[:8]}"
+                table_id = f"table-{cell_index}-{output_index}"
                 output_html += f'<div class="table-output" id="{table_id}">{html_data}</div>'
                 output_html += f"""
 <script>
@@ -291,7 +230,7 @@ def process_output(output):
 
             # Check if it's a pandas DataFrame table
             if "<table" in html_data and "dataframe" in html_data:
-                table_id = f"table-{uuid.uuid4().hex[:8]}"
+                table_id = f"table-{cell_index}-{output_index}"
                 output_html += f'<div class="table-output" id="{table_id}">{html_data}</div>'
                 output_html += f"""
 <script>
@@ -407,6 +346,24 @@ def escape_html(text):
         .replace('"', "&quot;")
         .replace("'", "&#x27;")
     )
+
+
+def generate_interactive_html(all_notebooks):
+    """Generate the interactive query page from template"""
+    # Build pages list
+    pages = build_pages_list(all_notebooks)
+
+    # Load and render the interactive template
+    template = jinja_env.get_template("interactive.html")
+    html_content = template.render(title="Interactive Data Query Explorer", pages=pages, current_page="12_interactive")
+
+    # Write the output file
+    output_path = os.path.join("stats", "12_interactive.html")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    print(f"Generated interactive page at {output_path}")
+    return output_path
 
 
 def generate_index_html(output_dir: str = "stats"):
@@ -528,6 +485,12 @@ def main():
             convert_notebook_to_html(notebook_path, notebook_files)
         except Exception as e:
             print(f"Error converting {notebook_path}: {e}")
+
+    # Generate interactive page
+    try:
+        generate_interactive_html(notebook_files)
+    except Exception as e:
+        print(f"Error generating interactive page: {e}")
 
     return 0
 
