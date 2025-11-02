@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Data Query Explorer</title>
+    <link rel="stylesheet" type="text/css" href="../notebooks/notebook.css">
+    <script src="../notebooks/notebook.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+
+    <link rel="stylesheet" href="notebook_styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/script.js"></script>
+    
+<style>
+    /* Form input styling */
+    select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    select {
+        cursor: pointer;
+    }
+
+    textarea {
+        font-family: 'Consolas', 'Monaco', monospace;
+        min-height: 300px;
+        resize: vertical;
+    }
+
+    button {
+        background-color: #4a90e2;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+        background-color: #357abd;
+    }
+
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    #llmHelperText {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+    }
+
+    #copyLlmButton {
+        background-color: #6c757d;
+        margin-left: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    #copyLlmButton:hover:not(:disabled) {
+        background-color: #5a6268;
+    }
+
+    .copy-section {
+        margin-top: 20px;
+    }
+</style>
+
+</head>
+<body>
+    <header class='header'>
+    <div class="page-navigation">
+        <div class="nav-links-container">
+            
+            <a href="01_general.html" class="nav-link">General</a>
+            
+            <a href="02_editing_software.html" class="nav-link">Editing Software</a>
+            
+            <a href="03_organised_teams.html" class="nav-link">Organised Teams</a>
+            
+            <a href="04_streetcomplete.html" class="nav-link">Streetcomplete</a>
+            
+            <a href="05_hashtags.html" class="nav-link">Hashtags</a>
+            
+            <a href="06_bot.html" class="nav-link">Bot</a>
+            
+            <a href="07_imagery_service.html" class="nav-link">Imagery Service</a>
+            
+            <a href="08_source.html" class="nav-link">Source</a>
+            
+            <a href="09_tags.html" class="nav-link">Tags</a>
+            
+            <a href="10_notes.html" class="nav-link">Notes</a>
+            
+            <a href="11_changeset_comments.html" class="nav-link">Changeset Comments</a>
+            
+            <a href="12_interactive.html" class="nav-link active">Interactive Query</a>
+            
+        </div>
+    </div>
+    <nav>
+        <a href="https://github.com/piebro/openstreetmap-statistics">About this project</a>
+        <a href="https://piebro.github.io?ref=piebro.github.io/openstreetmap-statistics/">About me</a>
+    </nav>
+</header>
+    
+<div class="cell markdown-cell">
+    <h2>Query the OpenStreetMap Datasets in your Browser</h2>
+    <p>
+        This works by using DuckDB WASM to run SQL queries with data (.parquet files) after downloading them from Hugging Face.
+        Keep in mind that these parquet file can be many MBs big.
+        Visit <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes.
+    </p>
+    <p>
+        Use the example queries to get started or enter your own query.
+    </p>
+    <div class="copy-section">
+        <p>
+            You can use an LLM (like ChatGPT, Mistral, etc.) to help generate custom SQL queries for this data.
+            Paste the dataset information into your conversation to make it easier to generate queries.<button id="copyLlmButton">Copy Dataset Info for LLM</button>
+        </p>
+        <textarea id="llmHelperText" readonly>OpenStreetMap Dataset Information for Custom Query Generation
+
+This data is available for querying using DuckDB WASM in the browser. All data is stored as parquet files on Hugging Face at: https://huggingface.co/datasets/piebro/osm-data
+
+IMPORTANT FILE SIZE NOTES:
+- changeset_data: Each monthly parquet file is approximately 20 MB
+- changeset_comments_data: Total dataset is 70-150 MB across all files
+- notes_data: Total dataset is 30-36 MB across all files
+- notes_comments_data: Total dataset is 40-60 MB across all files
+
+Keep these file sizes in mind when writing queries - downloading large files may take time in the browser.
+
+AVAILABLE DATASETS:
+
+1. CHANGESET DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=YYYY/month=M/data_0.parquet
+Partitioned by: year and month
+
+Key Columns:
+- changeset_id: ID of the changeset
+- edit_count: Number of edits in the changeset
+- user_name: OSM contributor username
+- year, month: Time partitioning columns
+- created_by: Normalized editing software name (e.g., "iD", "JOSM", "StreetComplete")
+- device_type: Classification (desktop_editor, mobile_editor, tool, other)
+- bot: Boolean indicating if changeset was made by a bot
+- mid_pos_x, mid_pos_y: Discretized coordinates (0-360, 0-180)
+- imagery_used: Array of imagery sources
+- hashtags: Array of hashtags from the changeset
+- source: Array of data sources used
+- mobile_os: Mobile OS (Android, iOS, or NULL)
+- streetcomplete_quest: StreetComplete quest type (if applicable)
+- organised_team: Team/corporation affiliation
+- for_profit: Boolean for for-profit organisations
+
+2. CHANGESET COMMENTS DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- changeset_id: ID of changeset (join key with changeset_data)
+- date: Timestamp of comment (UTC)
+- user_name: Username of commenter
+- text: Comment content
+
+3. NOTES DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- note_id: Unique note identifier
+- lat, lon: Latitude and longitude
+- created_at: Creation timestamp (UTC)
+- closed_at: Close timestamp (NULL if still open)
+- mid_pos_x, mid_pos_y: Discretized coordinates (0-360, 0-180)
+
+4. NOTES COMMENTS DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_comments_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- note_id: Note ID (join key with notes_data)
+- action: Action type (opened, commented, closed, reopened)
+- timestamp: Action timestamp (UTC)
+- user_name: Username
+- text: Comment content
+
+DUCKDB QUERY PATTERNS:
+
+Reading Parquet Files:
+IMPORTANT: Wildcards ("*") cannot be used in HTTPS URLs. You must explicitly list each file path.
+
+```sql
+-- Single file
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+
+-- Multiple files (array) - each file must be listed explicitly
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=2/data_0.parquet'
+])
+
+-- INVALID: This will NOT work with HTTPS URLs
+-- FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=*/month=*/*.parquet')
+```
+
+Working with Array Columns (imagery_used, hashtags, source):
+```sql
+-- Expand arrays with unnest
+SELECT unnest(hashtags) as hashtag, edit_count
+FROM read_parquet('...')
+WHERE hashtags IS NOT NULL
+```
+
+Common Aggregations:
+```sql
+-- Cast to appropriate types for cleaner output
+CAST(SUM(edit_count) as BIGINT) as "Total Edits"
+CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+COUNT(*) as "Total Records"
+```
+
+Time Grouping:
+```sql
+-- Format year-month for display
+CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months
+
+-- Filter by date
+WHERE year >= 2024
+WHERE year = 2025 AND month >= 1
+```
+
+EXAMPLE QUERIES:
+
+Top Software by Contributors (2025):
+```sql
+SELECT
+    created_by as "Software",
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+WHERE created_by IS NOT NULL
+GROUP BY created_by
+ORDER BY "Contributors" DESC
+LIMIT 10
+```
+
+Monthly Edit Trend:
+```sql
+SELECT
+    CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as "Month",
+    CAST(SUM(edit_count) as BIGINT) as "Total Edits"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2024/month=12/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet'
+])
+GROUP BY year, month
+ORDER BY year, month
+```
+
+Bot vs Human Contributors:
+```sql
+SELECT
+    bot,
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors",
+    CAST(SUM(edit_count) as BIGINT) as "Edits"
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+GROUP BY bot
+```
+
+TIPS FOR QUERY GENERATION:
+- Always use HTTPS URLs for parquet files
+- CRITICAL: Wildcards ("*") do NOT work in HTTPS URLs - explicitly list each file path
+- Remember that queries download data files - consider file sizes
+- Use array syntax [...] for multiple files
+- CAST aggregations to BIGINT or INTEGER for cleaner output
+- Use meaningful column aliases with quotes: "Total Edits"
+- Filter early (WHERE clauses) to reduce processing
+- Use IS NOT NULL when filtering on nullable columns
+- For recent data, focus on recent years/months to minimize download size
+</textarea>
+    </div>
+</div>
+
+<div class="cell">
+    <label for="exampleSelect">
+        Choose a query to run:
+    </label>
+    <select id="exampleSelect">
+    </select>
+
+    <label for="queryInput">
+        SQL Query:
+    </label>
+    <textarea id="queryInput" placeholder="Enter your SQL query here..."></textarea>
+
+    <button id="runButton">Run Query</button>
+</div>
+
+<div id="results" class="cell"></div>
+
+<textarea id="llmHelperText" readonly>OpenStreetMap Dataset Information for Custom Query Generation
+
+This data is available for querying using DuckDB WASM in the browser. All data is stored as parquet files on Hugging Face at: https://huggingface.co/datasets/piebro/osm-data
+
+IMPORTANT FILE SIZE NOTES:
+- changeset_data: Each monthly parquet file is approximately 20 MB
+- changeset_comments_data: Total dataset is 70-150 MB across all files
+- notes_data: Total dataset is 30-36 MB across all files
+- notes_comments_data: Total dataset is 40-60 MB across all files
+
+Keep these file sizes in mind when writing queries - downloading large files may take time in the browser.
+
+AVAILABLE DATASETS:
+
+1. CHANGESET DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=YYYY/month=M/data_0.parquet
+Partitioned by: year and month
+
+Key Columns:
+- changeset_id: ID of the changeset
+- edit_count: Number of edits in the changeset
+- user_name: OSM contributor username
+- year, month: Time partitioning columns
+- created_by: Normalized editing software name (e.g., "iD", "JOSM", "StreetComplete")
+- device_type: Classification (desktop_editor, mobile_editor, tool, other)
+- bot: Boolean indicating if changeset was made by a bot
+- mid_pos_x, mid_pos_y: Discretized coordinates (0-360, 0-180)
+- imagery_used: Array of imagery sources
+- hashtags: Array of hashtags from the changeset
+- source: Array of data sources used
+- mobile_os: Mobile OS (Android, iOS, or NULL)
+- streetcomplete_quest: StreetComplete quest type (if applicable)
+- organised_team: Team/corporation affiliation
+- for_profit: Boolean for for-profit organisations
+
+2. CHANGESET COMMENTS DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- changeset_id: ID of changeset (join key with changeset_data)
+- date: Timestamp of comment (UTC)
+- user_name: Username of commenter
+- text: Comment content
+
+3. NOTES DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- note_id: Unique note identifier
+- lat, lon: Latitude and longitude
+- created_at: Creation timestamp (UTC)
+- closed_at: Close timestamp (NULL if still open)
+- mid_pos_x, mid_pos_y: Discretized coordinates (0-360, 0-180)
+
+4. NOTES COMMENTS DATA
+Location: https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_comments_data/part-0.parquet (multiple parts)
+
+Key Columns:
+- note_id: Note ID (join key with notes_data)
+- action: Action type (opened, commented, closed, reopened)
+- timestamp: Action timestamp (UTC)
+- user_name: Username
+- text: Comment content
+
+DUCKDB QUERY PATTERNS:
+
+Reading Parquet Files:
+IMPORTANT: Wildcards ("*") cannot be used in HTTPS URLs. You must explicitly list each file path.
+
+```sql
+-- Single file
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+
+-- Multiple files (array) - each file must be listed explicitly
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=2/data_0.parquet'
+])
+
+-- INVALID: This will NOT work with HTTPS URLs
+-- FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=*/month=*/*.parquet')
+```
+
+Working with Array Columns (imagery_used, hashtags, source):
+```sql
+-- Expand arrays with unnest
+SELECT unnest(hashtags) as hashtag, edit_count
+FROM read_parquet('...')
+WHERE hashtags IS NOT NULL
+```
+
+Common Aggregations:
+```sql
+-- Cast to appropriate types for cleaner output
+CAST(SUM(edit_count) as BIGINT) as "Total Edits"
+CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+COUNT(*) as "Total Records"
+```
+
+Time Grouping:
+```sql
+-- Format year-month for display
+CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as months
+
+-- Filter by date
+WHERE year >= 2024
+WHERE year = 2025 AND month >= 1
+```
+
+EXAMPLE QUERIES:
+
+Top Software by Contributors (2025):
+```sql
+SELECT
+    created_by as "Software",
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+WHERE created_by IS NOT NULL
+GROUP BY created_by
+ORDER BY "Contributors" DESC
+LIMIT 10
+```
+
+Monthly Edit Trend:
+```sql
+SELECT
+    CONCAT(year, '-', LPAD(CAST(month as VARCHAR), 2, '0')) as "Month",
+    CAST(SUM(edit_count) as BIGINT) as "Total Edits"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2024/month=12/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet'
+])
+GROUP BY year, month
+ORDER BY year, month
+```
+
+Bot vs Human Contributors:
+```sql
+SELECT
+    bot,
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors",
+    CAST(SUM(edit_count) as BIGINT) as "Edits"
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet')
+GROUP BY bot
+```
+
+TIPS FOR QUERY GENERATION:
+- Always use HTTPS URLs for parquet files
+- CRITICAL: Wildcards ("*") do NOT work in HTTPS URLs - explicitly list each file path
+- Remember that queries download data files - consider file sizes
+- Use array syntax [...] for multiple files
+- CAST aggregations to BIGINT or INTEGER for cleaner output
+- Use meaningful column aliases with quotes: "Total Edits"
+- Filter early (WHERE clauses) to reduce processing
+- Use IS NOT NULL when filtering on nullable columns
+- For recent data, focus on recent years/months to minimize download size
+</textarea>
+
+    <footer class='footer'>
+    <p class="footer-navigation">
+        
+        <a href="01_general.html" class="nav-link">General</a> | 
+        
+        <a href="02_editing_software.html" class="nav-link">Editing Software</a> | 
+        
+        <a href="03_organised_teams.html" class="nav-link">Organised Teams</a> | 
+        
+        <a href="04_streetcomplete.html" class="nav-link">Streetcomplete</a> | 
+        
+        <a href="05_hashtags.html" class="nav-link">Hashtags</a> | 
+        
+        <a href="06_bot.html" class="nav-link">Bot</a> | 
+        
+        <a href="07_imagery_service.html" class="nav-link">Imagery Service</a> | 
+        
+        <a href="08_source.html" class="nav-link">Source</a> | 
+        
+        <a href="09_tags.html" class="nav-link">Tags</a> | 
+        
+        <a href="10_notes.html" class="nav-link">Notes</a> | 
+        
+        <a href="11_changeset_comments.html" class="nav-link">Changeset Comments</a> | 
+        
+        <a href="12_interactive.html" class="nav-link active">Interactive Query</a>
+        
+    </p>
+</footer>
+    <script>
+        function toggleCode(button) {
+            const content = button.nextElementSibling;
+            const isExpanded = content.classList.contains('expanded');
+
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                button.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                button.classList.add('expanded');
+            }
+        }
+    </script>
+    
+<script type="module">
+    import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.31.0/+esm';
+
+    // Example queries (one per dataset)
+    const examples = [
+        {
+            name: "Changeset Data: Top 10 Editing Software by Edit Count (2025 Jan-Mar)",
+            query: `SELECT
+    created_by as "Editing Software",
+    CAST(SUM(edit_count) as BIGINT) as "Total Edits",
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=2/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=3/data_0.parquet'
+])
+WHERE created_by IS NOT NULL
+GROUP BY created_by
+ORDER BY "Total Edits" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Changeset Comments: Top 10 Commenters",
+            query: `SELECT
+    user_name as "User Name",
+    COUNT(*) as "Total Comments",
+    COUNT(DISTINCT changeset_id) as "Changesets Commented On"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-1.parquet'
+])
+WHERE user_name IS NOT NULL
+GROUP BY user_name
+ORDER BY "Total Comments" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Data: Average Time to Close a Note (in days)",
+            query: `SELECT
+    YEAR(created_at) as year,
+    ROUND(AVG(DATE_DIFF('day', created_at, closed_at)), 2) as avg_days_to_close,
+    COUNT(*) as closed_notes_count
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-1.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-2.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-3.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-4.parquet'
+])
+WHERE closed_at IS NOT NULL
+GROUP BY year
+ORDER BY year DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Comments: Total Note Count",
+            query: `SELECT COUNT(*) as total_comments
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_comments_data/part-0.parquet');`
+        }
+    ];
+
+    // DOM elements
+    const exampleSelect = document.getElementById('exampleSelect');
+    const queryInput = document.getElementById('queryInput');
+    const runButton = document.getElementById('runButton');
+    const resultsDiv = document.getElementById('results');
+    const copyLlmButton = document.getElementById('copyLlmButton');
+    const llmHelperText = document.getElementById('llmHelperText');
+
+    // Initialize
+    populateExamples();
+    loadDefaultQuery();
+
+    // Event listeners
+    exampleSelect.addEventListener('change', (e) => {
+        const selectedIndex = e.target.value;
+        if (selectedIndex !== '') {
+            queryInput.value = examples[selectedIndex].query;
+        }
+    });
+
+    runButton.addEventListener('click', runQuery);
+
+    copyLlmButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(llmHelperText.value);
+            const originalText = copyLlmButton.textContent;
+            copyLlmButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLlmButton.textContent = originalText;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+            alert('Failed to copy to clipboard. Please try again.');
+        }
+    });
+
+    // Functions
+    function populateExamples() {
+        examples.forEach((example, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = example.name;
+            exampleSelect.appendChild(option);
+        });
+    }
+
+    function loadDefaultQuery() {
+        // Load the first example as default
+        queryInput.value = examples[0].query;
+        exampleSelect.value = '0';
+    }
+
+    async function runQuery() {
+        try {
+            resultsDiv.innerHTML = '<p>Initializing database and running query...</p>';
+            runButton.disabled = true;
+
+            const query = queryInput.value.trim();
+            if (!query) {
+                resultsDiv.innerHTML = '<p>Please enter a query.</p>';
+                return;
+            }
+
+            // Initialize DuckDB
+            const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+            const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+            // Fix for CORS issue: Create a Blob URL for the worker
+            const worker_url = URL.createObjectURL(
+                new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'application/javascript'})
+            );
+
+            const worker = new Worker(worker_url);
+            const logger = new duckdb.ConsoleLogger();
+            const db = new duckdb.AsyncDuckDB(logger, worker);
+            await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+            URL.revokeObjectURL(worker_url);
+
+            const c = await db.connect();
+
+            // Execute the query
+            const result = await c.query(query);
+
+            // Convert result to array of objects
+            const rows = result.toArray().map(row => Object.fromEntries(row));
+
+            // Build HTML table using notebook styles
+            let tableHTML = '<div class="output table-output"><table>';
+
+            if (rows.length > 0) {
+                // Table header
+                tableHTML += '<thead><tr>';
+                const columns = Object.keys(rows[0]);
+                columns.forEach(col => {
+                    tableHTML += `<th>${col}</th>`;
+                });
+                tableHTML += '</tr></thead>';
+
+                // Table body
+                tableHTML += '<tbody>';
+                rows.forEach(row => {
+                    tableHTML += '<tr>';
+                    columns.forEach(col => {
+                        const value = row[col];
+                        // Format the value (handle null, numbers, etc.)
+                        const displayValue = value === null ? 'NULL' :
+                                            typeof value === 'number' ? value.toLocaleString() :
+                                            value;
+                        tableHTML += `<td>${displayValue}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody>';
+            } else {
+                tableHTML += '<tbody><tr><td>No results found</td></tr></tbody>';
+            }
+
+            tableHTML += '</table></div>';
+
+            // Display results
+            resultsDiv.innerHTML = `
+                <h2>Query Results</h2>
+                ${tableHTML}
+            `;
+
+            // Clean up
+            await c.close();
+            await db.terminate();
+            worker.terminate();
+
+        } catch (error) {
+            console.error(error);
+            resultsDiv.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+        } finally {
+            runButton.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

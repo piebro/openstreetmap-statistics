@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    /* Form input styling */
+    select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    select {
+        cursor: pointer;
+    }
+
+    textarea {
+        font-family: 'Consolas', 'Monaco', monospace;
+        min-height: 300px;
+        resize: vertical;
+    }
+
+    button {
+        background-color: #4a90e2;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+        background-color: #357abd;
+    }
+
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    #llmHelperText {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+    }
+
+    #copyLlmButton {
+        background-color: #6c757d;
+        margin-left: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    #copyLlmButton:hover:not(:disabled) {
+        background-color: #5a6268;
+    }
+
+    .copy-section {
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cell markdown-cell">
+    <h2>Query the OpenStreetMap Datasets in your Browser</h2>
+    <p>
+        This works by using DuckDB WASM to run SQL queries with data (.parquet files) after downloading them from Hugging Face.
+        Keep in mind that these parquet file can be many MBs big.
+        Visit <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes.
+    </p>
+    <p>
+        Use the example queries to get started or enter your own query.
+    </p>
+    <div class="copy-section">
+        <p>
+            You can use an LLM (like ChatGPT, Mistral, etc.) to help generate custom SQL queries for this data.
+            Paste the dataset information into your conversation to make it easier to generate queries.<button id="copyLlmButton">Copy Dataset Info for LLM</button>
+        </p>
+        <textarea id="llmHelperText" readonly>{{ llm_hints }}</textarea>
+    </div>
+</div>
+
+<div class="cell">
+    <label for="exampleSelect">
+        Choose a query to run:
+    </label>
+    <select id="exampleSelect">
+    </select>
+
+    <label for="queryInput">
+        SQL Query:
+    </label>
+    <textarea id="queryInput" placeholder="Enter your SQL query here..."></textarea>
+
+    <button id="runButton">Run Query</button>
+</div>
+
+<div id="results" class="cell"></div>
+
+<textarea id="llmHelperText" readonly>{{ llm_hints }}</textarea>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module">
+    import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.31.0/+esm';
+
+    // Example queries (one per dataset)
+    const examples = [
+        {
+            name: "Changeset Data: Top 10 Editing Software by Edit Count (2025 Jan-Mar)",
+            query: `SELECT
+    created_by as "Editing Software",
+    CAST(SUM(edit_count) as BIGINT) as "Total Edits",
+    CAST(COUNT(DISTINCT user_name) as BIGINT) as "Contributors"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=1/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=2/data_0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_data/year=2025/month=3/data_0.parquet'
+])
+WHERE created_by IS NOT NULL
+GROUP BY created_by
+ORDER BY "Total Edits" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Changeset Comments: Top 10 Commenters",
+            query: `SELECT
+    user_name as "User Name",
+    COUNT(*) as "Total Comments",
+    COUNT(DISTINCT changeset_id) as "Changesets Commented On"
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/changeset_comments_data/part-1.parquet'
+])
+WHERE user_name IS NOT NULL
+GROUP BY user_name
+ORDER BY "Total Comments" DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Data: Average Time to Close a Note (in days)",
+            query: `SELECT
+    YEAR(created_at) as year,
+    ROUND(AVG(DATE_DIFF('day', created_at, closed_at)), 2) as avg_days_to_close,
+    COUNT(*) as closed_notes_count
+FROM read_parquet([
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-0.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-1.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-2.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-3.parquet',
+    'https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_data/part-4.parquet'
+])
+WHERE closed_at IS NOT NULL
+GROUP BY year
+ORDER BY year DESC
+LIMIT 10;`
+        },
+        {
+            name: "Notes Comments: Total Note Count",
+            query: `SELECT COUNT(*) as total_comments
+FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/notes_comments_data/part-0.parquet');`
+        }
+    ];
+
+    // DOM elements
+    const exampleSelect = document.getElementById('exampleSelect');
+    const queryInput = document.getElementById('queryInput');
+    const runButton = document.getElementById('runButton');
+    const resultsDiv = document.getElementById('results');
+    const copyLlmButton = document.getElementById('copyLlmButton');
+    const llmHelperText = document.getElementById('llmHelperText');
+
+    // Initialize
+    populateExamples();
+    loadDefaultQuery();
+
+    // Event listeners
+    exampleSelect.addEventListener('change', (e) => {
+        const selectedIndex = e.target.value;
+        if (selectedIndex !== '') {
+            queryInput.value = examples[selectedIndex].query;
+        }
+    });
+
+    runButton.addEventListener('click', runQuery);
+
+    copyLlmButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(llmHelperText.value);
+            const originalText = copyLlmButton.textContent;
+            copyLlmButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLlmButton.textContent = originalText;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+            alert('Failed to copy to clipboard. Please try again.');
+        }
+    });
+
+    // Functions
+    function populateExamples() {
+        examples.forEach((example, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = example.name;
+            exampleSelect.appendChild(option);
+        });
+    }
+
+    function loadDefaultQuery() {
+        // Load the first example as default
+        queryInput.value = examples[0].query;
+        exampleSelect.value = '0';
+    }
+
+    async function runQuery() {
+        try {
+            resultsDiv.innerHTML = '<p>Initializing database and running query...</p>';
+            runButton.disabled = true;
+
+            const query = queryInput.value.trim();
+            if (!query) {
+                resultsDiv.innerHTML = '<p>Please enter a query.</p>';
+                return;
+            }
+
+            // Initialize DuckDB
+            const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+            const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+            // Fix for CORS issue: Create a Blob URL for the worker
+            const worker_url = URL.createObjectURL(
+                new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'application/javascript'})
+            );
+
+            const worker = new Worker(worker_url);
+            const logger = new duckdb.ConsoleLogger();
+            const db = new duckdb.AsyncDuckDB(logger, worker);
+            await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+            URL.revokeObjectURL(worker_url);
+
+            const c = await db.connect();
+
+            // Execute the query
+            const result = await c.query(query);
+
+            // Convert result to array of objects
+            const rows = result.toArray().map(row => Object.fromEntries(row));
+
+            // Build HTML table using notebook styles
+            let tableHTML = '<div class="output table-output"><table>';
+
+            if (rows.length > 0) {
+                // Table header
+                tableHTML += '<thead><tr>';
+                const columns = Object.keys(rows[0]);
+                columns.forEach(col => {
+                    tableHTML += `<th>${col}</th>`;
+                });
+                tableHTML += '</tr></thead>';
+
+                // Table body
+                tableHTML += '<tbody>';
+                rows.forEach(row => {
+                    tableHTML += '<tr>';
+                    columns.forEach(col => {
+                        const value = row[col];
+                        // Format the value (handle null, numbers, etc.)
+                        const displayValue = value === null ? 'NULL' :
+                                            typeof value === 'number' ? value.toLocaleString() :
+                                            value;
+                        tableHTML += `<td>${displayValue}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody>';
+            } else {
+                tableHTML += '<tbody><tr><td>No results found</td></tr></tbody>';
+            }
+
+            tableHTML += '</table></div>';
+
+            // Display results
+            resultsDiv.innerHTML = `
+                <h2>Query Results</h2>
+                ${tableHTML}
+            `;
+
+            // Clean up
+            await c.close();
+            await db.terminate();
+            worker.terminate();
+
+        } catch (error) {
+            console.error(error);
+            resultsDiv.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+        } finally {
+            runButton.disabled = false;
+        }
+    }
+</script>
+{% endblock %}
