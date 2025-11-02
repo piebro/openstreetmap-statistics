@@ -14,42 +14,27 @@
     <script defer data-domain="piebro.github.io/openstreetmap-statistics" src="https://plausible.io/js/script.js"></script>
     
 <style>
-    .query-section {
-        background: white;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .query-section h2 {
-        font-size: 18px;
-        margin-bottom: 15px;
-        color: #444;
-    }
-
-    .query-section select,
-    .query-section textarea {
+    /* Form input styling */
+    select, textarea {
         width: 100%;
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 4px;
-        font-family: 'Consolas', 'Monaco', monospace;
         font-size: 14px;
         margin-bottom: 15px;
     }
 
-    .query-section select {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    select {
         cursor: pointer;
     }
 
-    .query-section textarea {
-        min-height: 200px;
+    textarea {
+        font-family: 'Consolas', 'Monaco', monospace;
+        min-height: 300px;
         resize: vertical;
     }
 
-    .query-section button {
+    button {
         background-color: #4a90e2;
         color: white;
         padding: 12px 24px;
@@ -61,100 +46,20 @@
         transition: background-color 0.2s;
     }
 
-    .query-section button:hover:not(:disabled) {
+    button:hover:not(:disabled) {
         background-color: #357abd;
     }
 
-    .query-section button:disabled {
+    button:disabled {
         background-color: #ccc;
         cursor: not-allowed;
     }
 
-    .query-section label {
+    label {
         display: block;
         margin-bottom: 8px;
         font-weight: 500;
         color: #555;
-    }
-
-    #results {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin: 20px 0;
-    }
-
-    #results pre {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 4px;
-        overflow-x: auto;
-        font-family: 'Consolas', 'Monaco', monospace;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .results-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        font-size: 14px;
-    }
-
-    .results-table th {
-        background-color: #4a90e2;
-        color: white;
-        padding: 12px 8px;
-        text-align: left;
-        font-weight: 600;
-        border-bottom: 2px solid #357abd;
-    }
-
-    .results-table td {
-        padding: 10px 8px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .results-table tr:hover {
-        background-color: #f8f9fa;
-    }
-
-    .results-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .table-container {
-        overflow-x: auto;
-        margin-top: 10px;
-    }
-
-    .loading {
-        color: #4a90e2;
-        font-style: italic;
-    }
-
-    .error {
-        color: #d32f2f;
-        background-color: #ffebee;
-        padding: 15px;
-        border-radius: 4px;
-        border-left: 4px solid #d32f2f;
-    }
-
-    .info-box {
-        background-color: #e3f2fd;
-        padding: 12px;
-        border-radius: 4px;
-        margin: 20px 0;
-        font-size: 13px;
-        color: #1976d2;
-        border-left: 4px solid #1976d2;
-    }
-
-    .info-box a {
-        color: #1976d2;
-        text-decoration: underline;
     }
 </style>
 
@@ -197,16 +102,19 @@
 </header>
     
 <div class="cell markdown-cell">
-    <h1>Interactive Data Query Explorer</h1>
-    <p>Query OpenStreetMap datasets with DuckDB WASM - Data hosted on Hugging Face</p>
+    <h2>Query the OpenStreetMap Datasets in your Browser</h2>
+    <p>
+        This works by using DuckDB WASM to run SQL queries with data (.parquet files) after downloading them from Hugging Face.
+        Keep in mind that these parquet file can be many MBs big.
+        Visit <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes. 
+    </p>
+    <p>
+        Use the example queries to get started or enter your own query.
+    </p>
 </div>
 
-<div class="info-box">
-    <strong>How it works:</strong> When you run a query, the selected dataset files are downloaded and processed directly in your browser using DuckDB WASM. No server-side processing is required. Visit the <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes.
-</div>
-
-<div class="query-section">
-    <h2>Select Example Query</h2>
+<div class="cell">
+    <!--<h2>Select Example Query</h2>-->
 
     <label for="exampleSelect">
         Choose a query to run:
@@ -222,7 +130,7 @@
     <button id="runButton">Run Query</button>
 </div>
 
-<div id="results"></div>
+<div id="results" class="cell"></div>
 
     <footer class='footer'>
     <p class="footer-navigation">
@@ -367,12 +275,12 @@ FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/
 
     async function runQuery() {
         try {
-            resultsDiv.innerHTML = '<p class="loading">Initializing database and running query...</p>';
+            resultsDiv.innerHTML = '<p>Initializing database and running query...</p>';
             runButton.disabled = true;
 
             const query = queryInput.value.trim();
             if (!query) {
-                resultsDiv.innerHTML = '<p class="error">Please enter a query.</p>';
+                resultsDiv.innerHTML = '<p>Please enter a query.</p>';
                 return;
             }
 
@@ -400,8 +308,8 @@ FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/
             // Convert result to array of objects
             const rows = result.toArray().map(row => Object.fromEntries(row));
 
-            // Build HTML table
-            let tableHTML = '<div class="table-container"><table class="results-table">';
+            // Build HTML table using notebook styles
+            let tableHTML = '<div class="output table-output"><table>';
 
             if (rows.length > 0) {
                 // Table header
@@ -446,7 +354,7 @@ FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/
 
         } catch (error) {
             console.error(error);
-            resultsDiv.innerHTML = `<p class="error"><strong>Error:</strong> ${error.message}</p>`;
+            resultsDiv.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
         } finally {
             runButton.disabled = false;
         }
