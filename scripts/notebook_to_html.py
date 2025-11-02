@@ -6,7 +6,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
 # Set up Jinja2 environment
-template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+template_dir = os.path.join(os.path.dirname(__file__), "html_templates")
 jinja_env = Environment(loader=FileSystemLoader(template_dir))
 
 
