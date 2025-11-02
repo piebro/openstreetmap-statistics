@@ -49,6 +49,27 @@
         font-weight: 500;
         color: #555;
     }
+
+    #llmHelperText {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+    }
+
+    #copyLlmButton {
+        background-color: #6c757d;
+        margin-left: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    #copyLlmButton:hover:not(:disabled) {
+        background-color: #5a6268;
+    }
+
+    .copy-section {
+        margin-top: 20px;
+    }
 </style>
 {% endblock %}
 
@@ -58,11 +79,18 @@
     <p>
         This works by using DuckDB WASM to run SQL queries with data (.parquet files) after downloading them from Hugging Face.
         Keep in mind that these parquet file can be many MBs big.
-        Visit <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes. 
+        Visit <a href="https://huggingface.co/datasets/piebro/osm-data" target="_blank">dataset repository on Hugging Face</a> to see all available data and file sizes.
     </p>
     <p>
         Use the example queries to get started or enter your own query.
     </p>
+    <div class="copy-section">
+        <p>
+            You can use an LLM (like ChatGPT, Mistral, etc.) to help generate custom SQL queries for this data.
+            Paste the dataset information into your conversation to make it easier to generate queries.<button id="copyLlmButton">Copy Dataset Info for LLM</button>
+        </p>
+        <textarea id="llmHelperText" readonly>{{ llm_hints }}</textarea>
+    </div>
 </div>
 
 <div class="cell">
@@ -81,6 +109,8 @@
 </div>
 
 <div id="results" class="cell"></div>
+
+<textarea id="llmHelperText" readonly>{{ llm_hints }}</textarea>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -150,6 +180,8 @@ FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/
     const queryInput = document.getElementById('queryInput');
     const runButton = document.getElementById('runButton');
     const resultsDiv = document.getElementById('results');
+    const copyLlmButton = document.getElementById('copyLlmButton');
+    const llmHelperText = document.getElementById('llmHelperText');
 
     // Initialize
     populateExamples();
@@ -164,6 +196,20 @@ FROM read_parquet('https://huggingface.co/datasets/piebro/osm-data/resolve/main/
     });
 
     runButton.addEventListener('click', runQuery);
+
+    copyLlmButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(llmHelperText.value);
+            const originalText = copyLlmButton.textContent;
+            copyLlmButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLlmButton.textContent = originalText;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+            alert('Failed to copy to clipboard. Please try again.');
+        }
+    });
 
     // Functions
     function populateExamples() {

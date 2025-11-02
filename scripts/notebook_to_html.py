@@ -353,9 +353,19 @@ def generate_interactive_html(all_notebooks):
     # Build pages list
     pages = build_pages_list(all_notebooks)
 
+    # Load LLM hints content
+    llm_hints_path = os.path.join(template_dir, "duckdb_wasm_llm_hints.md")
+    with open(llm_hints_path, encoding="utf-8") as f:
+        llm_hints_content = f.read()
+
     # Load and render the interactive template
     template = jinja_env.get_template("interactive.html")
-    html_content = template.render(title="Interactive Data Query Explorer", pages=pages, current_page="12_interactive")
+    html_content = template.render(
+        title="Interactive Data Query Explorer",
+        pages=pages,
+        current_page="12_interactive",
+        llm_hints=llm_hints_content,
+    )
 
     # Write the output file
     output_path = os.path.join("stats", "12_interactive.html")
