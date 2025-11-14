@@ -640,6 +640,39 @@ class TableConfig(NamedTuple):
     sum_col: str = None                 # Column for sorting
 ```
 
+### Data Reshaping with Pandas
+
+When you need to plot multiple series from columns in wide format, use `df.melt()` to convert to long format:
+
+```python
+# Before melt (wide format):
+# months    | series_1 | series_2 | series_3
+# 2007-09   | 100      | 200      | 300
+
+df_melted = df.melt(
+    id_vars=['months'],           # Columns to keep as identifiers
+    var_name='series_name',        # Name for new column with old column names
+    value_name='value'             # Name for new column with values
+)
+
+# After melt (long format):
+# months    | series_name | value
+# 2007-09   | series_1    | 100
+# 2007-09   | series_2    | 200
+# 2007-09   | series_3    | 300
+
+# Now can use with group_col in FigureConfig
+util.show_figure([
+    util.FigureConfig(
+        title="Title",
+        x_col="months",
+        y_col="value",
+        group_col="series_name",
+        query_or_df=df_melted,
+    )
+])
+```
+
 ## SQL Patterns and Best Practices
 
 ### Common SQL Patterns
