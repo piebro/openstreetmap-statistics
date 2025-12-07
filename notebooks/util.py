@@ -208,11 +208,18 @@ def get_trace_names(df, group_col, x_col, y_col, type):
 def add_traces_to_figure(fig, df, config, trace_names, is_first=False):
     """Add traces to figure for a given configuration."""
     y_unit_hover_template = config.y_unit_hover_template if config.y_unit_hover_template else f"{config.y_col}"
+    all_x_values = df[config.x_col].unique()
     for trace_name in trace_names:
         if len(trace_names) == 1:
             group_data = df
         else:
             group_data = df[df[config.group_col] == trace_name]
+            # Fill missing x values with zero
+            missing_x = set(all_x_values) - set(group_data[config.x_col])
+            if missing_x:
+                missing_df = pd.DataFrame({config.x_col: list(missing_x), config.y_col: 0})
+                group_data = pd.concat([group_data, missing_df], ignore_index=True)
+                group_data = group_data.sort_values(config.x_col)
 
         if config.plot_type == "bar":
             fig.add_trace(
