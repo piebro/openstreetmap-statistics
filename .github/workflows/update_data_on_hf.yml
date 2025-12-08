@@ -17,7 +17,16 @@ jobs:
 
       - uses: actions/checkout@v3
         if: env.RUN_JOBS == 'true'
-      
+
+      - name: Free up disk space
+        if: env.RUN_JOBS == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          df -h
+
       - name: Setup uv
         if: env.RUN_JOBS == 'true'
         run: |
