@@ -262,7 +262,7 @@
             "josm"
 
         ],
-        "type": "tool"
+        "type": "desktop_editor"
     },
     "Jungle Bus": {
         "starts_with": [
