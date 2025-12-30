@@ -130,6 +130,11 @@
         "for_profit": true
     },
     {
+        "name": "Mapy.com",
+        "url": "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Mapycz",
+        "for_profit": true
+    },
+    {
         "name": "Meta",
         "url": "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Facebook",
         "for_profit": true
