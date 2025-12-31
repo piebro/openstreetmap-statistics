@@ -2812,6 +2812,7 @@
             "AlexandrTolkachov",
             "Aliaksandr Petukhou",
             "AliaksandrSvirydau",
+            "Aliaksei Severyn",
             "AliakseiVaranovich",
             "Aliaksei_Astraukh",
             "Alice_Korotk",
@@ -2882,6 +2883,7 @@
             "Hutouski",
             "Iaaneed",
             "Ihar Butsia",
+            "IlliaChevychelau",
             "Ilya Millerr",
             "IlyaZaprudski",
             "InnaSumskaya",
@@ -2946,6 +2948,7 @@
             "NastyaSheremet",
             "Natasha_Zhovner",
             "Nikita Aldokhin",
+            "Nikita Kilioglo",
             "Nikita Kundelev",
             "Nikita Vyun",
             "NikitaSalt",
@@ -2968,6 +2971,8 @@
             "Romanovich_Dzmitry",
             "Rub21",
             "SPECTRA995",
+            "Sam451",
+            "Sergei Amuzinski",
             "SergeyM52",
             "Shaforenko_Anastasiya",
             "ShinkarevPavel",
@@ -3136,6 +3141,26 @@
             "zakharpiashko",
             "zelenol",
             "zkzwk"
+        ]
+    },
+    "Mapy.com": {
+        "for_profit": true,
+        "url": "https://wiki.openstreetmap.org/wiki/Organised_Editing/Activities/Mapycz",
+        "usernames": [
+            "Filip009CZ",
+            "Iva Kosarkova",
+            "Kookykooky",
+            "Mamutinka",
+            "MartorCZ",
+            "Matyjace",
+            "Pan Pern\u00ed\u010dek",
+            "Petr Fuk\u00e1tko",
+            "Tajtrdlik",
+            "Tobias235",
+            "Yurii Skvortsov",
+            "fukejs",
+            "silat",
+            "vojtechzaboril"
         ]
     },
     "Meta": {
