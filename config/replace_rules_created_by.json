@@ -4,6 +4,12 @@
             "ADDR "
         ]
     },
+    "AED Map": {
+        "starts_with": [
+            "AED Map "
+        ],
+        "type": "mobile_editor"
+    },
     "addr2osm": {
         "link": "https://github.com/NKAmapper/addr2osm",
         "starts_with": [
@@ -15,6 +21,12 @@
         "starts_with": [
             "AddressHunter "
         ]
+    },
+    "ALARMiator Mobile": {
+        "starts_with": [
+            "ALARMiator "
+        ],
+        "type": "mobile_editor"
     },
     "AND node cleaner": {
         "link": "https://wiki.openstreetmap.org/wiki/AND_data",
@@ -89,6 +101,11 @@
             "catatom3dfix/"
         ]
     },
+    "Centaur": {
+        "starts_with": [
+            "Centaur "
+        ]
+    },
     "CityZen": {
         "starts_with": [
             "CityZen "
@@ -152,6 +169,12 @@
         ],
         "type": "tool"
     },
+    "FixTypo": {
+        "starts_with": [
+            "FixTypo"
+        ],
+        "type": "tool"
+    },
     "FixDoubleNodes": {
         "type": "tool"
     },
@@ -192,7 +215,8 @@
     },
     "Go Kaart!!": {
         "starts_with": [
-            "Go Kaart!! "
+            "Go Kaart!! ",
+            "Go Kaart "
         ]
     },
     "Go Map!!": {
@@ -206,6 +230,20 @@
         "starts_with": [
             "GpsMid_"
         ]
+    },
+    "gpxhydrant": {
+        "link": "https://github.com/Luzifer/gpxhydrant",
+        "starts_with": [
+            "gpxhydrant"
+        ],
+        "type": "tool"
+    },
+    "gtfs2osm": {
+        "link": "https://github.com/KAMI911/GTFS2OSM",
+        "starts_with": [
+            "gtfs2osm "
+        ],
+        "type": "tool"
     },
     "https_all_the_things": {
         "starts_with": [
@@ -276,6 +314,12 @@
             "Jungle Bus "
         ]
     },
+    "Kort": {
+        "starts_with": [
+            "Kort "
+        ],
+        "type": "mobile_editor"
+    },
     "LangToolsOSM": {
         "starts_with": [
             "LangToolsOSM "
@@ -319,6 +363,13 @@
         "starts_with": [
             "Mapcat "
         ]
+    },
+    "MapThePaths": {
+        "link": "https://gitlab.com/nickw1/mapthepaths-android",
+        "starts_with": [
+            "MapThePaths"
+        ],
+        "type": "mobile_editor"
     },
     "MapComplete": {
         "link": "https://mapcomplete.org",
@@ -383,6 +434,13 @@
     "MyUploader": {
         "type": "tool"
     },
+    "mumpot": {
+        "link": "https://wiki.openstreetmap.org/wiki/Mumpot",
+        "starts_with": [
+            "mumpot "
+        ],
+        "type": "tool"
+    },
     "naptan2osm": {
         "type": "tool"
     },
@@ -398,6 +456,21 @@
         "link": "https://openaedmap.org",
         "type": "desktop_editor"
     },
+    "openaedmap-backend": {
+        "starts_with": [
+            "openaedmap-backend "
+        ]
+    },
+    "OpenBeerMap": {
+        "starts_with": [
+            "OpenBeerMap "
+        ]
+    },
+    "OpenFireApp": {
+        "starts_with": [
+            "OpenFireApp "
+        ]
+    },
     "OpenMapKit Server": {
         "starts_with": [
             "OpenMapKit Server "
@@ -408,6 +481,11 @@
             "OpenMaps "
         ],
         "link": "https://wiki.openstreetmap.org/wiki/OpenMaps_(IZE)",
+        "starts_with": [
+            "OpenMaps for iOS",
+            "OpenMaps iPhone",
+            "OpenMaps iOS"
+        ],
         "type": "mobile_editor"
     },
     "OpenPOI": {
@@ -444,6 +522,13 @@
             "OpenStreetQuests "
         ]
     },
+    "OnWheels": {
+        "link": "https://wiki.openstreetmap.org/wiki/On_Wheels_app",
+        "starts_with": [
+            "OnWheels"
+        ],
+        "type": "mobile_editor"
+    },
     "Organic Maps": {
         "link": "https://organicmaps.app/",
         "starts_with": [
@@ -471,6 +556,18 @@
             "OSM Microtasks "
         ]
     },
+    "OSM Check": {
+        "starts_with": [
+            "OSM Check "
+        ],
+        "type": "tool"
+    },
+    "OSM Localization Tool": {
+        "starts_with": [
+            "OSM Localization Tool"
+        ],
+        "type": "tool"
+    },
     "osm-beschilderung": {
         "starts_with": [
             "osm-beschilderung "
@@ -479,6 +576,18 @@
     "osm-revert": {
         "starts_with": [
             "osm-revert "
+        ]
+    },
+    "osm-api-js": {
+        "starts_with": [
+            "osm-api-js "
+        ],
+        "type": "tool"
+    },
+    "osm-rnd": {
+        "link": "http://repo.hu/projects/osm-rnd/",
+        "starts_with": [
+            "osm-rnd "
         ]
     },
     "Osm.Org Tags Editor": {
@@ -518,6 +627,13 @@
     "osmapis": {
         "starts_with": [
             "osmapis/"
+        ],
+        "type": "tool"
+    },
+    "osmapiR": {
+        "link": "https://github.com/ropensci/osmapiR",
+        "starts_with": [
+            "osmapiR "
         ],
         "type": "tool"
     },
@@ -582,6 +698,19 @@
         ],
         "type": "tool"
     },
+    "OsmoTagger": {
+        "starts_with": [
+            "OsmoTagger "
+        ],
+        "type": "mobile_editor"
+    },
+    "osmpie": {
+        "link": "https://osmpie.org/", 
+        "starts_with": [
+            "osmpie "
+        ],
+        "type": "desktop_editor"
+    },
     "osmt": {
         "starts_with": [
             "osmt/"
@@ -616,6 +745,12 @@
         "starts_with": [
             "Paint The Town Red (StreetComplete) "
         ]
+    },
+    "Paint The Town Red (StreetComplete fork)": {
+        "starts_with": [
+            "Paint The Town Red (StreetComplete fork)"
+        ],
+        "type": "mobile_editor"
     },
     "Parking-Mapper": {
         "starts_with": [
@@ -771,6 +906,12 @@
     "simple_revert.py": {
         "type": "tool"
     },
+    "Simple Route Editor": {
+        "link": "https://osm-simple-route-editor.kyle.kiwi/",
+        "starts_with": [
+            "Simple Route Editor "
+        ]
+    },
     "SketchOSM": {
         "link": "https://mindsightstudios.com/sketchosm/",
         "starts_with": [
@@ -822,6 +963,13 @@
             "SweetThooths "
         ]
     },
+    "TIGER King": {
+        "link": "https://github.com/whubsch/tigerking",
+        "starts_with": [
+            "TIGER King "
+        ],
+        "type": "tool"
+    },
     "upload.py": {
         "starts_with": [
             "./upload.py v. ",
@@ -856,6 +1004,9 @@
     },
     "wheelmap.org": {
         "link": "https://wheelmap.org/",
+        "starts_with": [
+            "https://wheelmap.org"
+        ],
         "type": "desktop_editor"
     },
     "YAPIS": {
