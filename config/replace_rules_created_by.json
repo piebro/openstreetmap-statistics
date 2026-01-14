@@ -35,6 +35,13 @@
     "bash script": {
         "type": "tool"
     },
+    "better osm.org": {
+        "link": "https://github.com/deevroman/better-osm-org",
+        "starts_with": [
+            "better osm.org"
+        ],
+        "type": "desktop_editor"
+    },
     "Brick": {
         "link": "https://github.com/OSMBuildings/Brick"
     },
