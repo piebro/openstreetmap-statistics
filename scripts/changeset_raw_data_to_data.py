@@ -131,6 +131,16 @@ def get_streetcomplete_quest_case_statement():
     END
     """
 
+def get_maproulette_challenge_case_statement():
+    return f"""
+    CASE 
+        WHEN main.tags['comment'] IS NOT NULL AND main.tags['comment'] ~ 'mpr\.lt/c/\\d+/' 
+        THEN (
+            SELECT (regexp_matches(main.tags['comment'], 'mpr\.lt/c/(\\d+)/'))[1]
+        )
+        ELSE NULL
+    END
+    """
 
 def create_organised_team_lookup_table():
     """Create a temporary table for efficient organised team user mapping."""
@@ -174,6 +184,7 @@ def get_column_expressions():
     expressions["source"] = get_source_case_statement()
     expressions["mobile_os"] = get_mobile_os_case_statement()
     expressions["streetcomplete_quest"] = get_streetcomplete_quest_case_statement()
+    expressions["maproulette_challenge"] = get_maproulette_challenge_case_statement()
     # split each tag name on ':' and take the first part
     expressions["all_tags"] = "array_distinct(list_transform(map_keys(main.tags), x -> split_part(x, ':', 1)))"
     expressions["organised_team"] = "team_lookup.team"
