@@ -299,7 +299,7 @@ def test_expression_mobile_os(db, expressions):
 def test_expression_streetcomplete_quest(db, expressions):
     """Test StreetComplete quest type normalization."""
     db.execute("""
-        CREATE OR REPLACE TABLE  main AS SELECT * FROM VALUES 
+        CREATE OR REPLACE TABLE main AS SELECT * FROM VALUES 
             (map(['created_by', 'StreetComplete:quest_type'], ['StreetComplete', 'AddAccessibleForPedestrians'])),
             (map(['created_by', 'StreetComplete:quest_type'], ['StreetComplete', 'AddWheelChairAccessPublicTransport'])),
             (map(['created_by', 'StreetComplete:quest_type'], ['StreetComplete', 'AddWheelChairAccessToilets'])),
@@ -321,6 +321,25 @@ def test_expression_streetcomplete_quest(db, expressions):
     ]
 
     results = run_query(db, expressions["streetcomplete_quest"])
+    assert expected_results == results
+
+def test_expression_maproulette_challenge(db, expressions):
+    """Test MapRoulette challenge extraction."""
+    db.execute("""
+        CREATE OR REPLACE TABLE main AS SELECT * FROM VALUES 
+            (map(['comment'], ['Fixed foos and bars #maproulette mpr.lt/c/1234/t/5678'])), -- a typical MR challenge
+            (map(['comment'], ['Drew some new roads'])),  -- no challenge
+            (map()::MAP(VARCHAR, VARCHAR)),  -- null (no comment)
+        AS t(tags)
+    """)
+
+    expected_results = [
+        1234, # MR challenge id
+        None,  # no challenge
+        None,  # no comment
+    ]
+
+    results = run_query(db, expressions["maproulette_challenge"])
     assert expected_results == results
 
 

@@ -134,9 +134,9 @@ def get_streetcomplete_quest_case_statement():
 def get_maproulette_challenge_case_statement():
     return f"""
     CASE 
-        WHEN main.tags['comment'] IS NOT NULL AND main.tags['comment'] ~ 'mpr\.lt/c/\\d+/' 
+        WHEN main.tags['comment'] IS NOT NULL
         THEN (
-            SELECT (regexp_matches(main.tags['comment'], 'mpr\.lt/c/(\\d+)/'))[1]
+            SELECT TRY_CAST(regexp_extract(main.tags['comment'], 'mpr\.lt/c/(\\d+)/', ['ch'])['ch'] AS INTEGER)
         )
         ELSE NULL
     END
