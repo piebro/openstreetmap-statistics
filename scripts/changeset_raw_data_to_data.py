@@ -131,16 +131,18 @@ def get_streetcomplete_quest_case_statement():
     END
     """
 
+
 def get_maproulette_challenge_case_statement():
-    return f"""
+    return """
     CASE 
         WHEN main.tags['comment'] IS NOT NULL
         THEN (
-            SELECT TRY_CAST(regexp_extract(main.tags['comment'], 'mpr\.lt/c/(\\d+)/', ['ch'])['ch'] AS INTEGER)
+            SELECT TRY_CAST(regexp_extract(main.tags['comment'], 'mpr\.lt/c/(\\d+)', ['ch'])['ch'] AS INTEGER)
         )
         ELSE NULL
     END
     """
+
 
 def create_organised_team_lookup_table():
     """Create a temporary table for efficient organised team user mapping."""

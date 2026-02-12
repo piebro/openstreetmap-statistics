@@ -323,19 +323,24 @@ def test_expression_streetcomplete_quest(db, expressions):
     results = run_query(db, expressions["streetcomplete_quest"])
     assert expected_results == results
 
+
 def test_expression_maproulette_challenge(db, expressions):
     """Test MapRoulette challenge extraction."""
     db.execute("""
         CREATE OR REPLACE TABLE main AS SELECT * FROM VALUES 
             (map(['comment'], ['Fixed foos and bars #maproulette mpr.lt/c/1234/t/5678'])), -- a typical MR challenge
+            (map(['comment'], ['Fixed foos and bars #maproulette mpr.lt/c/5678'])), -- MR challenge without task path
             (map(['comment'], ['Drew some new roads'])),  -- no challenge
+            (map(['comment'], ['check mpr.lt/c/ for details'])),  -- malformed MR link
             (map()::MAP(VARCHAR, VARCHAR)),  -- null (no comment)
         AS t(tags)
     """)
 
     expected_results = [
-        1234, # MR challenge id
+        1234,  # MR challenge id
+        5678,  # MR challenge without task path
         None,  # no challenge
+        None,  # malformed MR link
         None,  # no comment
     ]
 
