@@ -4,6 +4,11 @@ on:
     # At 08:00 on every Monday
     - cron: '0 8 * * 1'
   workflow_dispatch:
+    inputs:
+      process_all_months:
+        description: 'Process all months instead of only the last complete month'
+        type: boolean
+        default: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,8 +58,11 @@ jobs:
       - name: Enrich changeset table
         if: env.RUN_JOBS == 'true'
         run: |
-          # Run enrichment for the last complete month
-          uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data --last-complete-month
+          if [ "${{ inputs.process_all_months }}" == "true" ]; then
+            uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data
+          else
+            uv run scripts/changeset_raw_data_to_data.py changeset_data_raw changeset_data --last-complete-month
+          fi
 
       - name: Download latest notes
         if: env.RUN_JOBS == 'true'
