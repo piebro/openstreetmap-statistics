@@ -179,10 +179,15 @@ class NotesParser:
     def parse_file(self, file_path):
         """Parse OSM notes bz2 XML file using iterparse for memory efficiency"""
         with bz2.open(file_path, "rb") as file_handle:
-            context = ET.iterparse(file_handle, events=("end",))
+            context = ET.iterparse(file_handle, events=("start", "end"))
+            root = None
             for event, elem in context:
-                if elem.tag == "note":
+                if event == "start" and root is None:
+                    root = elem
+                    continue
+                if event == "end" and elem.tag == "note":
                     self._process_note(elem)
+                    root.remove(elem)
 
     def finalize(self):
         """Save any remaining data in the final batches"""
