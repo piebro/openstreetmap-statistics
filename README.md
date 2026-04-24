@@ -206,6 +206,22 @@ Look at "AGENTS.md" and "notebooks/source.ipynb" and create a new notebook calle
 
 There is lightweight tracking with [Plausible](https://plausible.io/about) for the [website](https://piebro.github.io/openstreetmap-statistics/) to get info about how many people are visiting. Everyone who is interested can look at these stats here: https://plausible.io/piebro.github.io%2Fopenstreetmap-statistics?period=30d. Only users with no AdBlocker are counted as far as I know, so these statistics are underestimating the actual count of visitors. I would guess that quite a few people (including me) visiting the site have an AdBlocker.
 
+## Citation
+
+If you use this project or the dataset in academic work, you can cite it as:
+
+```bibtex
+@misc{broemmel_openstreetmap_statistics,
+  author       = {Br{\"o}mmel, Piet},
+  title        = {OpenStreetMap Statistics},
+  year         = {2026},
+  howpublished = {\url{https://github.com/piebro/openstreetmap-statistics}},
+  note         = {Dataset: \url{https://huggingface.co/datasets/piebro/osm-data}}
+}
+```
+
+The underlying data is © OpenStreetMap contributors, available under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/), and should be attributed accordingly.
+
 ## License
 
 All code in this project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. All maps and plots in this project are licensed under [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
