@@ -25,6 +25,7 @@ def build_pages_list(all_notebooks):
         if "_" in display_name and display_name.split("_")[0].isdigit():
             display_name = "_".join(display_name.split("_")[1:])
         display_name = display_name.replace("_", " ").title()
+        display_name = display_name.replace("Streetcomplete", "StreetComplete")
 
         pages.append({"name": nb_name, "filename": nb_name, "display_name": display_name})
 
